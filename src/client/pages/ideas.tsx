@@ -67,17 +67,20 @@ export default function Ideas() {
     setIdeas((prev) => prev.filter((idea) => idea.id !== id));
   }
 
-  const [sortKey, setSortKey] = useState<"newest" | "oldest" | "top" | "rep">("newest");
+  // Sorting state { key: "time" | "rating", dir: "asc" | "desc" }
+  const [sort, setSort] = useState<{ key: "time" | "rating"; dir: "asc" | "desc" }>({
+    key: "time",
+    dir: "desc", // newest first by default
+  });
 
   const sortedIdeas = [...ideas].sort((a, b) => {
-    switch (sortKey) {
-      case "oldest":
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      case "top":
-        return (b.score ?? 0) - (a.score ?? 0);
-      default:
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    if (sort.key === "time") {
+      const diff = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      return sort.dir === "asc" ? diff : -diff;
     }
+    // rating
+    const diff = (a.score ?? 0) - (b.score ?? 0);
+    return sort.dir === "asc" ? diff : -diff;
   });
 
   return (
@@ -107,22 +110,32 @@ export default function Ideas() {
         {/* Filter bar */}
         <div className="flex flex-wrap items-center gap-3 sticky top-16 z-10 bg-gray-50 dark:bg-gray-900 py-2 my-6">
           {[
-            { key: "newest", label: "Time" },
-            { key: "top", label: "Rating" },
-            { key: "oldest", label: "Oldest" },
-          ].map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setSortKey(f.key as any)}
-              className={`px-4 py-1 rounded-full border text-sm font-medium transition-colors ${
-                sortKey === f.key
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
+            { key: "time", label: "Time" },
+            { key: "rating", label: "Rating" },
+          ].map((btn) => {
+            const isActive = sort.key === btn.key;
+            const arrow = isActive && sort.dir === "asc" ? "↑" : "↓";
+            return (
+              <button
+                key={btn.key}
+                onClick={() =>
+                  setSort((prev) => {
+                    if (prev.key === btn.key) {
+                      return { ...prev, dir: prev.dir === "asc" ? "desc" : "asc" };
+                    }
+                    return { key: btn.key as any, dir: "desc" };
+                  })
+                }
+                className={`px-4 py-1 rounded-full border text-sm font-medium transition-colors ${
+                  isActive
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                }`}
+              >
+                {btn.label} {arrow}
+              </button>
+            );
+          })}
         </div>
 
         {/* Ideas grid */}
