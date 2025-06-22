@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import AddIdeaCard from "@client/components/AddIdeaCard";
+import IdeaCard from "@client/components/IdeaCard";
+import TopVotedArea from "@client/components/TopVotedArea";
 
 // NOTE: Route helper types will be generated automatically by React Router dev.
 import type { Route } from "./+types/ideas";
@@ -15,6 +17,11 @@ interface Idea {
   id: number;
   text: string;
   created_at: string;
+  score?: number;
+  author?: {
+    name: string;
+    avatar_url?: string | null;
+  };
 }
 
 export default function Ideas() {
@@ -60,9 +67,22 @@ export default function Ideas() {
     setIdeas((prev) => prev.filter((idea) => idea.id !== id));
   }
 
+  const [sortKey, setSortKey] = useState<"newest" | "oldest" | "top" | "rep">("newest");
+
+  const sortedIdeas = [...ideas].sort((a, b) => {
+    switch (sortKey) {
+      case "oldest":
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case "top":
+        return (b.score ?? 0) - (a.score ?? 0);
+      default:
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
+  });
+
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4 py-12 max-w-6xl">
+      <div className="w-full px-6 py-12 max-w-none mx-auto">
         {/* Page header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl lg:text-6xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-300 dark:to-purple-300 bg-clip-text text-transparent mb-4">
@@ -73,43 +93,58 @@ export default function Ideas() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          {/* Input on the left */}
-          <AddIdeaCard onSubmit={handleAddIdea} />
-
-          {/* Ideas list on the right */}
-          <div className="space-y-4">
-            {loading ? (
-              <p className="text-gray-600 dark:text-gray-400">Loading ideas…</p>
-            ) : error ? (
-              <p className="text-red-600 dark:text-red-400">{error}</p>
-            ) : ideas.length === 0 ? (
-              <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-inner">
-                <p className="text-gray-600 dark:text-gray-400">No ideas yet. Be the first to add one!</p>
-              </div>
-            ) : (
-              <ul className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
-                {ideas.map((idea) => (
-                  <li key={idea.id} className="relative group bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 border border-gray-100 dark:border-gray-700">
-                    <p className="text-gray-900 dark:text-white whitespace-pre-wrap mb-2">{idea.text}</p>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {new Date(idea.created_at).toLocaleString()}
-                    </span>
-                    <button
-                      onClick={() => handleDeleteIdea(idea.id)}
-                      className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500"
-                      aria-label="Delete idea"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+          {/* Input */}
+          <div className="lg:col-span-4">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Share an Idea</h2>
+            <AddIdeaCard onSubmit={handleAddIdea} hideTitle />
           </div>
+
+          {/* Top voted */}
+          <TopVotedArea ideas={ideas} />
         </div>
+
+        {/* Filter bar */}
+        <div className="flex flex-wrap items-center gap-3 sticky top-16 z-10 bg-gray-50 dark:bg-gray-900 py-2 my-6">
+          {[
+            { key: "newest", label: "Time" },
+            { key: "top", label: "Rating" },
+            { key: "oldest", label: "Oldest" },
+          ].map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setSortKey(f.key as any)}
+              className={`px-4 py-1 rounded-full border text-sm font-medium transition-colors ${
+                sortKey === f.key
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Ideas grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-6">
+          {sortedIdeas.map((idea) => (
+            <IdeaCard
+              key={idea.id}
+              id={idea.id}
+              text={idea.text}
+              created_at={idea.created_at}
+              score={idea.score}
+              author={idea.author}
+            />
+          ))}
+        </div>
+
+        {/* Loading / error handling */}
+        {loading ? (
+          <p className="text-gray-600 dark:text-gray-400">Loading ideas…</p>
+        ) : error ? (
+          <p className="text-red-600 dark:text-red-400">{error}</p>
+        ) : null}
       </div>
     </main>
   );

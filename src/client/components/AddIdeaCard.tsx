@@ -2,9 +2,10 @@ import { useState } from "react";
 
 interface AddIdeaCardProps {
   onSubmit: (idea: string) => Promise<void> | void;
+  hideTitle?: boolean;
 }
 
-export default function AddIdeaCard({ onSubmit }: AddIdeaCardProps) {
+export default function AddIdeaCard({ onSubmit, hideTitle = false }: AddIdeaCardProps) {
   const [ideaText, setIdeaText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -20,22 +21,24 @@ export default function AddIdeaCard({ onSubmit }: AddIdeaCardProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 lg:p-8 border border-gray-100 dark:border-gray-700">
-      <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-        Share an Idea
-      </h2>
+    <div className="flex flex-col bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 lg:p-8 border border-gray-100 dark:border-gray-700">
+      {!hideTitle && (
+        <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+          Share an Idea
+        </h2>
+      )}
       <textarea
         value={ideaText}
         onChange={(e) => setIdeaText(e.target.value)}
         rows={5}
         placeholder="Type your next big idea here…"
-        className="w-full px-4 py-3 text-base bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 transition-all duration-200 placeholder-gray-500 dark:placeholder-gray-500"
+        className="flex-1 min-h-0 w-full px-4 py-3 text-base bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 transition-all duration-200 placeholder-gray-500 dark:placeholder-gray-500 resize-none"
         disabled={isSubmitting}
       />
       <button
         onClick={handleSubmit}
         disabled={!ideaText.trim() || isSubmitting}
-        className="mt-4 w-full relative group overflow-hidden rounded-xl px-6 py-4 font-semibold text-white transition-all duration-300 disabled:cursor-not-allowed"
+        className="mt-4 w-full sm:w-auto relative group overflow-hidden rounded-xl px-6 py-4 font-semibold text-white transition-all duration-300 disabled:cursor-not-allowed"
       >
         <div
           className={`absolute inset-0 transition-all duration-300 ${
