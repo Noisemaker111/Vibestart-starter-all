@@ -1,20 +1,4 @@
 import { z } from "zod";
-import { type SelectInstrument, type InsertInstrument } from "@server/db/schema";
-
-// Use Drizzle inferred types
-export type Instrument = SelectInstrument;
-export type NewInstrument = InsertInstrument;
-
-// Form validation schemas
-export const InstrumentFormSchema = z.object({
-  name: z.string().min(1, "Instrument name is required").max(100, "Name must be less than 100 characters"),
-  image_url: z.string().url("Must be a valid URL").optional().nullable(),
-});
-
-export const CreateInstrumentSchema = z.object({
-  name: z.string().min(1, "Instrument name is required").max(100, "Name must be less than 100 characters"),
-  image_url: z.string().url("Must be a valid URL"),
-});
 
 // Waitlist form
 export const WaitlistSchema = z.object({
@@ -33,13 +17,7 @@ export interface ApiResponse<T> {
   success: boolean;
 }
 
-export interface InstrumentListResponse extends ApiResponse<Instrument[]> {}
-
-export interface InstrumentResponse extends ApiResponse<Instrument> {}
-
 // Form types
-export type InstrumentFormData = z.infer<typeof InstrumentFormSchema>;
-export type CreateInstrumentData = z.infer<typeof CreateInstrumentSchema>;
 export type WaitlistFormData = z.infer<typeof WaitlistSchema>;
 
 // Upload types
@@ -63,14 +41,12 @@ export interface User {
   };
 }
 
-// Component prop types
-export interface InstrumentCardProps {
-  instrument: Instrument;
-  onDelete: (id: number) => void;
-}
+// Idea submission
+export const IdeaSchema = z.object({
+  text: z
+    .string()
+    .min(1, "Idea is required")
+    .max(1000, "Idea is too long (max 1000 characters)"),
+});
 
-export interface InstrumentFormProps {
-  onSubmit: (data: CreateInstrumentData) => void;
-  loading?: boolean;
-  error?: string | null;
-} 
+export type IdeaFormData = z.infer<typeof IdeaSchema>; 

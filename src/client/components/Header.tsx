@@ -10,13 +10,12 @@ export function Header() {
   const navItems = session 
     ? [
         { href: "/", label: "Home" },
-        { href: "/showcase", label: "Demo" },
-        { href: "/features", label: "Features" },
+        { href: "/ideas", label: "ideas" },
         { href: "/docs", label: "Docs" },
       ]
     : [
         { href: "/", label: "Home" },
-        { href: "/features", label: "Features" },
+        { href: "/ideas", label: "Ideas" },
         { href: "/docs", label: "Documentation" },
         { href: "https://github.com/yourusername/jonstack", label: "GitHub", external: true },
       ];
