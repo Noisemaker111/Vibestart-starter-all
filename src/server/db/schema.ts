@@ -19,6 +19,9 @@ export type SelectWaitlist = typeof waitlistTable.$inferSelect;
 export const ideasTable = pgTable('ideas', {
   id: serial('id').primaryKey(),
   text: text('text').notNull(),
+  user_id: uuid('user_id'),
+  author_name: text('author_name'),
+  author_avatar_url: text('author_avatar_url'),
   created_at: timestamp('created_at').notNull().defaultNow(),
 });
 

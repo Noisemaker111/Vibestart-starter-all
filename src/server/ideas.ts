@@ -12,8 +12,22 @@ export async function action({ request }: Route.ActionArgs) {
   try {
     const data = await request.json();
     const parsed = IdeaSchema.parse(data);
-    const created = await createIdea({ text: parsed.text });
-    return new Response(JSON.stringify({ success: true, idea: created }), {
+    const created = await createIdea({
+      text: parsed.text,
+      user_id: parsed.user_id ?? null,
+      author_name: parsed.author_name ?? null,
+      author_avatar_url: parsed.author_avatar_url ?? null,
+    });
+
+    const ideaResponse = {
+      ...created,
+      author: {
+        name: created.author_name ?? "Anon",
+        avatar_url: created.author_avatar_url ?? null,
+      },
+    };
+
+    return new Response(JSON.stringify({ success: true, idea: ideaResponse }), {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
@@ -29,7 +43,15 @@ export async function action({ request }: Route.ActionArgs) {
 
 export async function loader({}: Route.LoaderArgs): Promise<Response> {
   try {
-    const ideas = await listIdeas();
+    const ideasRaw = await listIdeas();
+    const ideas = ideasRaw.map((i) => ({
+      ...i,
+      author: {
+        name: i.author_name ?? "Anon",
+        avatar_url: i.author_avatar_url ?? null,
+      },
+    }));
+
     return new Response(JSON.stringify({ success: true, ideas }), {
       headers: { "Content-Type": "application/json" },
     });

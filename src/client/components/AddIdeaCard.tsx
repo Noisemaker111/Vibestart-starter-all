@@ -1,19 +1,30 @@
 import { useState } from "react";
+import { useAuth } from "@client/context/AuthContext";
 
 interface AddIdeaCardProps {
-  onSubmit: (idea: string) => Promise<void> | void;
+  onSubmit: (data: any) => Promise<void> | void;
   hideTitle?: boolean;
 }
 
 export default function AddIdeaCard({ onSubmit, hideTitle = false }: AddIdeaCardProps) {
   const [ideaText, setIdeaText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { session } = useAuth();
 
   async function handleSubmit() {
     if (!ideaText.trim()) return;
     setIsSubmitting(true);
     try {
-      await onSubmit(ideaText.trim());
+      const authorPayload = session
+        ? {
+            user_id: session.user.id,
+            author_name:
+              (session.user.user_metadata?.full_name || session.user.email) ?? "Anon",
+            author_avatar_url: session.user.user_metadata?.avatar_url ?? null,
+          }
+        : {};
+
+      await onSubmit({ text: ideaText.trim(), ...authorPayload } as any);
       setIdeaText("");
     } finally {
       setIsSubmitting(false);

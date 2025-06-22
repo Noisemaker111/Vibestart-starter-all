@@ -46,12 +46,12 @@ export default function Ideas() {
     fetchIdeas();
   }, []);
 
-  async function handleAddIdea(text: string) {
+  async function handleAddIdea(data: { text: string; user_id?: string; author_name?: string; author_avatar_url?: string | null }) {
     try {
       const res = await fetch("/api/ideas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify(data),
       });
       const json = await res.json();
       if (!json.success) throw new Error(json.error || "Failed to submit idea");

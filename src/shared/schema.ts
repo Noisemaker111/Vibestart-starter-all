@@ -47,6 +47,9 @@ export const IdeaSchema = z.object({
     .string()
     .min(1, "Idea is required")
     .max(1000, "Idea is too long (max 1000 characters)"),
+  user_id: z.string().uuid().optional(),
+  author_name: z.string().optional(),
+  author_avatar_url: z.string().url().optional().nullable(),
 });
 
 export type IdeaFormData = z.infer<typeof IdeaSchema>; 
