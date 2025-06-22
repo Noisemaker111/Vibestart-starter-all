@@ -6,11 +6,13 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
-
 import type { Route } from "./+types/root";
-import "./app.css";
+import appStylesHref from "@shared/app.css?url";
+import { AuthProvider } from "@client/context/AuthContext";
+import { Header } from "@client/components/Header";
 
 export const links: Route.LinksFunction = () => [
+  { rel: "stylesheet", href: appStylesHref },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
     rel: "preconnect",
@@ -32,8 +34,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body>
-        {children}
+      <body className="bg-gray-50 dark:bg-gray-900">
+        <AuthProvider>
+          <Header />
+          {children}
+        </AuthProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -72,4 +77,4 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
       )}
     </main>
   );
-}
+} 

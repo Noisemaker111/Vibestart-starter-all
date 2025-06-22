@@ -1,0 +1,147 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Drizzle ORM Rules
+
+## Core Files
+- [app/db/index.ts](mdc:app/db/index.ts) - Database connection
+- [app/db/schema.ts](mdc:app/db/schema.ts) - Table schemas
+- [app/db/queries/instruments.ts](mdc:app/db/queries/instruments.ts) - CRUD operations
+- [drizzle.config.ts](mdc:drizzle.config.ts) - Migration config
+
+## Scripts
+- `npm run db:generate` - Generate migrations
+- `npm run db:push` - Push schema to DB
+- `npm run db:studio` - Open GUI
+
+## Key Rules
+1. **Always filter by user_id** for security
+2. **Import query functions**, not db client in components
+3. **Use Drizzle types** from schema inference
+4. **Wrap operations** in try-catch blocks
+
+## Query Pattern
+```typescript
+// ✅ Correct
+const instruments = await db
+  .select()
+  .from(instrumentsTable)
+  .where(eq(instrumentsTable.user_id, userId));
+```
+
+## Component Usage
+```typescript
+// ✅ Import queries
+import { getInstrumentsByUserId } from "~/db/queries/instruments";
+
+// ❌ Don't import db directly
+import { db } from "~/db/index";
+```
+
+## Schema Patterns
+
+### Table Definition
+```typescript
+export const instrumentsTable = pgTable('instruments', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  image_url: text('image_url'),
+  user_id: uuid('user_id').notNull(), // References auth.users(id)
+  created_at: timestamp('created_at').notNull().defaultNow(),
+  updated_at: timestamp('updated_at').notNull().defaultNow().$onUpdate(() => new Date()),
+});
+```
+
+### Type Inference
+Always use Drizzle's type inference:
+```typescript
+export type InsertInstrument = typeof instrumentsTable.$inferInsert;
+export type SelectInstrument = typeof instrumentsTable.$inferSelect;
+```
+
+## Query Patterns
+
+### User Isolation
+All queries MUST include user_id filtering for security:
+```typescript
+// ✅ Correct - filters by user_id
+const instruments = await db
+  .select()
+  .from(instrumentsTable)
+  .where(eq(instrumentsTable.user_id, userId));
+
+// ❌ Wrong - no user filtering
+const instruments = await db.select().from(instrumentsTable);
+```
+
+### CRUD Operations
+- **Create**: Use `.returning()` to get inserted data
+- **Read**: Always filter by user_id first
+- **Update**: Include user_id in WHERE clause + set updated_at
+- **Delete**: Include user_id in WHERE clause
+
+### Error Handling
+Wrap all database operations in try-catch blocks:
+```typescript
+try {
+  const result = await dbOperation();
+  return result;
+} catch (error) {
+  console.error('Database error:', error);
+  throw new Error('Operation failed');
+}
+```
+
+## Migration Workflow
+
+1. **Modify Schema**: Update [app/db/schema.ts](mdc:app/db/schema.ts)
+2. **Generate Migration**: `npm run db:generate`
+3. **Review Migration**: Check generated SQL in `drizzle/migrations/`
+4. **Apply Changes**: `npm run db:push` (dev) or `npm run db:migrate` (prod)
+
+## Integration with Components
+
+### In React Components
+Import query functions, not the database client:
+```typescript
+// ✅ Correct
+import { getInstrumentsByUserId, createInstrument } from "~/db/queries/instruments";
+
+// ❌ Wrong
+import { db } from "~/db/index";
+```
+
+### Type Safety
+Use Drizzle-inferred types in [app/lib/schema.ts](mdc:app/lib/schema.ts):
+```typescript
+import { type SelectInstrument } from "~/db/schema";
+export type Instrument = SelectInstrument;
+```
+
+## Environment Setup
+
+Required environment variables in `.env.local`:
+```env
+DATABASE_URL=postgresql://username:password@host:port/database
+```
+
+## Security Rules
+
+1. **Always filter by user_id** - No global queries
+2. **Use transactions** for multi-table operations
+3. **Validate input** with Zod before database operations
+4. **Return typed results** using Drizzle inference
+5. **Handle errors gracefully** with proper error messages
+
+## Performance Guidelines
+
+- Use `.limit()` for pagination
+- Create indexes for frequently queried columns
+- Use `.select()` to specify only needed columns
+- Order by `created_at` or `updated_at` for consistent results
+
+This rule applies when working with database operations, schema changes, or query functions.
+
+

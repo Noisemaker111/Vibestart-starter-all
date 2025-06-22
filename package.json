@@ -1,28 +1,42 @@
 {
-  "name": "start-coding",
+  "name": "jonstack",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
+    "typecheck": "react-router typegen && tsc",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@react-router/node": "^7.5.3",
     "@react-router/serve": "^7.5.3",
+    "@supabase/auth-ui-react": "^0.4.7",
+    "@supabase/auth-ui-shared": "^0.1.8",
+    "@supabase/supabase-js": "^2.50.0",
+    "@uploadthing/react": "^7.3.1",
+    "dotenv": "^16.5.0",
+    "drizzle-orm": "^0.44.2",
     "isbot": "^5.1.27",
+    "postgres": "^3.4.7",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router": "^7.5.3"
+    "react-router": "^7.5.3",
+    "uploadthing": "^7.7.2",
+    "zod": "^3.25.67"
   },
   "devDependencies": {
     "@react-router/dev": "^7.5.3",
-    "@tailwindcss/vite": "^4.1.4",
+    "@tailwindcss/vite": "^4.1.10",
     "@types/node": "^20",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
-    "tailwindcss": "^4.1.4",
+    "drizzle-kit": "^0.31.1",
+    "tailwindcss": "^4.1.10",
     "typescript": "^5.8.3",
     "vite": "^6.3.3",
     "vite-tsconfig-paths": "^5.1.4"
