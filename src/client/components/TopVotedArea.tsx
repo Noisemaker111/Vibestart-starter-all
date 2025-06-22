@@ -5,6 +5,7 @@ interface Idea {
   text: string;
   created_at: string;
   score?: number;
+  userVote?: 1 | 0 | -1;
   author?: {
     name: string;
     avatar_url?: string | null;
@@ -13,9 +14,10 @@ interface Idea {
 
 interface TopVotedAreaProps {
   ideas: Idea[];
+  onVote?: (ideaId: number, value: 1 | 0 | -1) => void | Promise<void>;
 }
 
-export default function TopVotedArea({ ideas }: TopVotedAreaProps) {
+export default function TopVotedArea({ ideas, onVote }: TopVotedAreaProps) {
   // Calculate the top 3 ideas by score
   const topIdeas = [...ideas]
     .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
@@ -38,6 +40,8 @@ export default function TopVotedArea({ ideas }: TopVotedAreaProps) {
             score={idea.score}
             author={idea.author}
             tall
+            userVote={(idea as any).userVote}
+            onVote={onVote}
           />
         ))}
       </div>

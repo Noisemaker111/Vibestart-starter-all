@@ -11,6 +11,7 @@ interface IdeaCardProps {
   score?: number;
   // Optional vote handler – returns the new vote value (1 | 0 | -1)
   onVote?: (ideaId: number, value: 1 | 0 | -1) => void | Promise<void>;
+  userVote?: 1 | 0 | -1;
   tall?: boolean;
 }
 
@@ -21,10 +22,11 @@ export default function IdeaCard({
   author,
   score: initialScore = 0,
   onVote,
+  userVote: initialUserVote = 0,
   tall = false,
 }: IdeaCardProps) {
   const [score, setScore] = useState(initialScore);
-  const [userVote, setUserVote] = useState<1 | 0 | -1>(0);
+  const [userVote, setUserVote] = useState<1 | 0 | -1>(initialUserVote);
   const [submitting, setSubmitting] = useState(false);
 
   const heightClass = tall ? "h-80" : "h-60";
@@ -84,18 +86,27 @@ export default function IdeaCard({
           <button
             onClick={() => handleVote(-1)}
             disabled={submitting}
-            className={`w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-              userVote === -1 ? "text-red-600" : "text-gray-500 dark:text-gray-400"
+            className={`w-6 h-6 flex items-center justify-center rounded-full transition-colors ${
+              userVote === -1 ? "text-red-600" : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
             }`}
             aria-label="Down vote"
           >
-            <svg
-              className="w-4 h-4"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path d="M3 7l7 7 7-7" />
-            </svg>
+            {submitting ? (
+              <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M3 7l7 7 7-7" />
+              </svg>
+            )}
           </button>
           <span className="font-medium text-gray-700 dark:text-gray-300 w-8 text-center">
             {score}
@@ -103,18 +114,27 @@ export default function IdeaCard({
           <button
             onClick={() => handleVote(1)}
             disabled={submitting}
-            className={`w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-              userVote === 1 ? "text-blue-600" : "text-gray-500 dark:text-gray-400"
+            className={`w-6 h-6 flex items-center justify-center rounded-full transition-colors ${
+              userVote === 1 ? "text-blue-600" : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
             }`}
             aria-label="Up vote"
           >
-            <svg
-              className="w-4 h-4"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path d="M17 13l-7-7-7 7" />
-            </svg>
+            {submitting ? (
+              <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M17 13l-7-7-7 7" />
+              </svg>
+            )}
           </button>
         </div>
 

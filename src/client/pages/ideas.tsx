@@ -2,6 +2,12 @@ import { useEffect, useState } from "react";
 import AddIdeaCard from "@client/components/AddIdeaCard";
 import IdeaCard from "@client/components/IdeaCard";
 import TopVotedArea from "@client/components/TopVotedArea";
+import { useAuth } from "@client/context/AuthContext";
+import {
+  consumeVoteToken,
+  timeUntilNextToken,
+} from "@client/utils/rateLimit";
+import { LoginModal } from "@client/components/LoginModal";
 
 // NOTE: Route helper types will be generated automatically by React Router dev.
 import type { Route } from "./+types/ideas";
@@ -22,18 +28,23 @@ interface Idea {
     name: string;
     avatar_url?: string | null;
   };
+  userVote?: 1 | 0 | -1;
 }
 
 export default function Ideas() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { session } = useAuth();
+
+  const [loginOpen, setLoginOpen] = useState(false);
 
   // Load ideas on mount
   useEffect(() => {
     async function fetchIdeas() {
       try {
-        const res = await fetch("/api/ideas");
+        const url = session ? `/api/ideas?user_id=${session.user.id}` : "/api/ideas";
+        const res = await fetch(url);
         const json = await res.json();
         if (!json.success) throw new Error(json.error || "Failed to load ideas");
         setIdeas(json.ideas as Idea[]);
@@ -44,7 +55,7 @@ export default function Ideas() {
       }
     }
     fetchIdeas();
-  }, []);
+  }, [session]);
 
   async function handleAddIdea(data: { text: string; user_id?: string; author_name?: string; author_avatar_url?: string | null }) {
     try {
@@ -83,6 +94,32 @@ export default function Ideas() {
     return sort.dir === "asc" ? diff : -diff;
   });
 
+  async function handleVote(ideaId: number, value: 1 | 0 | -1) {
+    if (!session) {
+      // Prompt login modal instead of alert
+      setLoginOpen(true);
+      return;
+    }
+
+    if (!consumeVoteToken(session.user.id)) {
+      const remainingMs = timeUntilNextToken("vote", session.user.id);
+      const secs = Math.ceil(remainingMs / 1000);
+      alert(`Out of votes. Wait ${secs}s for next vote.`);
+      throw new Error("Rate limited");
+    }
+
+    try {
+      await fetch(`/api/ideas/${ideaId}/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value, user_id: session.user.id }),
+      });
+      // no need to update score list because IdeaCard already adjusted locally
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="w-full px-6 py-12 max-w-none mx-auto">
@@ -104,7 +141,7 @@ export default function Ideas() {
           </div>
 
           {/* Top voted */}
-          <TopVotedArea ideas={ideas} />
+          <TopVotedArea ideas={ideas} onVote={handleVote} />
         </div>
 
         {/* Filter bar */}
@@ -148,6 +185,8 @@ export default function Ideas() {
               created_at={idea.created_at}
               score={idea.score}
               author={idea.author}
+              userVote={(idea as any).userVote}
+              onVote={handleVote}
             />
           ))}
         </div>
@@ -158,6 +197,8 @@ export default function Ideas() {
         ) : error ? (
           <p className="text-red-600 dark:text-red-400">{error}</p>
         ) : null}
+
+        <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
       </div>
     </main>
   );

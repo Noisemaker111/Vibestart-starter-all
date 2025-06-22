@@ -1,8 +1,8 @@
-import type { Route } from "@client/pages/+types/api.ideas";
 import { IdeaSchema } from "@shared/schema";
 import { createIdea, listIdeas } from "@server/db/queries/ideas";
+import { getUserVote } from "@server/db/queries/votes";
 
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request }: { request: Request }) {
   if (request.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
@@ -41,16 +41,24 @@ export async function action({ request }: Route.ActionArgs) {
   }
 }
 
-export async function loader({}: Route.LoaderArgs): Promise<Response> {
+export async function loader({ request }: { request: Request }): Promise<Response> {
+  const url = new URL(request.url);
+  const userId = url.searchParams.get("user_id");
   try {
     const ideasRaw = await listIdeas();
-    const ideas = ideasRaw.map((i) => ({
-      ...i,
-      author: {
-        name: i.author_name ?? "Anon",
-        avatar_url: i.author_avatar_url ?? null,
-      },
-    }));
+    const ideas = await Promise.all(
+      ideasRaw.map(async (i) => {
+        const userVote = userId ? await getUserVote(i.id, userId) : 0;
+        return {
+          ...i,
+          author: {
+            name: i.author_name ?? "Anon",
+            avatar_url: i.author_avatar_url ?? null,
+          },
+          userVote,
+        };
+      })
+    );
 
     return new Response(JSON.stringify({ success: true, ideas }), {
       headers: { "Content-Type": "application/json" },

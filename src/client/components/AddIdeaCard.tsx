@@ -1,5 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@client/context/AuthContext";
+import {
+  consumeIdeaToken,
+  getAnonIdeaCooldownMs,
+  getIdeaTokens,
+  timeUntilNextToken,
+  recordAnonIdeaSubmit,
+} from "@client/utils/rateLimit";
 
 interface AddIdeaCardProps {
   onSubmit: (data: any) => Promise<void> | void;
@@ -11,8 +18,36 @@ export default function AddIdeaCard({ onSubmit, hideTitle = false }: AddIdeaCard
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { session } = useAuth();
 
+  // ────────────────────────────────────────────────────────────────────────────
+  // Rate-limit state helpers
+  // ────────────────────────────────────────────────────────────────────────────
+  const userId = session?.user?.id;
+  const [cooldownMs, setCooldownMs] = useState(() =>
+    userId ? 0 : getAnonIdeaCooldownMs()
+  );
+  const [tokensLeft, setTokensLeft] = useState(() =>
+    userId ? getIdeaTokens(userId) : 0
+  );
+
+  // Re-evaluate remaining time / tokens every second
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (!userId) {
+        setCooldownMs(getAnonIdeaCooldownMs());
+      } else {
+        setTokensLeft(getIdeaTokens(userId));
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [userId]);
+
+  const canSubmit = userId ? tokensLeft > 0 : cooldownMs === 0;
+
+  const nextIdeaMs = userId ? timeUntilNextToken("idea", userId) : cooldownMs;
+
   async function handleSubmit() {
     if (!ideaText.trim()) return;
+    if (!canSubmit) return;
     setIsSubmitting(true);
     try {
       const authorPayload = session
@@ -26,6 +61,15 @@ export default function AddIdeaCard({ onSubmit, hideTitle = false }: AddIdeaCard
 
       await onSubmit({ text: ideaText.trim(), ...authorPayload } as any);
       setIdeaText("");
+
+      // Consume rate-limit token
+      if (userId) {
+        consumeIdeaToken(userId);
+        setTokensLeft((t) => Math.max(0, t - 1));
+      } else {
+        recordAnonIdeaSubmit();
+        setCooldownMs(getAnonIdeaCooldownMs());
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -48,7 +92,7 @@ export default function AddIdeaCard({ onSubmit, hideTitle = false }: AddIdeaCard
       />
       <button
         onClick={handleSubmit}
-        disabled={!ideaText.trim() || isSubmitting}
+        disabled={!ideaText.trim() || isSubmitting || !canSubmit}
         className="mt-4 w-full sm:w-auto relative group overflow-hidden rounded-xl px-6 py-4 font-semibold text-white transition-all duration-300 disabled:cursor-not-allowed"
       >
         <div
@@ -80,7 +124,13 @@ export default function AddIdeaCard({ onSubmit, hideTitle = false }: AddIdeaCard
                   clipRule="evenodd"
                 />
               </svg>
-              <span>Submit Idea</span>
+              <span>
+                {canSubmit
+                  ? "Submit Idea"
+                  : userId
+                  ? `No ideas left – wait ${Math.ceil(nextIdeaMs / 1000)}s`
+                  : `Wait ${Math.ceil(cooldownMs / 1000)}s`}
+              </span>
             </>
           )}
         </div>

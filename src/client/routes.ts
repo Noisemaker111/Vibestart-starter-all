@@ -7,4 +7,5 @@ export default [
   route("api/ideas", "./pages/api.ideas.tsx"),
   route("api/uploadthing", "./pages/api.uploadthing.tsx"),
   route("api/waitlist", "./pages/api.waitlist.tsx"),
+  route("api/ideas/:id/vote", "./pages/api.ideas.$id.vote.tsx"),
 ] satisfies RouteConfig; 
