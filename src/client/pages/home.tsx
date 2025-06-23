@@ -106,7 +106,7 @@ export default function Home() {
                 </svg>
               </Link>
               <a 
-                href="https://github.com/yourusername/jonstack" 
+                href="https://github.com/Noisemaker111/jonstack" 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
@@ -305,7 +305,7 @@ if (!session) throw new Response("Unauthorized", { status: 401 });`}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="https://github.com/yourusername/jonstack"
+              href="https://github.com/Noisemaker111/jonstack"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center px-10 py-5 text-lg font-semibold text-gray-900 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl hover:from-yellow-500 hover:to-orange-500 transition-all duration-200 shadow-lg hover:shadow-xl"

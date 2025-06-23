@@ -263,7 +263,7 @@ export default function Docs() {
                           {os === "windows" ? "Open PowerShell (search for 'PowerShell' in Start menu) and run these commands one by one:" : "Open Terminal and run these commands:"}
                         </p>
                         <div className="bg-gray-900 text-gray-300 p-4 rounded-lg overflow-x-auto text-sm">
-                          <code>git clone https://github.com/jonstack/template.git my-app</code><br/>
+                          <code>git clone https://github.com/Noisemaker111/jonstack.git my-app</code><br/>
                           <code>cd my-app</code><br/>
                           <code>npm install</code>
                         </div>
