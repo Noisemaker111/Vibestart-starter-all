@@ -12,12 +12,13 @@ export default function Docs() {
   const [activeSection, setActiveSection] = useState("zero-to-production");
 
   // Track Tech Stack dropdown visibility
-  const [techOpen, setTechOpen] = useState(true);
+  const [techOpen, setTechOpen] = useState(false);
 
   // Leaf-level documentation sections (i.e. selectable pages)
   const leafSections = [
     { id: "zero-to-production", title: "Zero to Production", icon: "💯" },
     { id: "cursor-rules", title: "Cursor Rules", icon: "📐" },
+    { id: "architecture", title: "Tech Stack Overview", icon: "🛠️" },
     { id: "database", title: "Database", icon: "💾" },
     { id: "authentication", title: "Authentication", icon: "🔐" },
     { id: "file-uploads", title: "File Uploads", icon: "📤" },
@@ -57,8 +58,15 @@ export default function Docs() {
 
                 {/* Tech Stack (dropdown) */}
                 <button
-                  onClick={() => setTechOpen((o) => !o)}
-                  className="w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  onClick={() => {
+                    setTechOpen((o) => !o);
+                    setActiveSection("architecture");
+                  }}
+                  className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
+                    activeSection === "architecture"
+                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
                 >
                   <span className="text-lg">🛠️</span>
                   <span className="text-sm flex-1">Tech Stack</span>
@@ -186,9 +194,9 @@ export default function Docs() {
                   </div>
                   
                   <div className="space-y-12">
-                    {/* Step 0 */}
+                    {/* Step 1 */}
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">0</div>
+                      <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">1</div>
                       <div>
                         <h3 className="text-xl font-semibold mb-2">Install Developer Tools</h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
@@ -221,9 +229,9 @@ export default function Docs() {
                       </div>
                     </div>
 
-                    {/* Step 1 */}
+                    {/* Step 2 */}
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">1</div>
+                      <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">2</div>
                       <div>
                         <h3 className="text-xl font-semibold mb-2">Create Your Digital Infrastructure</h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
@@ -246,9 +254,9 @@ export default function Docs() {
                       </div>
                     </div>
 
-                    {/* Step 2 */}
+                    {/* Step 3 */}
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">2</div>
+                      <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">3</div>
                       <div className="flex-1">
                         <h3 className="text-xl font-semibold mb-2">Get the JonStack Template</h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -265,9 +273,9 @@ export default function Docs() {
                       </div>
                     </div>
 
-                    {/* Step 3 */}
+                    {/* Step 4 */}
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">3</div>
+                      <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">4</div>
                       <div className="flex-1">
                         <h3 className="text-xl font-semibold mb-2">Connect Your Services</h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -327,9 +335,9 @@ UPLOADTHING_TOKEN=your_secret_key_from_uploadthing`}
                       </div>
                     </div>
 
-                    {/* Step 4 */}
+                    {/* Step 5 */}
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">4</div>
+                      <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">5</div>
                       <div className="flex-1">
                         <h3 className="text-xl font-semibold mb-2">Start Your App</h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -356,9 +364,9 @@ UPLOADTHING_TOKEN=your_secret_key_from_uploadthing`}
                       </div>
                     </div>
 
-                    {/* Step 5 */}
+                    {/* Step 6 */}
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">5</div>
+                      <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">6</div>
                       <div className="flex-1">
                         <h3 className="text-xl font-semibold mb-2">Deploy to Vercel</h3>
                         <ol className="list-decimal list-inside space-y-1 text-sm">
