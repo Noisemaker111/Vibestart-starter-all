@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import AddIdeaCard from "@client/components/AddIdeaCard";
+import AddIdeaArea from "@client/components/AddIdeaArea";
 import IdeaCard from "@client/components/IdeaCard";
 import TopVotedArea from "@client/components/TopVotedArea";
 import { useAuth } from "@client/context/AuthContext";
@@ -41,6 +41,9 @@ export default function Ideas() {
   });
   const [loginOpen, setLoginOpen] = useState(false);
   const [voteError, setVoteError] = useState<string | null>(null);
+  // Pagination for ideas grid – show 50 ideas (10 rows × 5 cols) per "page"
+  const PAGE_SIZE = 50;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { session } = useAuth();
 
   useEffect(() => {
@@ -198,28 +201,34 @@ export default function Ideas() {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="p-6">
         <div className="text-center">Loading ideas...</div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Ideas</h1>
         <p className="text-gray-600">Share your ideas and vote on others</p>
       </div>
 
-      <AddIdeaCard onSubmit={addIdea} />
+      {/* Add Idea and Top Voted section */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-1 h-full">
+          <AddIdeaArea onSubmit={addIdea} />
+        </div>
+        <div className="lg:col-span-2">
+          <TopVotedArea ideas={sortedIdeas} onVote={handleVote} />
+        </div>
+      </div>
 
       {voteError && (
         <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-md">
           <p className="text-sm text-red-600">{voteError}</p>
         </div>
       )}
-
-      <TopVotedArea ideas={sortedIdeas} />
 
       <div className="mb-6 flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-900">All Ideas</h2>
@@ -243,8 +252,8 @@ export default function Ideas() {
         </div>
       </div>
 
-      <div className="space-y-4">
-        {sortedIdeas.map((idea) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        {sortedIdeas.slice(0, visibleCount).map((idea) => (
           <IdeaCard 
             key={idea.id} 
             id={idea.id}
@@ -257,6 +266,17 @@ export default function Ideas() {
           />
         ))}
       </div>
+
+      {visibleCount < sortedIdeas.length && (
+        <div className="mt-8 text-center">
+          <button
+            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+            className="btn-primary"
+          >
+            Load More
+          </button>
+        </div>
+      )}
 
       {sortedIdeas.length === 0 && (
         <div className="text-center py-12">

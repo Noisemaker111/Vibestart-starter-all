@@ -102,9 +102,22 @@ export interface RateLimitError extends Error {
   retryAfter: number;
 }
 
+// Helper to format seconds as "#h #m #s"
+function formatSeconds(totalSeconds: number): string {
+  const seconds = totalSeconds % 60;
+  const minutesTotal = Math.floor(totalSeconds / 60);
+  const minutes = minutesTotal % 60;
+  const hours = Math.floor(minutesTotal / 60);
+  const parts: string[] = [];
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0 || hours > 0) parts.push(`${minutes}m`);
+  parts.push(`${seconds}s`);
+  return parts.join(" ");
+}
+
 export function createRateLimitError(result: RateLimitResult): RateLimitError {
   const retryAfter = Math.ceil((result.resetTime - Date.now()) / 1000);
-  const error = new Error(`Rate limit exceeded. Try again in ${retryAfter} seconds.`) as RateLimitError;
+  const error = new Error(`Rate limit exceeded. Try again in ${formatSeconds(retryAfter)}.`) as RateLimitError;
   error.code = 'RATE_LIMIT_EXCEEDED';
   error.remaining = result.remaining;
   error.resetTime = result.resetTime;

@@ -184,6 +184,19 @@ export interface RateLimitedFetchOptions extends RequestInit {
   skipRateLimitCheck?: boolean;
 }
 
+// Helper to format seconds to "#h #m #s" (client-side)
+function formatSeconds(totalSeconds: number): string {
+  const seconds = totalSeconds % 60;
+  const minutesTotal = Math.floor(totalSeconds / 60);
+  const minutes = minutesTotal % 60;
+  const hours = Math.floor(minutesTotal / 60);
+  const parts: string[] = [];
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0 || hours > 0) parts.push(`${minutes}m`);
+  parts.push(`${seconds}s`);
+  return parts.join(" ");
+}
+
 export async function rateLimitedFetch(
   url: string,
   options: RateLimitedFetchOptions = {}
@@ -199,7 +212,7 @@ export async function rateLimitedFetch(
   if (!skipRateLimitCheck && rateLimitType && rateLimitIdentifier) {
     if (!canPerformAction(rateLimitType, rateLimitIdentifier)) {
       const timeUntil = getTimeUntilNextAction(rateLimitType, rateLimitIdentifier);
-      throw new Error(`Rate limited. Try again in ${Math.ceil(timeUntil / 1000)} seconds.`);
+      throw new Error(`Rate limited. Try again in ${formatSeconds(Math.ceil(timeUntil / 1000))}.`);
     }
   }
   

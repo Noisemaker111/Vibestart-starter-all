@@ -26,7 +26,7 @@ export default function TopVotedArea({ ideas, onVote }: TopVotedAreaProps) {
   if (topIdeas.length === 0) return null;
 
   return (
-    <div className="lg:col-span-8 space-y-4 flex flex-col h-full">
+    <div className="space-y-4 flex flex-col h-full">
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
         Top Voted
       </h2>
