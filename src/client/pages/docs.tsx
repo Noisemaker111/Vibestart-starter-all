@@ -497,9 +497,8 @@ UPLOADTHING_TOKEN=your_secret_key_from_uploadthing`}
 │   │   ├── vote.ts
 │   │   └── uploadthing.ts
 │   ├── shared/
-│   └── features/
-│       ├── ideas/
-│       └── docs/
+│   │   ├── supabase.ts
+│   │   └── constants.ts
 ├── public/
 ├── package.json
 ├── tailwind.config.js

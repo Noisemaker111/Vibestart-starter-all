@@ -69,9 +69,8 @@ jonstack/
 │   │   ├── vote.ts
 │   │   └── uploadthing.ts
 │   ├── shared/
-│   └── features/
-│       ├── ideas/
-│       └── docs/
+│   │   ├── supabase.ts
+│   │   └── constants.ts
 ├── public/
 ├── package.json
 ├── tailwind.config.js
