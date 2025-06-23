@@ -56,21 +56,19 @@ A production-ready, full-stack web application starter kit with **everything** p
 jonstack/
 ├── src/
 │   ├── client/
-│   │   ├── components/
-│   │   ├── context/
-│   │   ├── pages/
-│   │   └── utils/
+│   │   ├── components/        React UI elements
+│   │   ├── context/           React contexts & providers
+│   │   ├── pages/             Route components
+│   │   └── utils/             Client-side helpers
 │   ├── server/
 │   │   ├── db/
-│   │   │   ├── queries/
-│   │   │   └── schema.ts
-│   │   ├── utils/
-│   │   ├── ideas.ts
-│   │   ├── vote.ts
-│   │   └── uploadthing.ts
+│   │   │   ├── queries/       Query helpers
+│   │   │   └── schema.ts      Drizzle schema
+│   │   ├── utils/             Server helpers
+│   │   └── uploadthing.ts     Upload handlers
 │   ├── shared/
-│   │   ├── supabase.ts
-│   │   └── constants.ts
+│   │   ├── supabase.ts        Shared Supabase init
+│   │   └── constants.ts       App-wide constants
 ├── public/
 ├── package.json
 ├── tailwind.config.js

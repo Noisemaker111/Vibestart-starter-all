@@ -1,0 +1,44 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Below is a minimal template for project-structure.mdc that contains nothing except the live directory map.  
+The assistant’s only responsibility is to keep this map 100 % accurate; no history, no reasons, no follow-up tasks.
+
+```markdown
+<!-- project-structure.mdc — single source of truth for layout     -->
+<!-- The assistant must rewrite the tree below whenever files or   -->
+<!-- folders are added, removed, or renamed.                       -->
+
+# Project Structure — jonstack
+
+jonstack/
+├── src/
+│   ├── client/
+│   │   ├── components/        React UI elements
+│   │   ├── context/           React contexts & providers
+│   │   ├── pages/             Route components
+│   │   └── utils/             Client-side helpers
+│   ├── server/
+│   │   ├── db/
+│   │   │   ├── queries/       Query helpers
+│   │   │   └── schema.ts      Drizzle schema
+│   │   ├── utils/             Server helpers
+│   │   └── uploadthing.ts     Upload handlers
+│   ├── shared/
+│   │   ├── supabase.ts        Shared Supabase init
+│   │   └── constants.ts       App-wide constants
+├── public/
+├── package.json
+├── tailwind.config.js
+├── vite.config.ts
+└── README.md
+```
+
+Agent rule set (not stored in the file, but always enforced):
+
+- Rewrite the entire tree whenever the directory layout changes.  
+- Preserve the comment header and main heading exactly as shown.  
+- Use POSIX paths and two-space indentation under each level.  
+- Include one brief, inline description per folder or file when helpful.
