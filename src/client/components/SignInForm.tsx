@@ -52,7 +52,12 @@ export function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
 
       <button
         type="button"
-        onClick={() => supabase.auth.signInWithOAuth({ provider: "google" })}
+        onClick={() =>
+          supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: { redirectTo: window.location.origin },
+          })
+        }
         className="inline-flex items-center justify-center gap-3 w-full px-6 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
       >
         <svg className="w-5 h-5" viewBox="0 0 533.5 544.3">
@@ -66,7 +71,12 @@ export function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
 
       <button
         type="button"
-        onClick={() => supabase.auth.signInWithOAuth({ provider: "github" })}
+        onClick={() =>
+          supabase.auth.signInWithOAuth({
+            provider: "github",
+            options: { redirectTo: window.location.origin },
+          })
+        }
         className="inline-flex items-center justify-center gap-3 w-full px-6 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors"
       >
         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
