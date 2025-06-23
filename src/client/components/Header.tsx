@@ -7,6 +7,7 @@ export function Header() {
 
   const navItems = [
     { href: "/docs", label: "Docs" },
+    { href: "/test", label: "Test" }
   ];
 
   return (

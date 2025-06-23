@@ -3,13 +3,8 @@ description:
 globs: 
 alwaysApply: true
 ---
-Below is a minimal template for project-structure.mdc that contains nothing except the live directory map.  
-The assistant’s only responsibility is to keep this map 100 % accurate; no history, no reasons, no follow-up tasks.
-
-```markdown
-<!-- project-structure.mdc — single source of truth for layout     -->
-<!-- The assistant must rewrite the tree below whenever files or   -->
-<!-- folders are added, removed, or renamed.                       -->
+-It is at upmost importance to keep CursorDev to keep the live directory map 100 % accurate;
+-Dont add stupid comments on the side the file or folder, just keep it up to date of what it does and what it is used for 
 
 # Project Structure — jonstack
 
@@ -23,7 +18,7 @@ jonstack/
 │   ├── server/
 │   │   ├── db/
 │   │   │   ├── queries/       Query helpers
-│   │   │   └── schema.ts      Drizzle schema
+│   │   │   └── schema.ts      Schema for the entire database of the project (add new / alter tables here)
 │   │   ├── utils/             Server helpers
 │   │   └── uploadthing.ts     Upload handlers
 │   ├── shared/
@@ -34,11 +29,16 @@ jonstack/
 ├── tailwind.config.js
 ├── vite.config.ts
 └── README.md
-```
 
-Agent rule set (not stored in the file, but always enforced):
 
-- Rewrite the entire tree whenever the directory layout changes.  
-- Preserve the comment header and main heading exactly as shown.  
-- Use POSIX paths and two-space indentation under each level.  
-- Include one brief, inline description per folder or file when helpful.
+
+
+
+
+s
+
+
+
+
+
+stupid
