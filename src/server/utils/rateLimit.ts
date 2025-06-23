@@ -31,6 +31,12 @@ export const RATE_LIMITS = {
     maxRequests: 100,
     keyPrefix: "auth_vote",
   },
+  // Anonymous token issuance: limit new anon tokens per IP
+  ANON_TOKEN_ISSUE: {
+    windowMs: 24 * 60 * 60 * 1000, // 24 hours
+    maxRequests: 3,
+    keyPrefix: "anon_token_issue",
+  },
 } as const;
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -125,7 +131,7 @@ export function createRateLimitError(result: RateLimitResult): RateLimitError {
   return error;
 }
 
-async function checkRateLimit(
+export async function checkRateLimit(
   identifier: string,
   config: RateLimitConfig
 ): Promise<RateLimitResult> {

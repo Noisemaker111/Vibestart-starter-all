@@ -53,20 +53,30 @@ A production-ready, full-stack web application starter kit with **everything** p
 ## 📦 What's Included
 
 ```
-JonStack/
+jonstack/
 ├── src/
-│   ├── client/          # React frontend
-│   │   ├── components/  # Reusable UI components
-│   │   ├── pages/       # Route pages
-│   │   ├── context/     # React contexts
-│   │   └── utils/       # Client utilities
-│   ├── server/          # Backend logic
-│   │   ├── db/          # Database setup & queries
+│   ├── client/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── pages/
+│   │   └── utils/
+│   ├── server/
+│   │   ├── db/
+│   │   │   ├── queries/
+│   │   │   └── schema.ts
+│   │   ├── utils/
+│   │   ├── ideas.ts
+│   │   ├── vote.ts
 │   │   └── uploadthing.ts
-│   └── shared/          # Shared types & utilities
-├── public/              # Static assets
-├── drizzle/             # Database migrations
-└── config files...      # Pre-configured tooling
+│   ├── shared/
+│   └── features/
+│       ├── ideas/
+│       └── docs/
+├── public/
+├── package.json
+├── tailwind.config.js
+├── vite.config.ts
+└── README.md
 ```
 
 ## 🚀 Getting Started (Cursor Source Control)
@@ -147,6 +157,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Supabase for the auth infrastructure
 - Drizzle team for the fantastic ORM
 - UploadThing for simple file uploads
+- **Vercel** for the best deployment platform
+- **Cursor** for the best AI IDE
+- **Theo** – creator of T3 and <a href="https://t3.chat/" target="_blank">t3.chat</a>; his videos and community are a huge inspiration 🙌
 - All contributors who help improve this template
 
 ---
@@ -156,7 +169,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 </p>
 
 <p align="center">
-  <a href="https://github.com/yourusername/jonstack">⭐ Star this repo</a> •
+  <a href="https://github.com/Noisemaker111/jonstack">⭐ Star this repo</a> •
   <a href="/docs">📖 Read the docs</a> •
-  <a href="https://github.com/yourusername/jonstack/issues">🐛 Report an issue</a>
+  <a href="https://github.com/Noisemaker111/jonstack/issues">🐛 Report an issue</a>
 </p>

@@ -6,8 +6,11 @@ import {
   checkAuthIdeaLimit, 
   getClientIdentifier,
   createRateLimitError,
-  type RateLimitError 
+  type RateLimitError,
+  RATE_LIMITS,
 } from "@server/utils/rateLimit";
+import { verify as verifyAnonToken, generateSignedToken } from "@server/utils/anonToken";
+import { checkRateLimit } from "@server/utils/rateLimit";
 import { DEFAULT_AVATAR_URL } from "@shared/constants";
 
 // Idea submission schema - moved from shared/schema.ts since it's only used here
@@ -40,38 +43,52 @@ export async function action({ request }: { request: Request }) {
     // ────────────────────────────────────────────────────────────────────────────
     
     let rateLimitResult;
+    let extraHeaders: Record<string, string> = {};
     
     if (parsed.user_id) {
-      // Authenticated user - check auth idea limit
+      // Authenticated user
       rateLimitResult = await checkAuthIdeaLimit(parsed.user_id);
     } else {
-      // Anonymous user - check anon idea limit by IP
-      const clientIp = getClientIdentifier(request);
-      rateLimitResult = await checkAnonIdeaLimit(clientIp);
-    }
-
-    if (!rateLimitResult.allowed) {
-      const error = createRateLimitError(rateLimitResult);
-      return new Response(
-        JSON.stringify({ 
-          error: error.message,
-          code: error.code,
-          remaining: error.remaining,
-          resetTime: error.resetTime,
-          retryAfter: error.retryAfter,
-          success: false 
-        }),
-        {
-          status: 429, // Too Many Requests
-          headers: { 
-            "Content-Type": "application/json",
-            "Retry-After": error.retryAfter.toString(),
-            "X-RateLimit-Limit": rateLimitResult.total.toString(),
-            "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
-            "X-RateLimit-Reset": rateLimitResult.resetTime.toString()
-          },
-        }
+      // Anonymous: use signed cookie, issue if missing
+      const headersToSet: Record<string, string> = {};
+      const rawCookie = request.headers.get("cookie") ?? "";
+      const cookieMap = Object.fromEntries(
+        rawCookie.split(";").map((c) => {
+          const [k, v] = c.trim().split("=");
+          return [k, v];
+        })
       );
+
+      const clientIp = getClientIdentifier(request);
+      let anonId = verifyAnonToken(cookieMap["anon_id"]);
+
+      if (!anonId) {
+        // limit token issuance per IP
+        const tokenIssueLimit = await checkRateLimit(clientIp, RATE_LIMITS.ANON_TOKEN_ISSUE);
+        if (!tokenIssueLimit.allowed) {
+          const error = createRateLimitError(tokenIssueLimit);
+          return new Response(
+            JSON.stringify({ error: error.message, code: error.code, success: false }),
+            { status: 429, headers: { "Content-Type": "application/json" } }
+          );
+        }
+
+        const { id, cookie } = generateSignedToken();
+        anonId = id;
+        headersToSet["Set-Cookie"] = `anon_id=${cookie}; Path=/; Max-Age=2592000; HttpOnly; SameSite=Lax`;
+      }
+
+      rateLimitResult = await checkAnonIdeaLimit(anonId);
+
+      if (!rateLimitResult.allowed) {
+        const error = createRateLimitError(rateLimitResult);
+        return new Response(
+          JSON.stringify({ error: error.message, code: error.code, success: false }),
+          { status: 429, headers: { "Content-Type": "application/json", ...headersToSet } }
+        );
+      }
+
+      extraHeaders = headersToSet;
     }
 
     // ────────────────────────────────────────────────────────────────────────────
@@ -108,7 +125,8 @@ export async function action({ request }: { request: Request }) {
           "Content-Type": "application/json",
           "X-RateLimit-Limit": rateLimitResult.total.toString(),
           "X-RateLimit-Remaining": (rateLimitResult.remaining - 1).toString(),
-          "X-RateLimit-Reset": rateLimitResult.resetTime.toString()
+          "X-RateLimit-Reset": rateLimitResult.resetTime.toString(),
+          ...extraHeaders,
         },
       }
     );
