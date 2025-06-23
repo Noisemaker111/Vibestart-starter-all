@@ -1,5 +1,8 @@
 import { createPortal } from "react-dom";
 import { useAuth } from "@client/context/AuthContext";
+import { UploadButton } from "@client/utils/uploadthing";
+import { supabase } from "@shared/supabase";
+import { DEFAULT_AVATAR_URL } from "@shared/constants";
 
 interface Props {
   open: boolean;
@@ -31,20 +34,51 @@ export function AccountSettingsModal({ open, onClose }: Props) {
         {user ? (
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              {user.user_metadata?.avatar_url ? (
-                <img
-                  src={user.user_metadata.avatar_url}
-                  alt="Avatar"
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-lg font-medium text-gray-700 dark:text-gray-200 uppercase">
-                  {user.email?.[0] ?? "?"}
-                </div>
-              )}
+              <img
+                src={user.user_metadata?.avatar_url || DEFAULT_AVATAR_URL}
+                alt="Avatar"
+                className="w-12 h-12 rounded-full object-cover"
+              />
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">{user.user_metadata?.full_name || user.email}</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+              </div>
+            </div>
+
+            {/* Upload new avatar */}
+            <div className="relative inline-block group">
+              <img
+                src={user.user_metadata?.avatar_url || DEFAULT_AVATAR_URL}
+                alt="Avatar"
+                className="w-24 h-24 rounded-full object-cover border border-gray-200 dark:border-gray-700"
+              />
+
+              {/* Invisible upload trigger covers avatar */}
+              <UploadButton
+                endpoint="imageUploader"
+                onClientUploadComplete={async (res) => {
+                  const url = res?.[0]?.url;
+                  if (!url) return;
+                  await supabase.auth.updateUser({
+                    data: { avatar_url: url },
+                  });
+
+                  // Update avatar URL in all existing ideas
+                  await fetch("/api/user/avatar", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_id: user.id, avatar_url: url }),
+                  });
+                }}
+                onUploadError={(err) => alert("Upload error: " + err.message)}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+
+              {/* Plus icon overlay */}
+              <div className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white border-2 border-white dark:border-gray-800 transition-transform group-hover:scale-105 pointer-events-none">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                </svg>
               </div>
             </div>
 

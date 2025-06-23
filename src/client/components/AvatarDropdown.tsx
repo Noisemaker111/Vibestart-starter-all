@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@shared/supabase";
 import type { User } from "@supabase/supabase-js";
 import { AccountSettingsModal } from "@client/components/AccountSettingsModal";
+import { DEFAULT_AVATAR_URL } from "@shared/constants";
 
 interface Props {
   user: User;
@@ -37,13 +38,11 @@ export function AvatarDropdown({ user }: Props) {
         <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-300 truncate max-w-[120px]">
           {displayName}
         </span>
-        {avatarUrl ? (
-          <img src={avatarUrl} alt="Avatar" className="w-8 h-8 rounded-full object-cover" />
-        ) : (
-          <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700 dark:text-gray-200 uppercase">
-            {displayName?.[0] ?? "?"}
-          </div>
-        )}
+        <img
+          src={avatarUrl || DEFAULT_AVATAR_URL}
+          alt="Avatar"
+          className="w-8 h-8 rounded-full object-cover"
+        />
       </button>
 
       {/* Dropdown */}

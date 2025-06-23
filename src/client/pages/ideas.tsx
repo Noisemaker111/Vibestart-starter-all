@@ -9,6 +9,8 @@ import {
   getTimeUntilNextAction,
 } from "@client/utils/rateLimit";
 import { LoginModal } from "@client/components/LoginModal";
+import { supabase } from "@shared/supabase";
+import { DEFAULT_AVATAR_URL } from "@shared/constants";
 
 // NOTE: Route helper types will be generated automatically by React Router dev.
 import type { Route } from "./+types/ideas";
@@ -69,6 +71,41 @@ export default function Ideas() {
 
     fetchIdeas();
   }, [session]);
+
+  // Realtime subscription for new ideas
+  useEffect(() => {
+    const channel = supabase
+      .channel("ideas-inserts")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "ideas" },
+        (payload) => {
+          const row: any = payload.new;
+          const newIdea: Idea = {
+            id: row.id,
+            text: row.text,
+            score: row.score ?? 0,
+            created_at: row.created_at,
+            author: {
+              name: row.author_name ?? "Anon",
+              avatar_url: row.author_avatar_url ?? DEFAULT_AVATAR_URL,
+            },
+            userVote: 0,
+          };
+
+          setIdeas((prev) => {
+            // Avoid duplicates
+            if (prev.some((i) => i.id === newIdea.id)) return prev;
+            return [newIdea, ...prev];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const sortedIdeas = [...ideas].sort((a, b) => {
     if (sort.key === "time") {
@@ -209,13 +246,9 @@ export default function Ideas() {
 
   return (
     <div className="p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Ideas</h1>
-        <p className="text-gray-600">Share your ideas and vote on others</p>
-      </div>
 
       {/* Add Idea and Top Voted section */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 mb-6">
         <div className="lg:col-span-1 h-full">
           <AddIdeaArea onSubmit={addIdea} />
         </div>
@@ -231,7 +264,7 @@ export default function Ideas() {
       )}
 
       <div className="mb-6 flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-900">All Ideas</h2>
+        <h2 className="text-2xl font-semibold text-purple-600">All Ideas</h2>
         <div className="flex gap-2">
           <select
             value={`${sort.key}-${sort.dir}`}

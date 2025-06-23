@@ -6,6 +6,7 @@ import {
   syncRateLimitFromResponse,
   type RateLimitType,
 } from "@client/utils/rateLimit";
+import { DEFAULT_AVATAR_URL } from "@shared/constants";
 
 interface AddIdeaAreaProps {
   onSubmit: (data: any) => Promise<void> | void;
@@ -54,7 +55,7 @@ export default function AddIdeaArea({ onSubmit }: AddIdeaAreaProps) {
               (session.user.user_metadata?.full_name || session.user.email) ?? "Anon",
             author_avatar_url: session.user.user_metadata?.avatar_url ?? null,
           }
-        : {};
+        : { author_avatar_url: DEFAULT_AVATAR_URL };
 
       const response = await rateLimitedFetch("/api/ideas", {
         method: "POST",
@@ -64,15 +65,25 @@ export default function AddIdeaArea({ onSubmit }: AddIdeaAreaProps) {
         rateLimitIdentifier,
       });
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      let result;
+      if (!response.ok) {
+        // Try extract error message from body
+        try {
+          const body = await response.json();
+          throw new Error(body.error || `HTTP ${response.status}`);
+        } catch (_) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+      } else {
+        result = await response.json();
+      }
 
-      const result = await response.json();
-      if (result.success) {
+      if (result?.success) {
         setIdeaText("");
         await onSubmit(result.idea);
         await syncRateLimitFromResponse(response, rateLimitType, rateLimitIdentifier);
       } else {
-        throw new Error(result.error || "Failed to submit idea");
+        throw new Error(result?.error || "Failed to submit idea");
       }
     } catch (error: any) {
       console.error("Failed to submit idea:", error);
@@ -100,7 +111,7 @@ export default function AddIdeaArea({ onSubmit }: AddIdeaAreaProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 flex flex-col h-full">
+    <div className="bg-white rounded-lg shadow-md p-6 flex flex-col h-full min-h-[22rem]">
       <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
         Share Your Idea
       </h2>

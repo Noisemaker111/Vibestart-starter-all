@@ -8,6 +8,7 @@ import {
   createRateLimitError,
   type RateLimitError 
 } from "@server/utils/rateLimit";
+import { DEFAULT_AVATAR_URL } from "@shared/constants";
 
 // Idea submission schema - moved from shared/schema.ts since it's only used here
 export const IdeaSchema = z.object({
@@ -81,14 +82,14 @@ export async function action({ request }: { request: Request }) {
       text: parsed.text,
       user_id: parsed.user_id ?? null,
       author_name: parsed.author_name ?? null,
-      author_avatar_url: parsed.author_avatar_url ?? null,
+      author_avatar_url: parsed.author_avatar_url ?? (parsed.user_id ? null : DEFAULT_AVATAR_URL),
     });
 
     const ideaResponse = {
       ...created,
       author: {
         name: created.author_name ?? "Anon",
-        avatar_url: created.author_avatar_url ?? null,
+        avatar_url: created.author_avatar_url ?? DEFAULT_AVATAR_URL,
       },
     };
 

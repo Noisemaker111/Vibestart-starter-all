@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { DEFAULT_AVATAR_URL } from "@shared/constants";
 
 interface IdeaCardProps {
   id: number;
@@ -148,13 +149,11 @@ export default function IdeaCard({
 
         {/* Author */}
         <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300 truncate max-w-[120px] sm:max-w-none">
-          {author?.avatar_url ? (
-            <img
-              src={author.avatar_url}
-              alt={author.name}
-              className="w-5 h-5 rounded-full object-cover"
-            />
-          ) : null}
+          <img
+            src={author?.avatar_url || DEFAULT_AVATAR_URL}
+            alt={author?.name}
+            className="w-5 h-5 rounded-full object-cover"
+          />
           <span className="font-medium truncate">{author?.name ?? "Anon"}</span>
         </div>
       </div>
