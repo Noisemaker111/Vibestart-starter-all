@@ -249,7 +249,10 @@ export default function Ideas() {
 
       {/* Add Idea and Top Voted section */}
       <div className="grid gap-6 lg:grid-cols-3 mb-6">
-        <div className="lg:col-span-1 h-full">
+        <div className="lg:col-span-1 h-full space-y-4 flex flex-col">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            Share Your Idea
+          </h2>
           <AddIdeaArea onSubmit={addIdea} />
         </div>
         <div className="lg:col-span-2">
@@ -263,7 +266,7 @@ export default function Ideas() {
         </div>
       )}
 
-      <div className="mb-6 flex justify-between items-center">
+      <div className="mt-10 mb-6 flex justify-between items-center">
         <h2 className="text-2xl font-semibold text-purple-600">All Ideas</h2>
         <div className="flex gap-2">
           <select
@@ -287,8 +290,8 @@ export default function Ideas() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {sortedIdeas.slice(0, visibleCount).map((idea) => (
-          <IdeaCard 
-            key={idea.id} 
+          <IdeaCard
+            key={idea.id}
             id={idea.id}
             text={idea.text}
             created_at={idea.created_at}
@@ -320,4 +323,4 @@ export default function Ideas() {
       <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
     </div>
   );
-} 
+}

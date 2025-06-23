@@ -11,7 +11,6 @@ export function Header() {
   const [loginOpen, setLoginOpen] = useState(false);
 
   const navItems = [
-    { href: "/", label: "Home" },
     { href: "/ideas", label: "Ideas" },
     { href: "/docs", label: "Docs" },
   ];

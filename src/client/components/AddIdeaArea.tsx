@@ -111,11 +111,7 @@ export default function AddIdeaArea({ onSubmit }: AddIdeaAreaProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 flex flex-col h-full min-h-[22rem]">
-      <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-        Share Your Idea
-      </h2>
-
+    <div className="bg-white rounded-lg shadow-md p-6 flex flex-col h-full min-h-[20rem]">
       <div className="space-y-4 flex flex-col flex-1 min-h-0">
         <textarea
           value={ideaText}
