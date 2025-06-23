@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface IdeaCardProps {
   id: number;
@@ -31,6 +31,14 @@ export default function IdeaCard({
 
   const heightClass = tall ? "h-80" : "h-60";
   const clampClass = tall ? "line-clamp-[10]" : "line-clamp-6";
+
+  useEffect(() => {
+    setScore(initialScore);
+  }, [initialScore]);
+
+  useEffect(() => {
+    setUserVote(initialUserVote);
+  }, [initialUserVote]);
 
   async function handleVote(value: 1 | -1) {
     if (submitting) return;

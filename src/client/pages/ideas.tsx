@@ -108,15 +108,42 @@ export default function Ideas() {
       throw new Error("Rate limited");
     }
 
+    // Capture current vote for potential rollback
+    let previousVote: 1 | 0 | -1 = 0;
+    setIdeas((prev) =>
+      prev.map((idea) => {
+        if (idea.id !== ideaId) return idea;
+        previousVote = (idea as any).userVote ?? 0;
+        const diff = value - previousVote;
+        return {
+          ...idea,
+          userVote: value,
+          score: (idea.score ?? 0) + diff,
+        } as Idea;
+      })
+    );
+
     try {
       await fetch(`/api/ideas/${ideaId}/vote`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ value, user_id: session.user.id }),
       });
-      // no need to update score list because IdeaCard already adjusted locally
+      // Server returns new score, but local optimistic update already applied
     } catch (err) {
       console.error(err);
+      // Revert optimistic update on error
+      setIdeas((prev) =>
+        prev.map((idea) => {
+          if (idea.id !== ideaId) return idea;
+          const diff = previousVote - value;
+          return {
+            ...idea,
+            userVote: previousVote,
+            score: (idea.score ?? 0) + diff,
+          } as Idea;
+        })
+      );
     }
   }
 

@@ -18,19 +18,32 @@ const MS = {
   day: 86_400_000,
 };
 
+// At the top of the file, just after the existing comment header, add helper functions for safe localStorage access
+const hasStorage = typeof localStorage !== "undefined";
+
+function lsGet(key: string): string | null {
+  return hasStorage ? localStorage.getItem(key) : null;
+}
+
+function lsSet(key: string, value: string): void {
+  if (hasStorage) {
+    localStorage.setItem(key, value);
+  }
+}
+
 // ────────────────────────────────────────────────────────────────────────────────
 // Anonymous idea submission (per-browser)
 // ────────────────────────────────────────────────────────────────────────────────
 const ANON_IDEA_KEY = "anonIdeaLastTs"; // last submit timestamp (ms)
 
 export function getAnonIdeaCooldownMs(): number {
-  const last = Number(localStorage.getItem(ANON_IDEA_KEY) ?? 0);
+  const last = Number(lsGet(ANON_IDEA_KEY) ?? 0);
   const diff = Date.now() - last;
   return diff >= MS.day ? 0 : MS.day - diff;
 }
 
 export function recordAnonIdeaSubmit(): void {
-  localStorage.setItem(ANON_IDEA_KEY, String(Date.now()));
+  lsSet(ANON_IDEA_KEY, String(Date.now()));
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -58,12 +71,12 @@ function getTokens(type: "idea" | "vote", userId: string): number {
   const tKey = keyTokens(type, userId);
   const rKey = keyRefill(type, userId);
 
-  let tokens = Number(localStorage.getItem(tKey));
-  if (Number.isNaN(tokens) || tokens === 0 && localStorage.getItem(tKey) === null) {
+  let tokens = Number(lsGet(tKey));
+  if (Number.isNaN(tokens) || tokens === 0 && lsGet(tKey) === null) {
     tokens = max; // first sign-in => full bucket
   }
 
-  let lastRefill = Number(localStorage.getItem(rKey));
+  let lastRefill = Number(lsGet(rKey));
   if (Number.isNaN(lastRefill) || lastRefill === 0) {
     lastRefill = Date.now();
   }
@@ -74,15 +87,15 @@ function getTokens(type: "idea" | "vote", userId: string): number {
     const add = Math.floor(elapsed / refillMs);
     tokens = Math.min(max, tokens + add);
     lastRefill += add * refillMs;
-    localStorage.setItem(tKey, String(tokens));
-    localStorage.setItem(rKey, String(lastRefill));
+    lsSet(tKey, String(tokens));
+    lsSet(rKey, String(lastRefill));
   }
   return tokens;
 }
 
 function setTokens(type: "idea" | "vote", userId: string, tokens: number) {
-  localStorage.setItem(keyTokens(type, userId), String(tokens));
-  localStorage.setItem(keyRefill(type, userId), String(Date.now()));
+  lsSet(keyTokens(type, userId), String(tokens));
+  lsSet(keyRefill(type, userId), String(Date.now()));
 }
 
 export function getIdeaTokens(userId: string): number {
@@ -107,7 +120,7 @@ export function consumeVoteToken(userId: string): boolean {
 
 export function timeUntilNextToken(type: "idea" | "vote", userId: string): number {
   const { refillMs } = BUCKETS[type];
-  const lastRefill = Number(localStorage.getItem(keyRefill(type, userId)) ?? Date.now());
+  const lastRefill = Number(lsGet(keyRefill(type, userId)) ?? Date.now());
   const elapsed = Date.now() - lastRefill;
   return elapsed >= refillMs ? 0 : refillMs - elapsed;
 } 

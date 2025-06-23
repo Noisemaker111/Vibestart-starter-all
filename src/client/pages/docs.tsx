@@ -11,17 +11,20 @@ export function meta({}: Route.MetaArgs) {
 export default function Docs() {
   const [activeSection, setActiveSection] = useState("zero-to-production");
 
-  const sections = [
+  // Track Tech Stack dropdown visibility
+  const [techOpen, setTechOpen] = useState(true);
+
+  // Leaf-level documentation sections (i.e. selectable pages)
+  const leafSections = [
     { id: "zero-to-production", title: "Zero to Production", icon: "💯" },
-    { id: "architecture", title: "Architecture", icon: "🏗️" },
-    { id: "authentication", title: "Authentication", icon: "🔐" },
+    { id: "cursor-rules", title: "Cursor Rules", icon: "📐" },
     { id: "database", title: "Database", icon: "💾" },
+    { id: "authentication", title: "Authentication", icon: "🔐" },
     { id: "file-uploads", title: "File Uploads", icon: "📤" },
-    { id: "styling", title: "Styling", icon: "🎨" },
     { id: "deployment", title: "Deployment", icon: "🌐" },
-    { id: "api-reference", title: "API Reference", icon: "📚" },
-    { id: "why-jonstack", title: "Why JonStack?", icon: "🌟" },
-  ];
+    { id: "error", title: "Error Handling", icon: "❌" },
+    { id: "analytics", title: "Analytics", icon: "📊" },
+  ] as const;
 
   // Toggle states for instructions
   const [os, setOs] = useState<"windows" | "mac">("windows");
@@ -36,7 +39,8 @@ export default function Docs() {
             <div className="sticky top-24 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
               <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Documentation</h3>
               <nav className="space-y-2">
-                {sections.map((section) => (
+                {/* Top-level items */}
+                {leafSections.slice(0, 2).map((section) => (
                   <button
                     key={section.id}
                     onClick={() => setActiveSection(section.id)}
@@ -50,6 +54,52 @@ export default function Docs() {
                     <span className="text-sm">{section.title}</span>
                   </button>
                 ))}
+
+                {/* Tech Stack (dropdown) */}
+                <button
+                  onClick={() => setTechOpen((o) => !o)}
+                  className="w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  <span className="text-lg">🛠️</span>
+                  <span className="text-sm flex-1">Tech Stack</span>
+                  <svg
+                    className={`w-3 h-3 transition-transform ${techOpen ? 'rotate-90' : ''}`}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M6 6L14 10L6 14V6Z" />
+                  </svg>
+                </button>
+
+                {techOpen && (
+                  <div className="pl-4 space-y-2">
+                    {leafSections
+                      .filter((s) =>
+                        [
+                          'database',
+                          'authentication',
+                          'file-uploads',
+                          'deployment',
+                          'error',
+                          'analytics',
+                        ].includes(s.id)
+                      )
+                      .map((section) => (
+                        <button
+                          key={section.id}
+                          onClick={() => setActiveSection(section.id)}
+                          className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
+                            activeSection === section.id
+                              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
+                              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                          }`}
+                        >
+                          <span className="text-lg">{section.icon}</span>
+                          <span className="text-sm">{section.title}</span>
+                        </button>
+                      ))}
+                  </div>
+                )}
               </nav>
             </div>
           </aside>
@@ -63,7 +113,7 @@ export default function Docs() {
                 onChange={(e) => setActiveSection(e.target.value)}
                 className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg"
               >
-                {sections.map((section) => (
+                {leafSections.map((section) => (
                   <option key={section.id} value={section.id}>
                     {section.icon} {section.title}
                   </option>
@@ -638,6 +688,51 @@ export async function action({ request }: Route.ActionArgs) {
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     JonStack is currently in <strong>public preview</strong>. We're actively building the AI IDE rule engine, deployment flows, and more. Expect breaking changes until v1.0.
                   </p>
+                </div>
+              )}
+
+              {activeSection === "cursor-rules" && (
+                <div className="prose prose-gray dark:prose-invert max-w-none">
+                  <h1 className="text-3xl font-bold mb-6">Cursor Rules</h1>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    Recommended best-practices when working inside the Cursor IDE.
+                  </p>
+                  <ul className="list-disc pl-6 space-y-2 text-sm">
+                    <li>Keep pull-requests small, focussed, and atomic.</li>
+                    <li>Use exhaustive TypeScript types and Zod schemas for runtime validation.</li>
+                    <li>Prefer pure functions and early returns.</li>
+                    <li>Write structured logs and handle errors exhaustively.</li>
+                    <li>Document complex logic using comments & JSDoc.</li>
+                  </ul>
+                </div>
+              )}
+
+              {activeSection === "error" && (
+                <div className="prose prose-gray dark:prose-invert max-w-none">
+                  <h1 className="text-3xl font-bold mb-6">Error Handling (Boilerplate)</h1>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    Comprehensive error-handling documentation is coming soon. In the meantime, follow these guidelines:
+                  </p>
+                  <ul className="list-disc pl-6 space-y-2 text-sm">
+                    <li>Wrap async operations in <code>try/catch</code> blocks.</li>
+                    <li>Return typed error responses from loaders and actions.</li>
+                    <li>Surface user-friendly messages in the UI.</li>
+                    <li>Log errors to the console in development and to your observability platform in production.</li>
+                  </ul>
+                </div>
+              )}
+
+              {activeSection === "analytics" && (
+                <div className="prose prose-gray dark:prose-invert max-w-none">
+                  <h1 className="text-3xl font-bold mb-6">Analytics (Boilerplate)</h1>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    Analytics integration docs will live here.
+                  </p>
+                  <ul className="list-disc pl-6 space-y-2 text-sm">
+                    <li>Pick a provider (e.g. Plausible, PostHog, Google Analytics).</li>
+                    <li>Add the provider's script tag in <code>root.tsx</code>.</li>
+                    <li>Send custom events from client-side interactions.</li>
+                  </ul>
                 </div>
               )}
             </div>
