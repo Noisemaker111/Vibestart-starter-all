@@ -10,19 +10,11 @@ export function Header() {
   
   const [loginOpen, setLoginOpen] = useState(false);
 
-  // Show a different header for non-authenticated users
-  const navItems = session 
-    ? [
-        { href: "/", label: "Home" },
-        { href: "/ideas", label: "ideas" },
-        { href: "/docs", label: "Docs" },
-      ]
-    : [
-        { href: "/", label: "Home" },
-        { href: "/ideas", label: "Ideas" },
-        { href: "/docs", label: "Documentation" },
-        { href: "https://github.com/yourusername/jonstack", label: "GitHub", external: true },
-      ];
+  const navItems = [
+    { href: "/", label: "Home" },
+    { href: "/ideas", label: "Ideas" },
+    { href: "/docs", label: "Docs" },
+  ];
 
   return (
     <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
@@ -44,23 +36,6 @@ export function Header() {
             {/* Navigation Links */}
             <nav className="hidden md:flex items-center gap-6">
               {navItems.map((item) => {
-                if (item.external) {
-                  return (
-                    <a
-                      key={item.href}
-                      href={item.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-1"
-                    >
-                      {item.label}
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                    </a>
-                  );
-                }
-                
                 const isActive = location.pathname === item.href;
                 return (
                   <Link

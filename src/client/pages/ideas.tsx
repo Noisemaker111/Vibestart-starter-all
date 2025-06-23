@@ -4,8 +4,9 @@ import IdeaCard from "@client/components/IdeaCard";
 import TopVotedArea from "@client/components/TopVotedArea";
 import { useAuth } from "@client/context/AuthContext";
 import {
-  consumeVoteToken,
-  timeUntilNextToken,
+  rateLimitedFetch,
+  syncRateLimitFromResponse,
+  getTimeUntilNextAction,
 } from "@client/utils/rateLimit";
 import { LoginModal } from "@client/components/LoginModal";
 
@@ -22,11 +23,11 @@ export function meta({}: Route.MetaArgs) {
 interface Idea {
   id: number;
   text: string;
+  score: number;
   created_at: string;
-  score?: number;
-  author?: {
+  author: {
     name: string;
-    avatar_url?: string | null;
+    avatar_url: string | null;
   };
   userVote?: 1 | 0 | -1;
 }
@@ -34,55 +35,37 @@ interface Idea {
 export default function Ideas() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [sort, setSort] = useState<{ key: "time" | "rating"; dir: "asc" | "desc" }>({
+    key: "time",
+    dir: "desc",
+  });
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [voteError, setVoteError] = useState<string | null>(null);
   const { session } = useAuth();
 
-  const [loginOpen, setLoginOpen] = useState(false);
-
-  // Load ideas on mount
   useEffect(() => {
     async function fetchIdeas() {
       try {
-        const url = session ? `/api/ideas?user_id=${session.user.id}` : "/api/ideas";
-        const res = await fetch(url);
-        const json = await res.json();
-        if (!json.success) throw new Error(json.error || "Failed to load ideas");
-        setIdeas(json.ideas as Idea[]);
-      } catch (err) {
-        setError((err as Error).message);
+        const url = new URL("/api/ideas", window.location.origin);
+        if (session?.user?.id) {
+          url.searchParams.set("user_id", session.user.id);
+        }
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.success) {
+          setIdeas(data.ideas);
+        }
+      } catch (error) {
+        console.error("Failed to fetch ideas:", error);
       } finally {
         setLoading(false);
       }
     }
+
     fetchIdeas();
   }, [session]);
-
-  async function handleAddIdea(data: { text: string; user_id?: string; author_name?: string; author_avatar_url?: string | null }) {
-    try {
-      const res = await fetch("/api/ideas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || "Failed to submit idea");
-      const created: Idea = json.idea;
-      // Prepend new idea for freshness
-      setIdeas((prev) => [created, ...prev]);
-    } catch (err) {
-      alert((err as Error).message);
-    }
-  }
-
-  function handleDeleteIdea(id: number) {
-    setIdeas((prev) => prev.filter((idea) => idea.id !== id));
-  }
-
-  // Sorting state { key: "time" | "rating", dir: "asc" | "desc" }
-  const [sort, setSort] = useState<{ key: "time" | "rating"; dir: "asc" | "desc" }>({
-    key: "time",
-    dir: "desc", // newest first by default
-  });
 
   const sortedIdeas = [...ideas].sort((a, b) => {
     if (sort.key === "time") {
@@ -96,17 +79,11 @@ export default function Ideas() {
 
   async function handleVote(ideaId: number, value: 1 | 0 | -1) {
     if (!session) {
-      // Prompt login modal instead of alert
       setLoginOpen(true);
       return;
     }
 
-    if (!consumeVoteToken(session.user.id)) {
-      const remainingMs = timeUntilNextToken("vote", session.user.id);
-      const secs = Math.ceil(remainingMs / 1000);
-      alert(`Out of votes. Wait ${secs}s for next vote.`);
-      throw new Error("Rate limited");
-    }
+    setVoteError(null);
 
     // Capture current vote for potential rollback
     let previousVote: 1 | 0 | -1 = 0;
@@ -124,14 +101,42 @@ export default function Ideas() {
     );
 
     try {
-      await fetch(`/api/ideas/${ideaId}/vote`, {
+      // Use unified rate limited fetch
+      const response = await rateLimitedFetch(`/api/ideas/${ideaId}/vote`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ value, user_id: session.user.id }),
+        rateLimitType: 'auth_votes',
+        rateLimitIdentifier: session.user.id,
       });
-      // Server returns new score, but local optimistic update already applied
-    } catch (err) {
-      console.error(err);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Update with actual server score
+        setIdeas((prev) =>
+          prev.map((idea) => {
+            if (idea.id !== ideaId) return idea;
+            return {
+              ...idea,
+              userVote: value,
+              score: result.score,
+            } as Idea;
+          })
+        );
+        
+        // Sync rate limit info from server response
+        await syncRateLimitFromResponse(response, 'auth_votes', session.user.id);
+      } else {
+        throw new Error(result.error || "Failed to vote");
+      }
+    } catch (error: any) {
+      console.error("Failed to vote:", error);
+      
       // Revert optimistic update on error
       setIdeas((prev) =>
         prev.map((idea) => {
@@ -144,80 +149,122 @@ export default function Ideas() {
           } as Idea;
         })
       );
+
+      // Handle rate limit errors specifically
+      if (error.code === 'RATE_LIMIT_EXCEEDED') {
+        const timeUntil = Math.ceil(error.retryAfter);
+        setVoteError(`Out of votes. Next vote in ${timeUntil}s.`);
+        
+        // Clear error after the timeout
+        setTimeout(() => setVoteError(null), error.retryAfter * 1000);
+      } else {
+        setVoteError(error.message || "Failed to vote. Please try again.");
+        setTimeout(() => setVoteError(null), 5000);
+      }
     }
   }
 
-  return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="w-full px-6 py-12 max-w-none mx-auto">
+  async function addIdea(ideaPayload: any) {
+    // Optimistically add the idea to the UI
+    const tempIdea: Idea = {
+      id: Date.now(), // Temporary ID
+      text: ideaPayload.text,
+      score: 0,
+      created_at: new Date().toISOString(),
+      author: {
+        name: ideaPayload.author_name || "Anon",
+        avatar_url: ideaPayload.author_avatar_url || null,
+      },
+      userVote: 0,
+    };
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-          {/* Input */}
-          <div className="lg:col-span-4">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Share an Idea</h2>
-            <AddIdeaCard onSubmit={handleAddIdea} hideTitle />
-          </div>
+    setIdeas((prev) => [tempIdea, ...prev]);
 
-          {/* Top voted */}
-          <TopVotedArea ideas={ideas} onVote={handleVote} />
-        </div>
+    try {
+      // The AddIdeaCard component now handles the server submission
+      // This function is just for updating the local state
+      // Replace the temp idea with the real one from the server
+      setIdeas((prev) =>
+        prev.map((idea) =>
+          idea.id === tempIdea.id ? { ...ideaPayload, userVote: 0 } : idea
+        )
+      );
+    } catch (error) {
+      // Remove the temp idea if submission failed
+      setIdeas((prev) => prev.filter((idea) => idea.id !== tempIdea.id));
+      throw error;
+    }
+  }
 
-        {/* Filter bar */}
-        <div className="flex flex-wrap items-center gap-3 sticky top-16 z-10 bg-gray-50 dark:bg-gray-900 py-2 my-6">
-          {[
-            { key: "time", label: "Time" },
-            { key: "rating", label: "Rating" },
-          ].map((btn) => {
-            const isActive = sort.key === btn.key;
-            const arrow = isActive && sort.dir === "asc" ? "↑" : "↓";
-            return (
-              <button
-                key={btn.key}
-                onClick={() =>
-                  setSort((prev) => {
-                    if (prev.key === btn.key) {
-                      return { ...prev, dir: prev.dir === "asc" ? "desc" : "asc" };
-                    }
-                    return { key: btn.key as any, dir: "desc" };
-                  })
-                }
-                className={`px-4 py-1 rounded-full border text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                }`}
-              >
-                {btn.label} {arrow}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Ideas grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-6">
-          {sortedIdeas.map((idea) => (
-            <IdeaCard
-              key={idea.id}
-              id={idea.id}
-              text={idea.text}
-              created_at={idea.created_at}
-              score={idea.score}
-              author={idea.author}
-              userVote={(idea as any).userVote}
-              onVote={handleVote}
-            />
-          ))}
-        </div>
-
-        {/* Loading / error handling */}
-        {loading ? (
-          <p className="text-gray-600 dark:text-gray-400">Loading ideas…</p>
-        ) : error ? (
-          <p className="text-red-600 dark:text-red-400">{error}</p>
-        ) : null}
-
-        <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="text-center">Loading ideas...</div>
       </div>
-    </main>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Ideas</h1>
+        <p className="text-gray-600">Share your ideas and vote on others</p>
+      </div>
+
+      <AddIdeaCard onSubmit={addIdea} />
+
+      {voteError && (
+        <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-sm text-red-600">{voteError}</p>
+        </div>
+      )}
+
+      <TopVotedArea ideas={sortedIdeas} />
+
+      <div className="mb-6 flex justify-between items-center">
+        <h2 className="text-xl font-semibold text-gray-900">All Ideas</h2>
+        <div className="flex gap-2">
+          <select
+            value={`${sort.key}-${sort.dir}`}
+            onChange={(e) => {
+              const [key, dir] = e.target.value.split("-") as [
+                "time" | "rating",
+                "asc" | "desc"
+              ];
+              setSort({ key, dir });
+            }}
+            className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="time-desc">Newest first</option>
+            <option value="time-asc">Oldest first</option>
+            <option value="rating-desc">Highest rated</option>
+            <option value="rating-asc">Lowest rated</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {sortedIdeas.map((idea) => (
+          <IdeaCard 
+            key={idea.id} 
+            id={idea.id}
+            text={idea.text}
+            created_at={idea.created_at}
+            author={idea.author}
+            score={idea.score}
+            userVote={idea.userVote}
+            onVote={handleVote}
+          />
+        ))}
+      </div>
+
+      {sortedIdeas.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-gray-500">No ideas yet. Be the first to share one!</p>
+        </div>
+      )}
+
+      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+    </div>
   );
 } 

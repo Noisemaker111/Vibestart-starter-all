@@ -1,6 +1,5 @@
 import { Link } from "react-router";
 import type { Route } from "./+types/home";
-import { WaitlistForm } from "@client/components/WaitlistForm";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -292,20 +291,7 @@ if (!session) throw new Response("Unauthorized", { status: 401 });`}
         </div>
       </section>
 
-      {/* Waitlist Section */}
-      <section className="py-20 lg:py-32">
-        <div className="container mx-auto px-4 max-w-3xl text-center">
-          <h2 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
-            Join the Waitlist
-          </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-            Be first in line to get early access, resources, and launch goodies.
-          </p>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl border border-gray-100 dark:border-gray-700">
-            <WaitlistForm />
-          </div>
-        </div>
-      </section>
+
 
       {/* CTA Section */}
       <section className="py-20 lg:py-32 bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-800 dark:to-gray-900">

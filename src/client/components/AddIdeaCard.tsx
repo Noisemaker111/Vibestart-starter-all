@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@client/context/AuthContext";
 import {
-  consumeIdeaToken,
-  getAnonIdeaCooldownMs,
-  getIdeaTokens,
-  timeUntilNextToken,
-  recordAnonIdeaSubmit,
+  rateLimitedFetch,
+  getTimeUntilNextAction,
+  syncRateLimitFromResponse,
+  type RateLimitType,
 } from "@client/utils/rateLimit";
 
 interface AddIdeaCardProps {
@@ -16,39 +15,42 @@ interface AddIdeaCardProps {
 export default function AddIdeaCard({ onSubmit, hideTitle = false }: AddIdeaCardProps) {
   const [ideaText, setIdeaText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rateLimitError, setRateLimitError] = useState<string | null>(null);
+  const [timeUntilNext, setTimeUntilNext] = useState(0);
   const { session } = useAuth();
 
   // ────────────────────────────────────────────────────────────────────────────
-  // Rate-limit state helpers
+  // Rate limiting state
   // ────────────────────────────────────────────────────────────────────────────
   const userId = session?.user?.id;
-  const [cooldownMs, setCooldownMs] = useState(() =>
-    userId ? 0 : getAnonIdeaCooldownMs()
-  );
-  const [tokensLeft, setTokensLeft] = useState(() =>
-    userId ? getIdeaTokens(userId) : 0
-  );
+  const rateLimitType: RateLimitType = userId ? 'auth_ideas' : 'anon_ideas';
+  const rateLimitIdentifier = userId || 'browser';
 
-  // Re-evaluate remaining time / tokens every second
+  // Update time until next action every second
   useEffect(() => {
-    const id = setInterval(() => {
-      if (!userId) {
-        setCooldownMs(getAnonIdeaCooldownMs());
-      } else {
-        setTokensLeft(getIdeaTokens(userId));
+    const updateTimer = () => {
+      const remaining = getTimeUntilNextAction(rateLimitType, rateLimitIdentifier);
+      setTimeUntilNext(remaining);
+      
+      // Clear rate limit error when time expires
+      if (remaining === 0 && rateLimitError) {
+        setRateLimitError(null);
       }
-    }, 1000);
-    return () => clearInterval(id);
-  }, [userId]);
+    };
 
-  const canSubmit = userId ? tokensLeft > 0 : cooldownMs === 0;
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [rateLimitType, rateLimitIdentifier, rateLimitError]);
 
-  const nextIdeaMs = userId ? timeUntilNextToken("idea", userId) : cooldownMs;
+  const canSubmit = timeUntilNext === 0 && ideaText.trim().length > 0;
 
   async function handleSubmit() {
-    if (!ideaText.trim()) return;
-    if (!canSubmit) return;
+    if (!ideaText.trim() || !canSubmit || isSubmitting) return;
+    
     setIsSubmitting(true);
+    setRateLimitError(null);
+
     try {
       const authorPayload = session
         ? {
@@ -59,85 +61,122 @@ export default function AddIdeaCard({ onSubmit, hideTitle = false }: AddIdeaCard
           }
         : {};
 
-      await onSubmit({ text: ideaText.trim(), ...authorPayload } as any);
-      setIdeaText("");
+      // Use unified rate limited fetch
+      const response = await rateLimitedFetch("/api/ideas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: ideaText.trim(), ...authorPayload }),
+        rateLimitType,
+        rateLimitIdentifier,
+      });
 
-      // Consume rate-limit token
-      if (userId) {
-        consumeIdeaToken(userId);
-        setTokensLeft((t) => Math.max(0, t - 1));
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setIdeaText("");
+        await onSubmit(result.idea);
+        
+        // Update rate limit state from server response
+        await syncRateLimitFromResponse(response, rateLimitType, rateLimitIdentifier);
       } else {
-        recordAnonIdeaSubmit();
-        setCooldownMs(getAnonIdeaCooldownMs());
+        throw new Error(result.error || "Failed to submit idea");
+      }
+    } catch (error: any) {
+      console.error("Failed to submit idea:", error);
+      
+      // Handle rate limit errors specifically
+      if (error.code === 'RATE_LIMIT_EXCEEDED') {
+        setRateLimitError(error.message);
+        setTimeUntilNext(error.retryAfter * 1000);
+      } else {
+        setRateLimitError(error.message || "Failed to submit idea. Please try again.");
       }
     } finally {
       setIsSubmitting(false);
     }
   }
 
+  const formatTimeRemaining = (ms: number): string => {
+    if (ms <= 0) return "";
+    
+    const seconds = Math.ceil(ms / 1000);
+    if (seconds < 60) return `${seconds}s`;
+    
+    const minutes = Math.ceil(seconds / 60);
+    if (minutes < 60) return `${minutes}m`;
+    
+    const hours = Math.ceil(minutes / 60);
+    if (hours < 24) return `${hours}h`;
+    
+    const days = Math.ceil(hours / 24);
+    return `${days}d`;
+  };
+
   return (
-    <div className="flex flex-col bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 lg:p-8 border border-gray-100 dark:border-gray-700">
+    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
       {!hideTitle && (
-        <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-          Share an Idea
-        </h2>
+        <h2 className="text-xl font-semibold mb-4 text-gray-900">Share Your Idea</h2>
       )}
-      <textarea
-        value={ideaText}
-        onChange={(e) => setIdeaText(e.target.value)}
-        rows={5}
-        placeholder="Type your next big idea here…"
-        className="flex-1 min-h-0 w-full px-4 py-3 text-base bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 transition-all duration-200 placeholder-gray-500 dark:placeholder-gray-500 resize-none"
-        disabled={isSubmitting}
-      />
-      <button
-        onClick={handleSubmit}
-        disabled={!ideaText.trim() || isSubmitting || !canSubmit}
-        className="mt-4 w-full sm:w-auto relative group overflow-hidden rounded-xl px-6 py-4 font-semibold text-white transition-all duration-300 disabled:cursor-not-allowed"
-      >
-        <div
-          className={`absolute inset-0 transition-all duration-300 ${
-            !ideaText.trim() || isSubmitting
-              ? "bg-gray-400 dark:bg-gray-600"
-              : "bg-gradient-to-r from-blue-600 to-purple-600 group-hover:from-blue-700 group-hover:to-purple-700"
-          }`}
-        ></div>
-        <div className="relative flex items-center justify-center gap-3">
-          {isSubmitting ? (
-            <>
-              <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <span>Submitting…</span>
-            </>
-          ) : (
-            <>
-              <svg
-                className={`w-5 h-5 transition-transform duration-300 ${ideaText.trim() ? "group-hover:rotate-90" : ""}`}
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span>
-                {canSubmit
-                  ? "Submit Idea"
-                  : userId
-                  ? `No ideas left – wait ${Math.ceil(nextIdeaMs / 1000)}s`
-                  : `Wait ${Math.ceil(cooldownMs / 1000)}s`}
+      
+      <div className="space-y-4">
+        <textarea
+          value={ideaText}
+          onChange={(e) => setIdeaText(e.target.value)}
+          placeholder={
+            userId
+              ? "What's your idea? Share it with the community..."
+              : "Share your idea anonymously (1 per day)..."
+          }
+          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+          rows={4}
+          maxLength={500}
+          disabled={isSubmitting}
+        />
+        
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-500">
+            {ideaText.length}/500 characters
+          </span>
+          
+          <div className="flex items-center gap-3">
+            {timeUntilNext > 0 && (
+              <span className="text-sm text-orange-600">
+                Next idea in {formatTimeRemaining(timeUntilNext)}
               </span>
-            </>
-          )}
+            )}
+            
+            <button
+              onClick={handleSubmit}
+              disabled={!canSubmit || isSubmitting}
+              className={`px-6 py-2 rounded-md font-medium transition-colors ${
+                canSubmit && !isSubmitting
+                  ? "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
+            >
+              {isSubmitting ? "Submitting..." : "Share Idea"}
+            </button>
+          </div>
         </div>
-        {!isSubmitting && ideaText.trim() && (
-          <div className="absolute inset-0 -top-2 h-[102%] w-full translate-x-[-100%] bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+        
+        {rateLimitError && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-sm text-red-600">{rateLimitError}</p>
+          </div>
         )}
-      </button>
+        
+        {!userId && (
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-600">
+              💡 <strong>Sign in</strong> to submit up to 5 ideas per hour instead of 1 per day
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 } 

@@ -1,19 +1,6 @@
-import { pgTable, serial, text, timestamp, uuid, integer, smallint } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, timestamp, uuid, integer, smallint, bigint } from 'drizzle-orm/pg-core';
 
-// Add waitlist table
-export const waitlistTable = pgTable('waitlist', {
-  id: serial('id').primaryKey(),
-  name: text('name').notNull(),
-  company: text('company'),
-  occupation: text('occupation'),
-  state: text('state'),
-  country: text('country'),
-  level: text('level').notNull(), // college_grad | intern | junior | senior
-  created_at: timestamp('created_at').notNull().defaultNow(),
-});
 
-export type InsertWaitlist = typeof waitlistTable.$inferInsert;
-export type SelectWaitlist = typeof waitlistTable.$inferSelect;
 
 // Add ideas table
 export const ideasTable = pgTable('ideas', {
@@ -39,4 +26,15 @@ export const ideaVotesTable = pgTable('idea_votes', {
 });
 
 export type InsertIdeaVote = typeof ideaVotesTable.$inferInsert;
-export type SelectIdeaVote = typeof ideaVotesTable.$inferSelect; 
+export type SelectIdeaVote = typeof ideaVotesTable.$inferSelect;
+
+// Rate limits table for unified rate limiting
+export const rateLimitsTable = pgTable('rate_limits', {
+  key: text('key').primaryKey(),
+  requests: integer('requests').notNull().default(0),
+  reset_time: bigint('reset_time', { mode: 'number' }).notNull(),
+  updated_at: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export type InsertRateLimit = typeof rateLimitsTable.$inferInsert;
+export type SelectRateLimit = typeof rateLimitsTable.$inferSelect; 

@@ -170,25 +170,53 @@ export default function Docs() {
                   </div>
                   
                   {/* ZERO-TO-HERO GUIDE */}
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-xl mb-8">
+                    <h2 className="text-lg font-semibold mb-3">What You'll Build</h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      By the end of this guide, you'll have a complete web application with:
+                    </p>
+                    <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                      <li>• User authentication (login with Google/GitHub)</li>
+                      <li>• Database to store your app's data</li>
+                      <li>• File upload capabilities</li>
+                      <li>• Live on the internet for anyone to use</li>
+                      <li>• AI-powered development environment to extend your app</li>
+                    </ul>
+
+                  </div>
+                  
                   <div className="space-y-12">
                     {/* Step 0 */}
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">0</div>
                       <div>
-                        <h3 className="text-xl font-semibold mb-2">Install Tools</h3>
-                        <ul className="list-disc pl-6 space-y-1 text-sm">
+                        <h3 className="text-xl font-semibold mb-2">Install Developer Tools</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                          These tools form your development foundation. Think of them as your digital workshop.
+                        </p>
+                        <ul className="list-disc pl-6 space-y-2 text-sm">
                           {os === "windows" ? (
                             <>
-                              <li>Node.js 18+ – <a className="text-blue-600 dark:text-blue-400 underline" href="https://nodejs.org/dist/v22.16.0/node-v22.16.0-x64.msi" target="_blank">Download</a> & run installer</li>
-                              <li>Git 2.50+ – <a className="text-blue-600 dark:text-blue-400 underline" href="https://git-scm.com/downloads/win" target="_blank">Download</a> & run installer</li>
+                              <li><strong>Node.js 18+</strong> – <a className="text-blue-600 dark:text-blue-400 underline" href="https://nodejs.org/en/download" target="_blank">Download</a> & run installer
+                                <br/><span className="text-gray-500 text-xs">The runtime that powers your web app backend</span>
+                              </li>
+                              <li><strong>Git 2.50+</strong> – <a className="text-blue-600 dark:text-blue-400 underline" href="https://git-scm.com/downloads" target="_blank">Download</a> & run installer
+                                <br/><span className="text-gray-500 text-xs">Version control system to track your code changes</span>
+                              </li>
                             </>
                           ) : (
                             <>
-                              <li>Node.js 18+ – install via <code>brew install node</code></li>
-                              <li>Git – pre-installed on most macOS versions (or <code>brew install git</code>)</li>
+                              <li><strong>Node.js 18+</strong> – <a className="text-blue-600 dark:text-blue-400 underline" href="https://nodejs.org/en/download" target="_blank">Download</a> & run installer
+                                <br/><span className="text-gray-500 text-xs">The runtime that powers your web app backend</span>
+                              </li>
+                              <li><strong>Git 2.50+</strong> – <a className="text-blue-600 dark:text-blue-400 underline" href="https://git-scm.com/downloads" target="_blank">Download</a> & run installer
+                                <br/><span className="text-gray-500 text-xs">Version control system to track your code changes</span>
+                              </li>
                             </>
                           )}
-                          <li><a className="text-blue-600 dark:text-blue-400 underline" href="#" target="_blank">Cursor IDE</a> – sign up & install</li>
+                          <li><strong>Cursor IDE</strong> – <a className="text-blue-600 dark:text-blue-400 underline" href="https://www.cursor.com/" target="_blank">Sign up</a> & install
+                            <br/><span className="text-gray-500 text-xs">AI-powered code editor that writes code with you, not for you</span>
+                          </li>
                         </ul>
                       </div>
                     </div>
@@ -197,12 +225,23 @@ export default function Docs() {
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">1</div>
                       <div>
-                        <h3 className="text-xl font-semibold mb-2">Create Accounts</h3>
-                        <ul className="list-disc pl-6 space-y-1 text-sm">
-                          <li><a className="text-blue-600 dark:text-blue-400 underline" href="https://github.com/signup" target="_blank">GitHub</a> – repository & OAuth</li>
-                          <li><a className="text-blue-600 dark:text-blue-400 underline" href="https://vercel.com/signup" target="_blank">Vercel</a> – hosting platform</li>
-                          <li><a className="text-blue-600 dark:text-blue-400 underline" href="https://supabase.com/dashboard/sign-up " target="_blank">Supabase</a> – database & auth</li>
-                          <li><a className="text-blue-600 dark:text-blue-400 underline" href="https://uploadthing.com/ " target="_blank">UploadThing</a> – file uploads</li>
+                        <h3 className="text-xl font-semibold mb-2">Create Your Digital Infrastructure</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                          These services work together to power your web app. Each one handles a specific piece of the puzzle.
+                        </p>
+                        <ul className="list-disc pl-6 space-y-2 text-sm">
+                          <li><strong>GitHub</strong> – <a className="text-blue-600 dark:text-blue-400 underline" href="https://github.com/signup" target="_blank">Sign up</a>
+                            <br/><span className="text-gray-500 text-xs">Code storage & collaboration hub (also enables login via GitHub)</span>
+                          </li>
+                          <li><strong>Vercel</strong> – <a className="text-blue-600 dark:text-blue-400 underline" href="https://vercel.com/signup" target="_blank">Sign up</a>
+                            <br/><span className="text-gray-500 text-xs">Global hosting platform that makes your app accessible worldwide</span>
+                          </li>
+                          <li><strong>Supabase</strong> – <a className="text-blue-600 dark:text-blue-400 underline" href="https://supabase.com/dashboard/sign-up " target="_blank">Sign up</a>
+                            <br/><span className="text-gray-500 text-xs">Database & user authentication system (handles login/signup)</span>
+                          </li>
+                          <li><strong>UploadThing</strong> – <a className="text-blue-600 dark:text-blue-400 underline" href="https://uploadthing.com/ " target="_blank">Sign up</a>
+                            <br/><span className="text-gray-500 text-xs">File storage service for images, documents, and media uploads</span>
+                          </li>
                         </ul>
                       </div>
                     </div>
@@ -211,12 +250,18 @@ export default function Docs() {
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">2</div>
                       <div className="flex-1">
-                        <h3 className="text-xl font-semibold mb-2">Clone &amp; Install</h3>
+                        <h3 className="text-xl font-semibold mb-2">Get the JonStack Template</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                          {os === "windows" ? "Open PowerShell (search for 'PowerShell' in Start menu) and run these commands one by one:" : "Open Terminal and run these commands:"}
+                        </p>
                         <div className="bg-gray-900 text-gray-300 p-4 rounded-lg overflow-x-auto text-sm">
-                          <code>git clone https://github.com/yourusername/jonstack.git my-app</code><br/>
+                          <code>git clone https://github.com/jonstack/template.git my-app</code><br/>
                           <code>cd my-app</code><br/>
                           <code>npm install</code>
                         </div>
+                        <p className="text-sm text-gray-500 mt-2">
+                          This downloads the JonStack template and installs all required packages
+                        </p>
                       </div>
                     </div>
 
@@ -224,31 +269,60 @@ export default function Docs() {
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">3</div>
                       <div className="flex-1">
-                        <h3 className="text-xl font-semibold mb-2">Configure Environment&nbsp;Variables</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Duplicate <code>.env.example</code> → <code>.env.local</code> and fill the values by following the steps below:</p>
+                        <h3 className="text-xl font-semibold mb-2">Connect Your Services</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                          Environment variables are like secret keys that let your app talk to external services. 
+                          Think of them as API keys that unlock features in your app.
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                          Duplicate <code>.env.example</code> → <code>.env.local</code> and fill the values by following the steps below:
+                        </p>
 
-                        <ol className="list-decimal list-inside space-y-2 text-sm mb-4">
+                        <ol className="list-decimal list-inside space-y-4 text-sm mb-4">
                           <li>
-                            <strong>Supabase</strong>: In your project, go to <em>Project&nbsp;Settings → API</em>, copy <code>Project URL</code> & <code>anon key</code>. Then open <em>Authentication → Providers</em> and enable <code>Google</code> and <code>GitHub</code>.
+                            <strong>Supabase Database Setup</strong>:
+                            <ul className="list-disc pl-4 mt-2 space-y-1">
+                              <li>Go to <a className="text-blue-600 dark:text-blue-400 underline" href="https://supabase.com/dashboard" target="_blank">your Supabase dashboard</a></li>
+                              <li>Click "New project" → enter any name → select a region → set a password → click "Create new project"</li>
+                              <li>Wait for setup to complete</li>
+                              <li>Go to <em>Project Settings → API</em>, copy <code>Project URL</code> & <code>anon public key</code></li>
+                              <li>Go to <em>Authentication → Providers</em> and enable <code>Google</code> and <code>GitHub</code></li>
+                            </ul>
+                            <span className="text-gray-500 text-xs">This creates your database and enables user login</span>
                           </li>
                           <li>
-                            <strong>UploadThing</strong>: From the dashboard, generate a token and copy it.
+                            <strong>UploadThing Token</strong>:
+                            <ul className="list-disc pl-4 mt-2 space-y-1">
+                              <li>Go to <a className="text-blue-600 dark:text-blue-400 underline" href="https://uploadthing.com/dashboard" target="_blank">UploadThing dashboard</a></li>
+                              <li>Click "Create a new app" → enter any name → click "Create"</li>
+                              <li>Go to "API Keys" tab → copy the "Secret Key"</li>
+                            </ul>
+                            <span className="text-gray-500 text-xs">This enables file uploads in your app</span>
                           </li>
                           <li>
-                            Paste the values into the env file as shown below.
+                            <strong>Create Environment File</strong>:
+                            <ul className="list-disc pl-4 mt-2 space-y-1">
+                              <li>In Cursor, duplicate <code>.env.example</code> and rename it to <code>.env.local</code></li>
+                              <li>Replace the placeholder values with your actual keys from above</li>
+                            </ul>
                           </li>
                         </ol>
 
                         <div className="bg-gray-900 text-gray-300 p-4 rounded-lg text-sm overflow-x-auto">
-                          {`# Supabase
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+                          {`# Supabase - connects your app to database & auth
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_SUPABASE_ANON_KEY=your_anon_key_from_supabase
 
-# Database (local dev)
-DATABASE_URL=postgresql://user:password@localhost:5432/dbname
+# Database - use your Supabase connection string
+DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-ID].supabase.co:5432/postgres
 
-# UploadThing
-UPLOADTHING_TOKEN=your_uploadthing_token`}
+# UploadThing - enables file uploads  
+UPLOADTHING_TOKEN=your_secret_key_from_uploadthing`}
+                        </div>
+                        <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg mt-4">
+                          <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                            <strong>⚠️ Important:</strong> For the DATABASE_URL, go to your Supabase project → Settings → Database → Connection string → URI, copy it and replace [YOUR-PASSWORD] with your actual password.
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -257,12 +331,28 @@ UPLOADTHING_TOKEN=your_uploadthing_token`}
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">4</div>
                       <div className="flex-1">
-                        <h3 className="text-xl font-semibold mb-2">Run Locally</h3>
+                        <h3 className="text-xl font-semibold mb-2">Start Your App</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                          {os === "windows" ? "In your PowerShell window (still in the my-app folder), run:" : "In your terminal, run:"}
+                        </p>
                         <div className="bg-gray-900 text-gray-300 p-4 rounded-lg text-sm">
                           <code>npm run db:migrate</code><br/>
                           <code>npm run dev</code>
                         </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Open <a className="underline" href="http://localhost:5173" target="_blank">http://localhost:5173</a></p>
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mt-4">
+                          <p className="text-sm text-blue-800 dark:text-blue-200">
+                            <strong>✅ Success looks like:</strong>
+                          </p>
+                          <ul className="text-sm text-blue-700 dark:text-blue-300 mt-2 space-y-1">
+                            <li>• First command creates your database tables</li>
+                            <li>• Second command starts your development server</li>
+                            <li>• You'll see "Local: http://localhost:5173" in the terminal</li>
+                            <li>• Browser opens automatically to your running app</li>
+                          </ul>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                          If browser doesn't open automatically: <a className="underline text-blue-600 dark:text-blue-400" href="http://localhost:5173" target="_blank">http://localhost:5173</a>
+                        </p>
                       </div>
                     </div>
 
@@ -281,7 +371,30 @@ UPLOADTHING_TOKEN=your_uploadthing_token`}
                     </div>
                   </div>
                   
-                  <div className="mt-12 p-6 bg-green-50 dark:bg-green-900/20 rounded-xl text-center">
+                  {/* Troubleshooting Section */}
+                  <div className="mt-12 p-6 bg-red-50 dark:bg-red-900/20 rounded-xl">
+                    <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-4">🚨 Common Issues & Fixes</h3>
+                    <div className="space-y-3 text-sm">
+                      <div>
+                        <strong className="text-red-700 dark:text-red-300">Error: "command not found" or "not recognized"</strong>
+                        <p className="text-red-600 dark:text-red-400">Solution: Restart your computer after installing Node.js and Git, then try again.</p>
+                      </div>
+                      <div>
+                        <strong className="text-red-700 dark:text-red-300">Error: "ECONNREFUSED" or database connection issues</strong>
+                        <p className="text-red-600 dark:text-red-400">Solution: Double-check your DATABASE_URL in .env.local matches exactly what's in Supabase Settings → Database → Connection string.</p>
+                      </div>
+                      <div>
+                        <strong className="text-red-700 dark:text-red-300">Error: "Port 5173 is already in use"</strong>
+                        <p className="text-red-600 dark:text-red-400">Solution: Close any other terminal windows running <code>npm run dev</code> or restart your computer.</p>
+                      </div>
+                      <div>
+                        <strong className="text-red-700 dark:text-red-300">App loads but login doesn't work</strong>
+                        <p className="text-red-600 dark:text-red-400">Solution: Make sure you enabled Google and GitHub providers in Supabase Authentication → Providers.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 p-6 bg-green-50 dark:bg-green-900/20 rounded-xl text-center">
                     <p className="text-lg font-semibold text-green-700 dark:text-green-300">
                       🎉 Zero-to-Hero complete! Your app is live locally and one click away from production.
                     </p>
