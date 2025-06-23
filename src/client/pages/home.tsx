@@ -118,11 +118,14 @@ export default function Home() {
               </a>
             </div>
 
-            {/* Quick Install */}
+            {/* Quick Install (placeholder) */}
             <div className="mt-12 max-w-2xl mx-auto">
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Quick start:</p>
-              <div className="bg-gray-900 dark:bg-black rounded-lg p-4 text-left">
-                <code className="text-green-400 text-sm">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-2">
+                Quick start&nbsp;
+                <span className="text-xs px-2 py-0.5 bg-yellow-200 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200 rounded-full">Coming&nbsp;Soon</span>
+              </p>
+              <div className="bg-gray-900 dark:bg-black rounded-lg p-4 text-left blur-sm select-none pointer-events-none">
+                <code className="text-gray-400 text-sm">
                   npx create-jonstack-app my-app && cd my-app && npm run dev
                 </code>
               </div>

@@ -31,6 +31,70 @@ export default function Docs() {
   const [os, setOs] = useState<"windows" | "mac">("windows");
   const [target, setTarget] = useState<"web" | "mobile">("web");
 
+  // Reusable markdown rules block with copy button
+  const MarkdownRules = () => {
+    const markdown = `## Persona and Role
+- Act as a proactive software engineering expert, executing tasks directly with immediate visible results.
+- Maintain continuous workflow until explicitly stopped.
+
+## Tech Stack and Environment
+- Use **TypeScript 5** everywhere.
+- **React 19** with **React Router 7** SSR toolchain.
+- **Vite 6** bundler/dev server (\`vite-tsconfig-paths\`).
+- **Tailwind CSS 4** (\`@tailwindcss/vite\`).
+- **Supabase** for Auth/UI (\`@supabase/auth-ui-react\`, \`@supabase/supabase-js\`).
+- File uploads via **UploadThing React SDK** (\`@uploadthing/react\`) and Remix router backend.
+- **Drizzle ORM 0.44** with PostgreSQL managed by \`drizzle-kit\` CLI.
+- Runtime validation using **Zod** schemas at \`src/shared/schema.ts\`.
+- \`dotenv\` for environment variables (\`src/server/db/index.ts\`).
+
+## Coding Standards
+- Variables in CamelCase, components in PascalCase, files in kebab-case, constants in UPPER_SNAKE.
+- Modularize aggressively; immediately remove unused code.
+- Enforce async-await, structured logs, exhaustive error handling, runtime validation via Zod.
+- Optimize for performance and Core Web Vitals.
+- Ensure a11y compliance (ARIA, contrast, keyboard navigation).
+- Design for i18n/l10n readiness.
+- Guarantee ≥ 90 % automated test coverage (unit, integration, e2e).
+
+## Output Expectations
+- Deliver complete, runnable code without placeholders or TODOs.
+- Provide explicit, dependency-first task breakdowns.
+- Assume an external dev server is running and trust existing \`.env\` files without verification.
+- Communicate in concise, direct language; avoid metaphors, rhetorical questions, or filler.
+
+## Best-Practice Principles
+- Follow **SOLID, DRY, KISS, YAGNI, Principle of Least Astonishment**.
+- Ensure explicit, comprehensive, consistent, traceable coding.
+- Enforce secure defaults (CSP, XSS/CSRF protection, secure secret management, secure data handling, dependency scanning).
+- Include observability hooks (metrics, tracing, alerts).
+- List key tooling/library versions explicitly.
+- Allow clarifying questions; forbid assumptions.
+
+## Meta-Commands and Iteration
+- Tasks ordered explicitly by dependencies.
+- Clearly define subtasks for parallel execution by labeling separate agents without decimal subtasks (Agent 2, Agent 3, etc.).
+- For each agent task, provide concise context, goals, and implementation details in its prompt.
+- Assign tasks to agents only if unrelated or dependencies completed.
+- Ignore overhead from external tooling or type-checking assumptions.`;
+
+    const copyToClipboard = () => navigator.clipboard.writeText(markdown).catch(() => {});
+
+    return (
+      <div className="relative">
+        <button
+          onClick={copyToClipboard}
+          className="absolute top-2 right-2 px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+        >
+          Copy
+        </button>
+        <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto text-xs whitespace-pre-wrap">
+          {markdown}
+        </pre>
+      </div>
+    );
+  };
+
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -417,20 +481,30 @@ UPLOADTHING_TOKEN=your_secret_key_from_uploadthing`}
                   <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-xl mb-8">
                     <h3 className="text-lg font-semibold mb-4">Project Structure</h3>
                     <pre className="text-sm overflow-x-auto">
-{`JonStack/
+{`jonstack/
 ├── src/
-│   ├── client/          # React frontend
-│   │   ├── components/  # Reusable UI components
-│   │   ├── pages/       # Route pages
-│   │   ├── context/     # React contexts
-│   │   └── utils/       # Client utilities
-│   ├── server/          # Backend logic
-│   │   ├── db/          # Database setup & queries
+│   ├── client/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── pages/
+│   │   └── utils/
+│   ├── server/
+│   │   ├── db/
+│   │   │   ├── queries/
+│   │   │   └── schema.ts
+│   │   ├── utils/
+│   │   ├── ideas.ts
+│   │   ├── vote.ts
 │   │   └── uploadthing.ts
-│   └── shared/          # Shared types & utilities
-├── public/              # Static assets
-├── drizzle/             # Database migrations
-└── config files...`}
+│   ├── shared/
+│   └── features/
+│       ├── ideas/
+│       └── docs/
+├── public/
+├── package.json
+├── tailwind.config.js
+├── vite.config.ts
+└── README.md`}
                     </pre>
                   </div>
 
@@ -818,13 +892,7 @@ export async function action({ request }: Route.ActionArgs) {
                   <p className="text-gray-600 dark:text-gray-400 mb-6">
                     Recommended best-practices when working inside the Cursor IDE.
                   </p>
-                  <ul className="list-disc pl-6 space-y-2 text-sm">
-                    <li>Keep pull-requests small, focussed, and atomic.</li>
-                    <li>Use exhaustive TypeScript types and Zod schemas for runtime validation.</li>
-                    <li>Prefer pure functions and early returns.</li>
-                    <li>Write structured logs and handle errors exhaustively.</li>
-                    <li>Document complex logic using comments & JSDoc.</li>
-                  </ul>
+                  <MarkdownRules />
                 </div>
               )}
 
