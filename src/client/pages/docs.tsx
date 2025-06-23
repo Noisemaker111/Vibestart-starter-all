@@ -9,10 +9,10 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Docs() {
-  const [activeSection, setActiveSection] = useState("getting-started");
+  const [activeSection, setActiveSection] = useState("zero-to-production");
 
   const sections = [
-    { id: "getting-started", title: "Getting Started", icon: "🚀" },
+    { id: "zero-to-production", title: "Zero to Production", icon: "💯" },
     { id: "architecture", title: "Architecture", icon: "🏗️" },
     { id: "authentication", title: "Authentication", icon: "🔐" },
     { id: "database", title: "Database", icon: "💾" },
@@ -20,7 +20,12 @@ export default function Docs() {
     { id: "styling", title: "Styling", icon: "🎨" },
     { id: "deployment", title: "Deployment", icon: "🌐" },
     { id: "api-reference", title: "API Reference", icon: "📚" },
+    { id: "why-jonstack", title: "Why JonStack?", icon: "🌟" },
   ];
+
+  // Toggle states for instructions
+  const [os, setOs] = useState<"windows" | "mac">("windows");
+  const [target, setTarget] = useState<"web" | "mobile">("web");
 
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -68,70 +73,167 @@ export default function Docs() {
 
             {/* Documentation Content */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
-              {activeSection === "getting-started" && (
+              {activeSection === "zero-to-production" && (
                 <div className="prose prose-gray dark:prose-invert max-w-none">
-                  <h1 className="text-3xl font-bold mb-6">Getting Started</h1>
+                  <h1 className="text-3xl font-bold mb-6">Zero to Production</h1>
                   
-                  <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-xl mb-8">
-                    <h3 className="text-lg font-semibold mb-3">Prerequisites</h3>
-                    <ul className="space-y-2 text-sm">
-                      <li>✓ Node.js 18+ and npm/yarn/pnpm</li>
-                      <li>✓ PostgreSQL database (local or cloud)</li>
-                      <li>✓ Supabase account (free tier works)</li>
-                      <li>✓ UploadThing account (free tier works)</li>
-                    </ul>
-                  </div>
-
-                  <h2 className="text-2xl font-semibold mt-8 mb-4">Quick Start</h2>
-                  
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="font-semibold mb-2">1. Clone the repository</h3>
-                      <div className="bg-gray-900 text-gray-300 p-4 rounded-lg overflow-x-auto">
-                        <code>git clone https://github.com/yourusername/jonstack.git my-app</code><br/>
-                        <code>cd my-app</code>
-                      </div>
+                  {/* Toggles */}
+                  <div className="flex flex-wrap items-center gap-6 mb-10">
+                    {/* OS Switch */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">OS:</span>
+                      {([
+                        { id: "windows", label: "Windows" },
+                        { id: "mac", label: "macOS" },
+                      ] as const).map(({ id, label }) => (
+                        <button
+                          key={id}
+                          onClick={() => setOs(id)}
+                          className={`px-4 py-1 rounded-full text-sm font-medium transition-colors ${
+                            os === id ? "bg-blue-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
                     </div>
 
-                    <div>
-                      <h3 className="font-semibold mb-2">2. Install dependencies</h3>
-                      <div className="bg-gray-900 text-gray-300 p-4 rounded-lg">
-                        <code>npm install</code>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="font-semibold mb-2">3. Set up environment variables</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Create a `.env.local` file:</p>
-                      <div className="bg-gray-900 text-gray-300 p-4 rounded-lg text-sm">
-                        <code># Supabase</code><br/>
-                        <code>VITE_SUPABASE_URL=your_supabase_url</code><br/>
-                        <code>VITE_SUPABASE_ANON_KEY=your_supabase_anon_key</code><br/><br/>
-                        <code># Database</code><br/>
-                        <code>DATABASE_URL=postgresql://user:password@localhost:5432/dbname</code><br/><br/>
-                        <code># UploadThing</code><br/>
-                        <code>UPLOADTHING_TOKEN=your_uploadthing_token</code>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="font-semibold mb-2">4. Run database migrations</h3>
-                      <div className="bg-gray-900 text-gray-300 p-4 rounded-lg">
-                        <code>npm run db:migrate</code>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="font-semibold mb-2">5. Start the development server</h3>
-                      <div className="bg-gray-900 text-gray-300 p-4 rounded-lg">
-                        <code>npm run dev</code>
-                      </div>
+                    {/* Target Switch */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">Target:</span>
+                      {([
+                        { id: "web", label: "Web", disabled: false },
+                        { id: "mobile", label: "Mobile (coming soon)", disabled: true },
+                      ] as const).map(({ id, label, disabled }) => (
+                        <button
+                          key={id}
+                          onClick={() => !disabled && setTarget(id as any)}
+                          disabled={disabled}
+                          className={`px-4 py-1 rounded-full text-sm font-medium transition-colors ${
+                            target === id ? "bg-blue-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"}
+                            ${disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-300 dark:hover:bg-gray-600"}`}
+                        >
+                          {label}
+                        </button>
+                      ))}
                     </div>
                   </div>
+                  
+                  {/* ZERO-TO-HERO GUIDE */}
+                  <div className="space-y-12">
+                    {/* Step 0 */}
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">0</div>
+                      <div>
+                        <h3 className="text-xl font-semibold mb-2">Install Tools</h3>
+                        <ul className="list-disc pl-6 space-y-1 text-sm">
+                          {os === "windows" ? (
+                            <>
+                              <li>Node.js 18+ – <a className="text-blue-600 dark:text-blue-400 underline" href="https://nodejs.org/dist/v22.16.0/node-v22.16.0-x64.msi" target="_blank">Download</a> & run installer</li>
+                              <li>Git 2.50+ – <a className="text-blue-600 dark:text-blue-400 underline" href="https://git-scm.com/downloads/win" target="_blank">Download</a> & run installer</li>
+                            </>
+                          ) : (
+                            <>
+                              <li>Node.js 18+ – install via <code>brew install node</code></li>
+                              <li>Git – pre-installed on most macOS versions (or <code>brew install git</code>)</li>
+                            </>
+                          )}
+                          <li><a className="text-blue-600 dark:text-blue-400 underline" href="#" target="_blank">Cursor IDE</a> – sign up & install</li>
+                        </ul>
+                      </div>
+                    </div>
 
-                  <div className="mt-8 p-6 bg-green-50 dark:bg-green-900/20 rounded-xl">
-                    <p className="text-green-700 dark:text-green-300 font-medium">
-                      🎉 Your app is now running at <code className="bg-green-100 dark:bg-green-800 px-2 py-1 rounded">http://localhost:5173</code>
+                    {/* Step 1 */}
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">1</div>
+                      <div>
+                        <h3 className="text-xl font-semibold mb-2">Create Accounts</h3>
+                        <ul className="list-disc pl-6 space-y-1 text-sm">
+                          <li><a className="text-blue-600 dark:text-blue-400 underline" href="https://github.com/signup" target="_blank">GitHub</a> – repository & OAuth</li>
+                          <li><a className="text-blue-600 dark:text-blue-400 underline" href="https://vercel.com/signup" target="_blank">Vercel</a> – hosting platform</li>
+                          <li><a className="text-blue-600 dark:text-blue-400 underline" href="https://supabase.com/dashboard/sign-up " target="_blank">Supabase</a> – database & auth</li>
+                          <li><a className="text-blue-600 dark:text-blue-400 underline" href="https://uploadthing.com/ " target="_blank">UploadThing</a> – file uploads</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">2</div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-semibold mb-2">Clone &amp; Install</h3>
+                        <div className="bg-gray-900 text-gray-300 p-4 rounded-lg overflow-x-auto text-sm">
+                          <code>git clone https://github.com/yourusername/jonstack.git my-app</code><br/>
+                          <code>cd my-app</code><br/>
+                          <code>npm install</code>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">3</div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-semibold mb-2">Configure Environment&nbsp;Variables</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Duplicate <code>.env.example</code> → <code>.env.local</code> and fill the values by following the steps below:</p>
+
+                        <ol className="list-decimal list-inside space-y-2 text-sm mb-4">
+                          <li>
+                            <strong>Supabase</strong>: In your project, go to <em>Project&nbsp;Settings → API</em>, copy <code>Project URL</code> & <code>anon key</code>. Then open <em>Authentication → Providers</em> and enable <code>Google</code> and <code>GitHub</code>.
+                          </li>
+                          <li>
+                            <strong>UploadThing</strong>: From the dashboard, generate a token and copy it.
+                          </li>
+                          <li>
+                            Paste the values into the env file as shown below.
+                          </li>
+                        </ol>
+
+                        <div className="bg-gray-900 text-gray-300 p-4 rounded-lg text-sm overflow-x-auto">
+                          {`# Supabase
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Database (local dev)
+DATABASE_URL=postgresql://user:password@localhost:5432/dbname
+
+# UploadThing
+UPLOADTHING_TOKEN=your_uploadthing_token`}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">4</div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-semibold mb-2">Run Locally</h3>
+                        <div className="bg-gray-900 text-gray-300 p-4 rounded-lg text-sm">
+                          <code>npm run db:migrate</code><br/>
+                          <code>npm run dev</code>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Open <a className="underline" href="http://localhost:5173" target="_blank">http://localhost:5173</a></p>
+                      </div>
+                    </div>
+
+                    {/* Step 5 */}
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold shrink-0">5</div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-semibold mb-2">Deploy to Vercel</h3>
+                        <ol className="list-decimal list-inside space-y-1 text-sm">
+                          <li>Push code to GitHub</li>
+                          <li>Import project in Vercel dashboard</li>
+                          <li>Add env vars from <code>.env.local</code></li>
+                          <li>Click <strong>Deploy</strong> 🚀</li>
+                        </ol>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-12 p-6 bg-green-50 dark:bg-green-900/20 rounded-xl text-center">
+                    <p className="text-lg font-semibold text-green-700 dark:text-green-300">
+                      🎉 Zero-to-Hero complete! Your app is live locally and one click away from production.
                     </p>
                   </div>
                 </div>
@@ -484,6 +586,58 @@ export async function action({ request }: Route.ActionArgs) {
   // Handle form submission
 }`}</code>
                   </div>
+                </div>
+              )}
+
+              {activeSection === "why-jonstack" && (
+                <div className="prose prose-gray dark:prose-invert max-w-none">
+                  <h1 className="text-3xl font-bold mb-6">Why choose JonStack?</h1>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    Stacks like <strong>T3</strong> and <strong>T4</strong> are engineered for developers who already know what they're doing. JonStack puts <strong>AI-first workflows</strong> front-and-centre so that <em>ideas</em>, not config files, move your project forward.
+                  </p>
+
+                  <h2 className="text-2xl font-semibold mt-8 mb-4">At a glance</h2>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Feature</th>
+                        <th>JonStack</th>
+                        <th>T3 / T4</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Target audience</td>
+                        <td>New-age makers &amp; nocode-to-code learners</td>
+                        <td>Seasoned engineers</td>
+                      </tr>
+                      <tr>
+                        <td>Setup time</td>
+                        <td>&lt; 1&nbsp;minute</td>
+                        <td>5-30&nbsp;minutes</td>
+                      </tr>
+                      <tr>
+                        <td>Prototype ready</td>
+                        <td>&lt; 1&nbsp;hour (no prior HTML/CSS/JS expertise)</td>
+                        <td>Days–Weeks of boilerplate & learning curve</td>
+                      </tr>
+                      <tr>
+                        <td>AI IDE rules</td>
+                        <td>Built-in, opinionated</td>
+                        <td>External / DIY</td>
+                      </tr>
+                      <tr>
+                        <td>Boilerplate</td>
+                        <td>Zero-config, deploy-ready</td>
+                        <td>CLI scaffolding + manual wiring</td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <h2 className="text-2xl font-semibold mt-8 mb-4">Status</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    JonStack is currently in <strong>public preview</strong>. We're actively building the AI IDE rule engine, deployment flows, and more. Expect breaking changes until v1.0.
+                  </p>
                 </div>
               )}
             </div>

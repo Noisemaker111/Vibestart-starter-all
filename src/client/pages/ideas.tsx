@@ -123,15 +123,6 @@ export default function Ideas() {
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="w-full px-6 py-12 max-w-none mx-auto">
-        {/* Page header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl lg:text-6xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-300 dark:to-purple-300 bg-clip-text text-transparent mb-4">
-            Share Your ideas
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Got an idea for a feature, app, or anything else? Type it in and watch it appear!
-          </p>
-        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
           {/* Input */}
