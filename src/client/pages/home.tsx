@@ -3,6 +3,8 @@ import { useState } from "react";
 import type { Route } from "./+types/home";
 import { createPortal } from "react-dom";
 import { IdeaCarousel } from "@client/components/IdeaCarousel";
+import ServicesProvided from "@client/components/ServicesProvided";
+import appIdeas from "../../shared/appIdeas";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -41,37 +43,8 @@ export default function Home() {
     }
   ];
 
-  const ideaExamples = [
-    "A tool that syncs Notion with GitHub issues",
-    "An AI writing assistant for technical docs",
-    "A marketplace for indie game assets",
-    "A habit tracker that gamifies productivity",
-    "A platform for async video interviews"
-  ];
-
-  // Carousel ideas shown above the headline (disappear after cycling)
-  const carouselIdeas = [
-    "Build and visualize connections between your notes, bookmarks and articles.",
-    "Paste a recipe and get suggestions for healthier swaps, flavor boosts or portion scaling.",
-    "Let neighbors offer one-off lessons (guitar, language, carpentry) and book in-person or online sessions.",
-    "Real-time zoomable whiteboard focused on mind-mapping, with embedded images, links and voting.",
-    "Upload your room photo and drag-drop 3D models to see how new furniture fits and looks.",
-    "Design custom habit chains (e.g. meditate → journal → read) with reminders and progress tracking.",
-    "Turn CSV or JSON into scroll-driven narratives with charts, maps and annotations.",
-    "Round up everyday transactions and let users allocate spare change to vetted charities.",
-    "360° panoramas with narrated hotspots, user-uploaded comments and guided themed rooms.",
-    "Log travel, energy use and purchases; visualize your impact and get personalized reduction tips.",
-    "Pair language learners by fluency goals, schedule video chats, track progress and correct each other's text.",
-    "Analyze drafts (emails, essays) for tone and clarity, offering real-time rewrite suggestions.",
-    "Input goals, available equipment and time; get varied workouts with video demos and rest timers.",
-    "Map public datasets (crime, transit, pollution) overlayed on a city map with filterable timelines.",
-    "Focused code playgrounds for algorithms, data structures or frameworks with instant output preview.",
-    "Upload photos of your clothes; get daily outfit suggestions based on weather and calendar events.",
-    "Create embeddable, multimedia timelines for history projects, personal milestones or company roadmaps.",
-    "Pomodoro timer plus customizable ambient layers (rain, café, white noise) you can blend and schedule.",
-    "Track pet vaccinations, appointments and medications; set reminders and store vet records in one place.",
-    "Choose genre, characters and themes; get a structured story outline with scene-by-scene prompts.",
-  ];
+  // Replace old arrays with shared list
+  const carouselIdeas = appIdeas;
 
   function handleIdeaKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -101,7 +74,7 @@ export default function Home() {
         </div>
 
         {/* Hero Section - Completely New Design */}
-        <section className="relative min-h-screen flex items-center justify-center px-4">
+        <section className="relative min-h-screen flex items-center justify-center px-4 pt-8 sm:pt-14 md:pt-14 lg:pt-28">
           <div className="max-w-6xl mx-auto w-full">
             <div className="text-center mb-12">
               {/* Main Headline */}
@@ -111,12 +84,12 @@ export default function Home() {
                 </span>
                 <br />
                 <span className="text-3xl lg:text-5xl text-gray-400 font-light">
-                  Stop configuring. Start building.
+                  Start building in minutes.
                 </span>
               </h1>
 
-              <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-12">
-                Skip the four-year grind of mastering HTML, CSS and JavaScript just to see your idea on-screen—JonStack ships auth, database, uploads and a gorgeous UI already wired up so you can jump straight to prototyping.
+              <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-12">
+                JonStack is a standardized, all-in-one stack for Cursor. Launch production-ready apps—web, mobile, desktop or games—without drowning in expert-only docs. Auth, database, uploads and tests come pre-wired so you can focus on ideas, not integrations.
               </p>
             </div>
 
@@ -160,40 +133,9 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* OS & Target selectors */}
-              <div className="mt-8 flex flex-col sm:flex-row gap-6 justify-center">
-                {/* OS Selector */}
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-400">OS:</span>
-                  {([
-                    { id: "windows", label: "Windows", disabled: false },
-                    { id: "mac", label: "macOS", disabled: true },
-                    { id: "linux", label: "Linux", disabled: true },
-                  ] as const).map(({ id, label, disabled }) => {
-                    const selected = os === id;
-                    return (
-                      <div key={id} className="relative">
-                        <button
-                          onClick={() => !disabled && setOs(id)}
-                          disabled={disabled}
-                          className={`px-4 py-1 rounded-full text-sm font-medium transition-colors ${
-                            selected ? "bg-blue-600 text-white" : "bg-gray-800 text-gray-400"
-                          } ${disabled ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-700"}`}
-                        >
-                          {label}
-                        </button>
-                        {disabled && (
-                          <span className="absolute -top-1 -right-1 bg-gray-700 text-gray-200 text-[10px] px-1 rounded-md select-none">
-                            soon
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Target Selector */}
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-4 sm:mt-0 items-start sm:items-center">
+              {/* Target selector */}
+              <div className="mt-8 flex justify-center">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-start sm:items-center">
                   <span className="text-sm text-gray-400">Target:</span>
                   <div className="flex items-center gap-2">
                     {([
@@ -236,7 +178,7 @@ export default function Home() {
                   className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-black bg-white rounded-xl hover:bg-gray-100 transition-all duration-200"
                 >
                   <span className="relative z-10 flex items-center gap-2">
-                    Let's Go Build
+                    Go Build
                     <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
@@ -250,6 +192,9 @@ export default function Home() {
                 </Link>
               </div>
             </div>
+
+            {/* Services Provided Section */}
+            <ServicesProvided />
 
             {/* Real Projects Section */}
             <section className="relative py-20 px-4">
@@ -385,8 +330,8 @@ export default function Home() {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
                   >
-                    Get JonStack Free
-                    <span className="text-sm opacity-75">(MIT License)</span>
+                    Get JonStack
+                    <span className="text-sm opacity-75"></span>
                   </a>
                 </div>
               </div>

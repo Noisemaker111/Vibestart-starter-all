@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface Props {
   /** List of ideas to cycle through */
@@ -15,42 +15,43 @@ interface Props {
  */
 export function IdeaCarousel({ ideas, intervalMs = 3500, onIdeaClick }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [fadeOut, setFadeOut] = useState(false);
+  const fadeMs = 400; // duration of fade animation
+
+  // Keep reference to latest props to avoid stale closures inside timeouts
+  const ideasRef = useRef(ideas);
+  useEffect(() => {
+    ideasRef.current = ideas;
+  }, [ideas]);
 
   useEffect(() => {
-    if (currentIndex >= ideas.length) return; // finished cycling
+    const cycleTimer = setTimeout(() => {
+      // Start fade-out
+      setFadeOut(true);
 
-    const timer = setTimeout(() => {
-      setCurrentIndex((i) => i + 1);
+      // After fade duration, switch idea & fade back in
+      const switchTimer = setTimeout(() => {
+        setCurrentIndex((idx) => (idx + 1) % ideasRef.current.length);
+        setFadeOut(false);
+      }, fadeMs);
+
+      return () => clearTimeout(switchTimer);
     }, intervalMs);
 
-    return () => clearTimeout(timer);
-  }, [currentIndex, intervalMs, ideas.length]);
+    return () => clearTimeout(cycleTimer);
+  }, [currentIndex, intervalMs]);
 
   if (currentIndex >= ideas.length) return null; // carousel finished
 
-  // Show current and next idea (if available)
   const currentIdea = ideas[currentIndex];
-  const nextIdea = ideas[currentIndex + 1];
 
   return (
-    <div className="flex gap-2">
-      {/* Current idea (left side) */}
-      <button
-        onClick={() => onIdeaClick?.(currentIdea)}
-        className="text-xs px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded-full text-gray-400 hover:text-white transition-all duration-300"
-      >
-        {currentIdea}
-      </button>
-      
-      {/* Next idea (right side) - only show if it exists */}
-      {nextIdea && (
-        <button
-          onClick={() => onIdeaClick?.(nextIdea)}
-          className="text-xs px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded-full text-gray-400 hover:text-white transition-all duration-300 opacity-70"
-        >
-          {nextIdea}
-        </button>
-      )}
-    </div>
+    <button
+      onClick={() => onIdeaClick?.(currentIdea)}
+      className={`text-sm px-4 py-2 bg-gray-800/80 hover:bg-purple-700 text-white rounded-lg border border-gray-600 transition-all duration-300 cursor-pointer ${fadeOut ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
+      title="Click to use this idea"
+    >
+      {currentIdea}
+    </button>
   );
 } 

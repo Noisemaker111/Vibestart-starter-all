@@ -1,9 +1,9 @@
----
-description:
-globs:
-alwaysApply: false
----
-# Project Structure - jonstack
+# Project Structure - jonstack (idea carousel + copy tweak)
+
+jonstack/
+├── drizzle.config.ts
+├── env.example
+# Project Structure - jonstack (idea carousel + copy tweak)
 
 jonstack/
 ├── drizzle.config.ts
@@ -24,6 +24,7 @@ jonstack/
 │   │   │   ├── SignInForm.tsx
 │   │   │   ├── SquareUploadButton.tsx
 │   │   │   ├── ThemeToggle.tsx
+│   │   │   ├── ServicesProvided.tsx
 │   │   │   └── IdeaCarousel.tsx
 │   │   ├── context/
 │   │   │   └── AuthContext.tsx
@@ -51,6 +52,7 @@ jonstack/
 │   ├── shared/
 │   │   ├── app.css
 │   │   └── supabase.ts
+│   │   └── appIdeas.ts
 ├── start-coding.md
 ├── tailwind.config.js
 ├── tsconfig.json
