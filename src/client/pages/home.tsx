@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router";
 import { useState } from "react";
 import type { Route } from "./+types/home";
 import { createPortal } from "react-dom";
+import { IdeaCarousel } from "@client/components/IdeaCarousel";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -48,6 +49,30 @@ export default function Home() {
     "A platform for async video interviews"
   ];
 
+  // Carousel ideas shown above the headline (disappear after cycling)
+  const carouselIdeas = [
+    "Build and visualize connections between your notes, bookmarks and articles.",
+    "Paste a recipe and get suggestions for healthier swaps, flavor boosts or portion scaling.",
+    "Let neighbors offer one-off lessons (guitar, language, carpentry) and book in-person or online sessions.",
+    "Real-time zoomable whiteboard focused on mind-mapping, with embedded images, links and voting.",
+    "Upload your room photo and drag-drop 3D models to see how new furniture fits and looks.",
+    "Design custom habit chains (e.g. meditate → journal → read) with reminders and progress tracking.",
+    "Turn CSV or JSON into scroll-driven narratives with charts, maps and annotations.",
+    "Round up everyday transactions and let users allocate spare change to vetted charities.",
+    "360° panoramas with narrated hotspots, user-uploaded comments and guided themed rooms.",
+    "Log travel, energy use and purchases; visualize your impact and get personalized reduction tips.",
+    "Pair language learners by fluency goals, schedule video chats, track progress and correct each other's text.",
+    "Analyze drafts (emails, essays) for tone and clarity, offering real-time rewrite suggestions.",
+    "Input goals, available equipment and time; get varied workouts with video demos and rest timers.",
+    "Map public datasets (crime, transit, pollution) overlayed on a city map with filterable timelines.",
+    "Focused code playgrounds for algorithms, data structures or frameworks with instant output preview.",
+    "Upload photos of your clothes; get daily outfit suggestions based on weather and calendar events.",
+    "Create embeddable, multimedia timelines for history projects, personal milestones or company roadmaps.",
+    "Pomodoro timer plus customizable ambient layers (rain, café, white noise) you can blend and schedule.",
+    "Track pet vaccinations, appointments and medications; set reminders and store vet records in one place.",
+    "Choose genre, characters and themes; get a structured story outline with scene-by-scene prompts.",
+  ];
+
   function handleIdeaKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -79,12 +104,6 @@ export default function Home() {
         <section className="relative min-h-screen flex items-center justify-center px-4">
           <div className="max-w-6xl mx-auto w-full">
             <div className="text-center mb-12">
-              {/* Floating Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/30 text-green-400 rounded-full text-sm mb-8 backdrop-blur-sm">
-                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                156 projects shipped this week
-              </div>
-
               {/* Main Headline */}
               <h1 className="text-6xl lg:text-8xl font-black mb-6 leading-tight">
                 <span className="bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
@@ -120,20 +139,6 @@ export default function Home() {
                     rows={3}
                   />
                   
-                  {/* Idea Suggestions */}
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <span className="text-xs text-gray-500">Try:</span>
-                    {ideaExamples.slice(0, 3).map((example, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setIdea(example)}
-                        className="text-xs px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded-full text-gray-400 hover:text-white transition-all duration-200"
-                      >
-                        {example}
-                      </button>
-                    ))}
-                  </div>
-
                   {/* Dynamic Response */}
                   {idea && (
                     <div className="mt-6 p-4 bg-purple-900/20 border border-purple-500/30 rounded-lg animate-in fade-in duration-300">
@@ -143,6 +148,15 @@ export default function Home() {
                       </p>
                     </div>
                   )}
+
+                  {/* Idea Carousel */}
+                  <div className="mt-6 flex justify-center">
+                    <IdeaCarousel 
+                      ideas={carouselIdeas} 
+                      intervalMs={4000} 
+                      onIdeaClick={(idea) => setIdea(idea)}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -152,22 +166,30 @@ export default function Home() {
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-gray-400">OS:</span>
                   {([
-                    { id: "windows", label: "Windows" },
-                    { id: "mac", label: "macOS" },
-                    { id: "linux", label: "Linux" },
-                  ] as const).map(({ id, label }) => (
-                    <button
-                      key={id}
-                      onClick={() => setOs(id)}
-                      className={`px-4 py-1 rounded-full text-sm font-medium transition-colors ${
-                        os === id
-                          ? "bg-blue-600 text-white"
-                          : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
+                    { id: "windows", label: "Windows", disabled: false },
+                    { id: "mac", label: "macOS", disabled: true },
+                    { id: "linux", label: "Linux", disabled: true },
+                  ] as const).map(({ id, label, disabled }) => {
+                    const selected = os === id;
+                    return (
+                      <div key={id} className="relative">
+                        <button
+                          onClick={() => !disabled && setOs(id)}
+                          disabled={disabled}
+                          className={`px-4 py-1 rounded-full text-sm font-medium transition-colors ${
+                            selected ? "bg-blue-600 text-white" : "bg-gray-800 text-gray-400"
+                          } ${disabled ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-700"}`}
+                        >
+                          {label}
+                        </button>
+                        {disabled && (
+                          <span className="absolute -top-1 -right-1 bg-gray-700 text-gray-200 text-[10px] px-1 rounded-md select-none">
+                            soon
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {/* Target Selector */}

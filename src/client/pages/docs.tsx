@@ -172,7 +172,7 @@ export default function Docs() {
   ] as const;
 
   // Toggle states for instructions
-  const [os, setOs] = useState<"windows" | "mac">("windows");
+  const [os, setOs] = useState<"windows" | "mac" | "linux">("windows");
   const [target, setTarget] = useState<"web" | "mobile" | "desktop" | "game">("web");
 
   const CursorAiUserRules = () => {
@@ -372,18 +372,24 @@ For each response, create distinct agent sections headed by a logical domain tit
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">OS:</span>
                       {([
-                        { id: "windows", label: "Windows" },
-                        { id: "mac", label: "macOS" },
-                      ] as const).map(({ id, label }) => (
-                        <button
-                          key={id}
-                          onClick={() => setOs(id)}
-                          className={`px-4 py-1 rounded-full text-sm font-medium transition-colors ${
-                            os === id ? "bg-blue-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                          }`}
-                        >
-                          {label}
-                        </button>
+                        { id: "windows", label: "Windows", disabled: false },
+                        { id: "mac", label: "macOS", disabled: true },
+                        { id: "linux", label: "Linux", disabled: true },
+                      ] as const).map(({ id, label, disabled }) => (
+                        <div key={id} className="relative inline-block">
+                          <button
+                            onClick={() => !disabled && setOs(id as any)}
+                            disabled={disabled}
+                            className={`px-4 py-1 rounded-full text-sm font-medium transition-colors ${
+                              os === id ? "bg-blue-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"}
+                              ${disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-300 dark:hover:bg-gray-600"}`}
+                          >
+                            {label}
+                          </button>
+                          {disabled && (
+                            <span className="absolute -top-1 -right-1 bg-gray-700 text-gray-200 text-[10px] px-1 rounded-md">soon</span>
+                          )}
+                        </div>
                       ))}
                     </div>
 
