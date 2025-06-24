@@ -89,7 +89,7 @@ export default function Home() {
               </h1>
 
               <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-12">
-                JonStack is a standardized, all-in-one stack for Cursor. Launch production-ready apps—web, mobile, desktop or games—without drowning in expert-only docs. Auth, database, uploads and tests come pre-wired so you can focus on ideas, not integrations.
+                JonStack is a standardized, all-in-one stack for AI IDEs. Launch production-ready apps—web, mobile, desktop or games—without drowning in expert-only docs. Auth, database, uploads and tests come pre-wired so you can focus on ideas, not integrations.
               </p>
             </div>
 

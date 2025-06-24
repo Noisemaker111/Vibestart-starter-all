@@ -5,11 +5,6 @@ import { SquareUploadButton } from "@client/components/SquareUploadButton";
 import { SignInButton } from "@client/components/SignInButton";
 import { CreateOrganizationButton } from "@client/components/CreateOrganizationButton";
 import { useAuth } from "@client/context/AuthContext";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -46,29 +41,6 @@ export default function TestUtilities() {
 
   // Add after other state definitions
   const [uploadthingApiStatus, setUploadthingApiStatus] = useState<"idle" | "ok" | "error">("idle");
-
-  /* Countdown to daily reset (8 AM America/New_York) */
-  const [resetCountdown, setResetCountdown] = useState<string>("");
-  function computeNextReset(): number {
-    const now = dayjs();
-    const tzNow = now.tz("America/New_York");
-    let next = tzNow.hour(8).minute(0).second(0).millisecond(0);
-    if (tzNow.isAfter(next)) next = next.add(1, "day");
-    return next.diff(tzNow);
-  }
-  useEffect(() => {
-    function updateCountdown() {
-      const ms = computeNextReset();
-      const totalSec = Math.max(0, Math.floor(ms / 1000));
-      const h = Math.floor(totalSec / 3600);
-      const m = Math.floor((totalSec % 3600) / 60);
-      const s = totalSec % 60;
-      setResetCountdown(`${h}h ${m}m ${s}s`);
-    }
-    updateCountdown();
-    const id = setInterval(updateCountdown, 1000);
-    return () => clearInterval(id);
-  }, []);
 
   /* ──────────────────────────────────────────────────────────────────────── */
   /* Animals helpers                                                         */
@@ -247,9 +219,6 @@ export default function TestUtilities() {
         </h1>
         <div className="flex items-center gap-3">
           <button onClick={clearAll} className="btn-primary px-4 py-2 text-sm">Clear</button>
-          <span className="text-xs text-gray-500 dark:text-gray-400 max-w-xs">
-           8 AM EST RESET IN {resetCountdown}.
-          </span>
         </div>
       </div>
 

@@ -7,53 +7,6 @@ import CursorProjectRule from "@client/components/CursorProjectRule";
 // Cursor auxiliary data (project rule & memories)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const exampleAlwaysRule = `[
-name: "project-structure.mdc"
-rule_type: Always
-other: This rule is attached to every chat and command+k request
----
--It is at upmost importance to keep CursorDev to keep the live directory map 100 % accurate;
--Dont add stupid comments on the side the file or folder, just keep it up to date of what it does and what it is used for 
-
-# Project Structure — jonstack
-
-jonstack/
-├── src/
-│   ├── client/
-│   │   ├── components/        React UI elements
-│   │   │   ├── CreateOrganizationButton.tsx   Button + modal to create orgs
-│   │   │   ├── SignInButton.tsx              Log In / Log Out button with modal
-│   │   │   └── SquareUploadButton.tsx        Square image upload component (no inline preview)
-│   │   ├── context/           React contexts & providers
-│   │   ├── pages/             Route components
-│   │   └── utils/             Client-side helpers
-│   ├── server/
-│   │   ├── db/
-│   │   │   ├── queries/       Query helpers
-│   │   │   └── schema.ts      Schema for the entire database of the project (add, alter tables — now includes organizations & profiles table)
-│   │   ├── utils/             Server helpers
-│   │   └── uploadthing.ts     Upload handlers
-│   ├── shared/
-│   │   ├── supabase.ts        Shared Supabase init
-│   │   └── constants.ts       App-wide constants
-├── public/
-├── package.json
-├── tailwind.config.js
-├── vite.config.ts
-└── README.md
-]`;
-
-const exampleAgentRule = `[
-name: "deploy-guide.mdc"
-rule_type: AgentRequested
-other: Deployment troubleshooting steps for Vercel & Netlify builds
----
-# Deployment Best-Practices
-
-1. Ensure all environment variables are set in dashboard.
-2. Run \`npm run build\` locally to replicate CI.
-3. Purge cache and redeploy if node version changes.
-]`;
 
 type Memory = { id: string; text: string };
 
@@ -191,7 +144,7 @@ Agent workflow and task execution:
 Break every assignment into explicit dependency-first steps. Name execution blocks 'Agent 1', 'Agent 2', etc. An agent may begin only when all of its dependencies are satisfied by previous agents; unrelated streams may run in parallel. The agent that performs any filesystem mutation must finish its own block by emitting the updated file tree; this responsibility may never be deferred to a later agent because the current agent holds the full context of the change. Conclude each agent block with complete, runnable code—never placeholders such as // TODO.
 
 Output format:
-For each response, create distinct agent sections headed by a logical domain title, followed by a concise goal line and a series of imperative actions. After any change to files or directories, immediately output the updated project tree in .cursor/rules/project_structure.mdc. Keep language direct and free from metaphors, rhetorical questions or filler. The tree must appear as the final element of the same agent's block that made the change.`;
+For each response, create distinct agent sections headed by a logical domain title, followed by a concise goal line and a series of imperative actions. After any change to files or directories, immediately output the updated project tree in .cursor/rules/project-structure.mdc. Keep language direct and free from metaphors, rhetorical questions or filler. The tree must appear as the final element of the same agent's block that made the change.`;
 
     const copyToClipboard = () => navigator.clipboard.writeText(markdown).catch(() => {});
 
