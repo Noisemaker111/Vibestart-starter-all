@@ -1,6 +1,6 @@
 {
-  "id": "f9a6edc5-2344-4c73-8bdc-dca79efd7a08",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "166716ac-e84e-4a95-9425-8883165e2aa7",
+  "prevId": "f9a6edc5-2344-4c73-8bdc-dca79efd7a08",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -69,6 +69,44 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.profiles": {
+      "name": "profiles",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "full_name": {
+          "name": "full_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "avatar_url": {
+          "name": "avatar_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
           "default": "now()"
         }
       },

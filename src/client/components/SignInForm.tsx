@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { supabase } from "@shared/supabase";
 
+
+
+export const OAUTH_REDIRECT_URL = import.meta.env.VITE_SUPABASE_REDIRECT ?? ""; 
+
+
 export function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -55,7 +60,7 @@ export function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
         onClick={() =>
           supabase.auth.signInWithOAuth({
             provider: "google",
-            options: { redirectTo: window.location.origin },
+            options: { redirectTo: OAUTH_REDIRECT_URL || window.location.origin },
           })
         }
         className="inline-flex items-center justify-center gap-3 w-full px-6 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
@@ -74,7 +79,7 @@ export function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
         onClick={() =>
           supabase.auth.signInWithOAuth({
             provider: "github",
-            options: { redirectTo: window.location.origin },
+            options: { redirectTo: OAUTH_REDIRECT_URL || window.location.origin },
           })
         }
         className="inline-flex items-center justify-center gap-3 w-full px-6 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors"

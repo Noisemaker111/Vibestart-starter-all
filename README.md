@@ -1,6 +1,6 @@
 # 🚀 JonStack
 
-A production-ready, full-stack web application starter kit with **everything** pre-configured. Stop wasting time on boilerplate. Start building features that matter.
+**JonStack is an AI-first, opinionated stack that prescribes a single way to build modern apps.** Web targets are ready today; Mobile (React Native) and Desktop (Electron) are coming next. Stop debating tooling and focus on shipping features.
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![React Router](https://img.shields.io/badge/React_Router-v7-red)](https://reactrouter.com/)
@@ -77,7 +77,7 @@ jonstack/
 ```
 
 ## 🚀 Getting Started (Cursor Source Control)
-Use Cursor's **Source Control** panel (branch icon at the top-left) to clone this repo, review diffs, commit, and push—no CLI needed. A complete zero-to-production guide plus API reference is hosted at **https://jonstack.vercel.app/docs**.
+Use Cursor's **Source Control** panel (branch icon at the top-left) to clone this repo, review diffs, commit, and push—no CLI needed. A complete zero-to-100 guide plus API reference is hosted at **https://jonstack.vercel.app/docs**.
 
 ## 📚 Documentation
 
@@ -170,3 +170,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   <a href="/docs">📖 Read the docs</a> •
   <a href="https://github.com/Noisemaker111/jonstack/issues">🐛 Report an issue</a>
 </p>
+
+### Roadmap
+
+| Timeframe | Milestone |
+|-----------|-----------|
+| Q2 2024 | v1 launch for Web (current) |
+| Q3 2024 | Mobile SDK (React Native) |
+| Q4 2024 | Desktop packaging (Electron) |
+| 2025 | CLI scaffolds, AI code-gen recipes |

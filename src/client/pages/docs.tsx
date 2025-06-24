@@ -1,5 +1,88 @@
 import { useState } from "react";
+import { useLocation } from "react-router";
 import type { Route } from "./+types/docs";
+import CursorProjectRule from "@client/components/CursorProjectRule";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Cursor auxiliary data (project rule & memories)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const exampleAlwaysRule = `[
+name: "project-structure.mdc"
+rule_type: Always
+other: This rule is attached to every chat and command+k request
+---
+-It is at upmost importance to keep CursorDev to keep the live directory map 100 % accurate;
+-Dont add stupid comments on the side the file or folder, just keep it up to date of what it does and what it is used for 
+
+# Project Structure — jonstack
+
+jonstack/
+├── src/
+│   ├── client/
+│   │   ├── components/        React UI elements
+│   │   │   ├── CreateOrganizationButton.tsx   Button + modal to create orgs
+│   │   │   ├── SignInButton.tsx              Log In / Log Out button with modal
+│   │   │   └── SquareUploadButton.tsx        Square image upload component (no inline preview)
+│   │   ├── context/           React contexts & providers
+│   │   ├── pages/             Route components
+│   │   └── utils/             Client-side helpers
+│   ├── server/
+│   │   ├── db/
+│   │   │   ├── queries/       Query helpers
+│   │   │   └── schema.ts      Schema for the entire database of the project (add, alter tables — now includes organizations & profiles table)
+│   │   ├── utils/             Server helpers
+│   │   └── uploadthing.ts     Upload handlers
+│   ├── shared/
+│   │   ├── supabase.ts        Shared Supabase init
+│   │   └── constants.ts       App-wide constants
+├── public/
+├── package.json
+├── tailwind.config.js
+├── vite.config.ts
+└── README.md
+]`;
+
+const exampleAgentRule = `[
+name: "deploy-guide.mdc"
+rule_type: AgentRequested
+other: Deployment troubleshooting steps for Vercel & Netlify builds
+---
+# Deployment Best-Practices
+
+1. Ensure all environment variables are set in dashboard.
+2. Run \`npm run build\` locally to replicate CI.
+3. Purge cache and redeploy if node version changes.
+]`;
+
+type Memory = { id: string; text: string };
+
+const memoriesList: Memory[] = [
+  {
+    id: "1785701241297335362",
+    text:
+      "When creating new API endpoints or pages, always remember to add corresponding entries to src/client/routes.ts so routes are registered.",
+  },
+  {
+    id: "1939287265809468720",
+    text:
+      "Always update @project-structure.mdc after any filesystem change; considered extremely important by the user.",
+  },
+  {
+    id: "5445089380744046776",
+    text: "User prefers not to use emojis in UI labels/headings (e.g., section summaries).",
+  },
+  {
+    id: "1537003352931863746",
+    text:
+      "User prefers CursorDev to automatically execute database sync/migration commands after schema changes; they do not want to run those commands themselves.",
+  },
+  {
+    id: "1622624613781621413",
+    text:
+      "Drizzle CLI workflow: • Generate migrations: `npx drizzle-kit generate` • Apply migrations: `npx drizzle-kit migrate` • Push schema to DB: `npx drizzle-kit push` • Pull schema from DB: `npx drizzle-kit pull` • GUI studio: `npx drizzle-kit studio` • Consistency check: `npx drizzle-kit check` • Upgrade snapshots: `npx drizzle-kit up` Flags like `--config=<file>` can specify an alternate config for multi-env setups.",
+  },
+];
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -9,74 +92,106 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Docs() {
-  const [activeSection, setActiveSection] = useState("zero-to-production");
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const ideaParam = searchParams.get("idea") ?? "";
+  const projectParam = searchParams.get("project") ?? "";
+  const osParam = searchParams.get("os") ?? "";
+  const targetParam = searchParams.get("target") ?? "";
+
+  const megaPrompt = ideaParam
+    ? `alter the current template to help create this idea, understand the current codebase and make changes and alter the connections, tables, functions, namings all to my project's idea. target platform=${targetParam}. dev os=${osParam}. create a github repo called "${projectParam}". then <user_idea_start>${ideaParam}<user_idea_end>`
+    : "";
+
+  const [megaCopySuccess, setMegaCopySuccess] = useState(false);
+  function copyMegaPrompt() {
+    if (!megaPrompt) return;
+    navigator.clipboard.writeText(megaPrompt).then(() => {
+      setMegaCopySuccess(true);
+      setTimeout(() => setMegaCopySuccess(false), 2000);
+    }).catch(() => {});
+  }
+
+  const [activeSection, setActiveSection] = useState("zero-to-100");
 
   // Track Tech Stack dropdown visibility
   const [techOpen, setTechOpen] = useState(false);
 
+  // Dropdown for Cursor integration (User Rules, Project Rules, Memories)
+  const [cursorOpen, setCursorOpen] = useState(false);
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Troubleshooting state & data
+  // ─────────────────────────────────────────────────────────────────────
+  const [issueQuery, setIssueQuery] = useState("");
+
+  const commonIssues = [
+    {
+      id: 1,
+      title: 'Error: "command not found" or "not recognized"',
+      solution: "Restart your computer after installing Node.js and Git, then try again.",
+    },
+    {
+      id: 2,
+      title: 'Error: "ECONNREFUSED" or database connection issues',
+      solution:
+        "Double-check your DATABASE_URL in .env.local matches exactly what's in Supabase Settings → Database → Connection string.",
+    },
+    {
+      id: 3,
+      title: 'Error: "Port 5173 is already in use"',
+      solution: "Close any other terminal windows running `npm run dev` or restart your computer.",
+    },
+    {
+      id: 4,
+      title: 'App loads but login does not work',
+      solution: "Make sure you enabled Google and GitHub providers in Supabase Authentication → Providers.",
+    },
+  ] as const;
+
+  const filteredIssues = commonIssues.filter(
+    (issue) =>
+      issue.title.toLowerCase().includes(issueQuery.toLowerCase()) ||
+      issue.solution.toLowerCase().includes(issueQuery.toLowerCase())
+  );
+
   // Leaf-level documentation sections (i.e. selectable pages)
   const leafSections = [
-    { id: "zero-to-production", title: "Zero to Production", icon: "💯" },
-    { id: "cursor-rules", title: "Cursor Rules", icon: "📐" },
-    { id: "architecture", title: "Tech Stack Overview", icon: "🛠️" },
-    { id: "database", title: "Database", icon: "💾" },
-    { id: "authentication", title: "Authentication", icon: "🔐" },
-    { id: "file-uploads", title: "File Uploads", icon: "📤" },
-    { id: "deployment", title: "Deployment", icon: "🌐" },
-    { id: "error", title: "Error Handling", icon: "❌" },
-    { id: "analytics", title: "Analytics", icon: "📊" },
+    { id: "zero-to-100", title: "Zero to Full-Stack App" },
+    { id: "cursor-rules", title: "User Rules" },
+    { id: "project-rules", title: "Project Rules" },
+    { id: "memories", title: "Memories" },
+    { id: "architecture", title: "Tech Stack Overview" },
+    { id: "database", title: "Database" },
+    { id: "authentication", title: "Authentication" },
+    { id: "file-uploads", title: "File Uploads" },
+    { id: "deployment", title: "Deployment" },
+    { id: "error", title: "Troubleshooting" },
+    { id: "analytics", title: "Analytics" },
+    { id: "roadmap", title: "Roadmap" },
   ] as const;
 
   // Toggle states for instructions
   const [os, setOs] = useState<"windows" | "mac">("windows");
-  const [target, setTarget] = useState<"web" | "mobile">("web");
+  const [target, setTarget] = useState<"web" | "mobile" | "desktop" | "game">("web");
 
-  // Reusable markdown rules block with copy button
-  const MarkdownRules = () => {
-    const markdown = `## Persona and Role
-- Act as a proactive software engineering expert, executing tasks directly with immediate visible results.
-- Maintain continuous workflow until explicitly stopped.
+  const CursorAiUserRules = () => {
+    const markdown = `You are CursorDev, an AI assistant powered by the o3 model. Your role is to act as the user's proactive lead software engineer and project manager, switching between expert frontend and backend roles as tasks demand.
 
-## Tech Stack and Environment
-- Use **TypeScript 5** everywhere.
-- **React 19** with **React Router 7** SSR toolchain.
-- **Vite 6** bundler/dev server (\`vite-tsconfig-paths\`).
-- **Tailwind CSS 4** (\`@tailwindcss/vite\`).
-- **Supabase** for Auth/UI (\`@supabase/auth-ui-react\`, \`@supabase/supabase-js\`).
-- File uploads via **UploadThing React SDK** (\`@uploadthing/react\`) and Remix router backend.
-- **Drizzle ORM 0.44** with PostgreSQL managed by \`drizzle-kit\` CLI.
-- Runtime validation using **Zod** schemas at \`src/shared/schema.ts\`.
-- \`dotenv\` for environment variables (\`src/server/db/index.ts\`).
+Persona and principles:
+Act continuously, producing visible results until told to stop. Always apply SOLID (Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion), DRY, KISS, YAGNI, and the Principle of Least Astonishment. Code must remain explicit, comprehensive, consistent and fully traceable.
 
-## Coding Standards
-- Variables in CamelCase, components in PascalCase, files in kebab-case, constants in UPPER_SNAKE.
-- Modularize aggressively; immediately remove unused code.
-- Enforce async-await, structured logs, exhaustive error handling, runtime validation via Zod.
-- Optimize for performance and Core Web Vitals.
-- Ensure a11y compliance (ARIA, contrast, keyboard navigation).
-- Design for i18n/l10n readiness.
-- Guarantee ≥ 90 % automated test coverage (unit, integration, e2e).
+Technology stack and environment:
+All work occurs in TypeScript 5 with React 19 and React Router 7 in an SSR setup powered by Vite 6 and vite-tsconfig-paths. Styling uses Tailwind CSS 4 via @tailwindcss/vite. The backend relies on Supabase with @supabase/auth-ui-react and @supabase/supabase-js. File uploads use UploadThing with the @uploadthing/react SDK. Database access is through Drizzle ORM 0.44 on PostgreSQL, with migrations handled by drizzle-kit. Runtime validation uses Zod with centralized schemas at src/shared/schema.ts. Environment variables load through dotenv. Assume an external dev server is running and all .env files are configured.
 
-## Output Expectations
-- Deliver complete, runnable code without placeholders or TODOs.
-- Provide explicit, dependency-first task breakdowns.
-- Assume an external dev server is running and trust existing \`.env\` files without verification.
-- Communicate in concise, direct language; avoid metaphors, rhetorical questions, or filler.
+Development standards and practices:
+Follow camelCase for variables and functions, PascalCase for components and types, kebab-case for filenames and directories, and UPPER_SNAKE_CASE for constants. Modularize aggressively, deleting unused code immediately. Employ async/await exclusively for asynchronous flows. Implement exhaustive error handling, enforce Zod validation at every API boundary, set secure defaults including CSP and CSRF/XSS protection, scan dependencies, and manage secrets safely. Optimize for Core Web Vitals, guarantee full ARIA compliance, design for i18n, maintain at least ninety percent automated test coverage across unit, integration and E2E suites, and expose metrics, tracing and alerts for observability.
 
-## Best-Practice Principles
-- Follow **SOLID, DRY, KISS, YAGNI, Principle of Least Astonishment**.
-- Ensure explicit, comprehensive, consistent, traceable coding.
-- Enforce secure defaults (CSP, XSS/CSRF protection, secure secret management, secure data handling, dependency scanning).
-- Include observability hooks (metrics, tracing, alerts).
-- List key tooling/library versions explicitly.
-- Allow clarifying questions; forbid assumptions.
+Agent workflow and task execution:
+Break every assignment into explicit dependency-first steps. Name execution blocks 'Agent 1', 'Agent 2', etc. An agent may begin only when all of its dependencies are satisfied by previous agents; unrelated streams may run in parallel. The agent that performs any filesystem mutation must finish its own block by emitting the updated file tree; this responsibility may never be deferred to a later agent because the current agent holds the full context of the change. Conclude each agent block with complete, runnable code—never placeholders such as // TODO.
 
-## Meta-Commands and Iteration
-- Tasks ordered explicitly by dependencies.
-- Clearly define subtasks for parallel execution by labeling separate agents without decimal subtasks (Agent 2, Agent 3, etc.).
-- For each agent task, provide concise context, goals, and implementation details in its prompt.
-- Assign tasks to agents only if unrelated or dependencies completed.
-- Ignore overhead from external tooling or type-checking assumptions.`;
+Output format:
+For each response, create distinct agent sections headed by a logical domain title, followed by a concise goal line and a series of imperative actions. After any change to files or directories, immediately output the updated project tree in .cursor/rules/project_structure.mdc. Keep language direct and free from metaphors, rhetorical questions or filler. The tree must appear as the final element of the same agent's block that made the change.`;
 
     const copyToClipboard = () => navigator.clipboard.writeText(markdown).catch(() => {});
 
@@ -104,21 +219,64 @@ export default function Docs() {
             <div className="sticky top-24 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
               <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Documentation</h3>
               <nav className="space-y-2">
-                {/* Top-level items */}
-                {leafSections.slice(0, 2).map((section) => (
-                  <button
-                    key={section.id}
-                    onClick={() => setActiveSection(section.id)}
-                    className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
-                      activeSection === section.id
-                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-                    }`}
+                {/* Top-level quick start */}
+                {leafSections
+                  .filter((s) => s.id === "zero-to-100")
+                  .map((section) => (
+                    <button
+                      key={section.id}
+                      onClick={() => setActiveSection(section.id)}
+                      className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
+                        activeSection === section.id
+                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
+                          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      <span className="text-sm">{section.title}</span>
+                    </button>
+                  ))}
+
+                {/* Cursor Integration (dropdown) */}
+                <button
+                  onClick={() => {
+                    setCursorOpen((o) => !o);
+                    setActiveSection("cursor-rules");
+                  }}
+                  className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
+                    (['cursor-rules','project-rules','memories'] as string[]).includes(activeSection as string)
+                      ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 font-medium'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <span className="text-sm flex-1">Cursor Integration</span>
+                  <svg
+                    className={`w-3 h-3 transition-transform ${cursorOpen ? 'rotate-90' : ''}`}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
                   >
-                    <span className="text-lg">{section.icon}</span>
-                    <span className="text-sm">{section.title}</span>
-                  </button>
-                ))}
+                    <path d="M6 6L14 10L6 14V6Z" />
+                  </svg>
+                </button>
+
+                {cursorOpen && (
+                  <div className="pl-4 space-y-2">
+                    {leafSections
+                      .filter((s) => (['cursor-rules','project-rules','memories'] as string[]).includes(s.id))
+                      .map((section) => (
+                        <button
+                          key={section.id}
+                          onClick={() => setActiveSection(section.id)}
+                          className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
+                            activeSection === section.id
+                              ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 font-medium'
+                              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                          }`}
+                        >
+                          <span className="text-sm">{section.title}</span>
+                        </button>
+                      ))}
+                  </div>
+                )}
 
                 {/* Tech Stack (dropdown) */}
                 <button
@@ -132,7 +290,6 @@ export default function Docs() {
                       : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 >
-                  <span className="text-lg">🛠️</span>
                   <span className="text-sm flex-1">Tech Stack</span>
                   <svg
                     className={`w-3 h-3 transition-transform ${techOpen ? 'rotate-90' : ''}`}
@@ -152,7 +309,6 @@ export default function Docs() {
                           'authentication',
                           'file-uploads',
                           'deployment',
-                          'error',
                           'analytics',
                         ].includes(s.id)
                       )
@@ -166,12 +322,23 @@ export default function Docs() {
                               : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                           }`}
                         >
-                          <span className="text-lg">{section.icon}</span>
                           <span className="text-sm">{section.title}</span>
                         </button>
                       ))}
                   </div>
                 )}
+
+                {/* Troubleshooting top-level nav (moved below Tech Stack) */}
+                <button
+                  onClick={() => setActiveSection("error")}
+                  className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
+                    activeSection === "error"
+                      ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-medium'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <span className="text-sm">Troubleshooting</span>
+                </button>
               </nav>
             </div>
           </aside>
@@ -187,7 +354,7 @@ export default function Docs() {
               >
                 {leafSections.map((section) => (
                   <option key={section.id} value={section.id}>
-                    {section.icon} {section.title}
+                    {section.title}
                   </option>
                 ))}
               </select>
@@ -195,9 +362,9 @@ export default function Docs() {
 
             {/* Documentation Content */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
-              {activeSection === "zero-to-production" && (
+              {activeSection === "zero-to-100" && (
                 <div className="prose prose-gray dark:prose-invert max-w-none">
-                  <h1 className="text-3xl font-bold mb-6">Zero to Production</h1>
+                  <h1 className="text-3xl font-bold mb-6">Zero to Full-Stack App</h1>
                   
                   {/* Toggles */}
                   <div className="flex flex-wrap items-center gap-6 mb-10">
@@ -225,23 +392,29 @@ export default function Docs() {
                       <span className="text-sm font-medium">Target:</span>
                       {([
                         { id: "web", label: "Web", disabled: false },
-                        { id: "mobile", label: "Mobile (coming soon)", disabled: true },
+                        { id: "mobile", label: "Mobile", disabled: true },
+                        { id: "desktop", label: "Desktop", disabled: true },
+                        { id: "game", label: "Game", disabled: true },
                       ] as const).map(({ id, label, disabled }) => (
-                        <button
-                          key={id}
-                          onClick={() => !disabled && setTarget(id as any)}
-                          disabled={disabled}
-                          className={`px-4 py-1 rounded-full text-sm font-medium transition-colors ${
-                            target === id ? "bg-blue-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"}
-                            ${disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-300 dark:hover:bg-gray-600"}`}
-                        >
-                          {label}
-                        </button>
+                        <div key={id} className="relative inline-block">
+                          <button
+                            onClick={() => !disabled && setTarget(id as any)}
+                            disabled={disabled}
+                            className={`px-4 py-1 rounded-full text-sm font-medium transition-colors ${
+                              target === id ? "bg-blue-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"}
+                              ${disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-300 dark:hover:bg-gray-600"}`}
+                          >
+                            {label}
+                          </button>
+                          {disabled && (
+                            <span className="absolute -top-1 -right-1 bg-gray-700 text-gray-200 text-[10px] px-1 rounded-md">soon</span>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </div>
                   
-                  {/* ZERO-TO-HERO GUIDE */}
+                  {/* ZERO TO FULL-STACK GUIDE */}
                   <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-xl mb-8">
                     <h2 className="text-lg font-semibold mb-3">What You'll Build</h2>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
@@ -328,6 +501,7 @@ export default function Docs() {
                         </p>
                         <div className="bg-gray-900 text-gray-300 p-4 rounded-lg overflow-x-auto text-sm">
                           <code>git clone https://github.com/Noisemaker111/jonstack.git my-app</code><br/>
+                          
                           <code>cd my-app</code><br/>
                           <code>npm install</code>
                         </div>
@@ -359,6 +533,10 @@ export default function Docs() {
                               <li>Wait for setup to complete</li>
                               <li>Go to <em>Project Settings → API</em>, copy <code>Project URL</code> & <code>anon public key</code></li>
                               <li>Go to <em>Authentication → Providers</em> and enable <code>Google</code> and <code>GitHub</code></li>
+                              <li>Still in <em>Authentication</em>, open <em>URL&nbsp;Configuration</em> and add each of these to <strong>Redirect&nbsp;URLs</strong> (press <span className="underline">Add</span> after each one):<br/>
+                                • <code>http://localhost:5173</code> &nbsp;(development)<br/>
+                                • <code>https://your-production-domain.com</code> &nbsp;(replace later with your Vercel URL)
+                              </li>
                             </ul>
                             <span className="text-gray-500 text-xs">This creates your database and enables user login</span>
                           </li>
@@ -389,7 +567,11 @@ VITE_SUPABASE_ANON_KEY=your_anon_key_from_supabase
 DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-ID].supabase.co:5432/postgres
 
 # UploadThing - enables file uploads  
-UPLOADTHING_TOKEN=your_secret_key_from_uploadthing`}
+UPLOADTHING_TOKEN=your_secret_key_from_uploadthing
+
+# Domain & OAuth redirects  
+VITE_SITE_URL=http://localhost:5173  
+VITE_SUPABASE_REDIRECT=http://localhost:5173`}
                         </div>
                         <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg mt-4">
                           <p className="text-sm text-yellow-800 dark:text-yellow-200">
@@ -413,7 +595,7 @@ UPLOADTHING_TOKEN=your_secret_key_from_uploadthing`}
                         </div>
                         <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mt-4">
                           <p className="text-sm text-blue-800 dark:text-blue-200">
-                            <strong>✅ Success looks like:</strong>
+                            <strong>Success looks like:</strong>
                           </p>
                           <ul className="text-sm text-blue-700 dark:text-blue-300 mt-2 space-y-1">
                             <li>• First command creates your database tables</li>
@@ -434,10 +616,11 @@ UPLOADTHING_TOKEN=your_secret_key_from_uploadthing`}
                       <div className="flex-1">
                         <h3 className="text-xl font-semibold mb-2">Deploy to Vercel</h3>
                         <ol className="list-decimal list-inside space-y-1 text-sm">
-                          <li>Push code to GitHub</li>
-                          <li>Import project in Vercel dashboard</li>
-                          <li>Add env vars from <code>.env.local</code></li>
-                          <li>Click <strong>Deploy</strong> 🚀</li>
+                          <li>Push your code to a new <strong>GitHub</strong> repository (<code>git init</code> → <code>git add . && git commit</code> → <code>git remote add origin</code> → <code>git push -u origin master</code>)</li>
+                          <li>In the <strong>Vercel</strong> dashboard click <em>New&nbsp;Project</em> → import the repository you just pushed</li>
+                          <li>When prompted for <em>Environment&nbsp;Variables</em> paste <strong>all</strong> keys from <code>.env.local</code>: <code>VITE_SUPABASE_URL</code>, <code>VITE_SUPABASE_ANON_KEY</code>, <code>DATABASE_URL</code>, <code>UPLOADTHING_TOKEN</code>, <code>VITE_SITE_URL</code>, <code>VITE_SUPABASE_REDIRECT</code></li>
+                          <li>Leave the detected build settings as-is (Vite → <code>npm run build</code>; output dir <code>dist</code>) and click <strong>Deploy</strong> 🚀</li>
+                          <li>After the first deploy completes copy your new live URL (e.g.&nbsp;<code>https://my-app.vercel.app</code>).<br/>Return to Supabase → <em>Authentication&nbsp;→&nbsp;URL&nbsp;Configuration</em> and add it to Redirect&nbsp;URLs, then update <code>VITE_SITE_URL</code>/<code>VITE_SUPABASE_REDIRECT</code> on Vercel and redeploy.</li>
                         </ol>
                       </div>
                     </div>
@@ -445,32 +628,39 @@ UPLOADTHING_TOKEN=your_secret_key_from_uploadthing`}
                   
                   {/* Troubleshooting Section */}
                   <div className="mt-12 p-6 bg-red-50 dark:bg-red-900/20 rounded-xl">
-                    <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-4">🚨 Common Issues & Fixes</h3>
-                    <div className="space-y-3 text-sm">
-                      <div>
-                        <strong className="text-red-700 dark:text-red-300">Error: "command not found" or "not recognized"</strong>
-                        <p className="text-red-600 dark:text-red-400">Solution: Restart your computer after installing Node.js and Git, then try again.</p>
-                      </div>
-                      <div>
-                        <strong className="text-red-700 dark:text-red-300">Error: "ECONNREFUSED" or database connection issues</strong>
-                        <p className="text-red-600 dark:text-red-400">Solution: Double-check your DATABASE_URL in .env.local matches exactly what's in Supabase Settings → Database → Connection string.</p>
-                      </div>
-                      <div>
-                        <strong className="text-red-700 dark:text-red-300">Error: "Port 5173 is already in use"</strong>
-                        <p className="text-red-600 dark:text-red-400">Solution: Close any other terminal windows running <code>npm run dev</code> or restart your computer.</p>
-                      </div>
-                      <div>
-                        <strong className="text-red-700 dark:text-red-300">App loads but login doesn't work</strong>
-                        <p className="text-red-600 dark:text-red-400">Solution: Make sure you enabled Google and GitHub providers in Supabase Authentication → Providers.</p>
-                      </div>
-                    </div>
+                    <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-4">Common Issues & Fixes</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      For a complete list of issues and fixes, see the
+                      <button
+                        onClick={() => setActiveSection("error")}
+                        className="text-blue-600 dark:text-blue-400 underline ml-1"
+                      >
+                        Troubleshooting&nbsp;page
+                      </button>.
+                    </p>
                   </div>
 
                   <div className="mt-8 p-6 bg-green-50 dark:bg-green-900/20 rounded-xl text-center">
                     <p className="text-lg font-semibold text-green-700 dark:text-green-300">
-                      🎉 Zero-to-Hero complete! Your app is live locally and one click away from production.
+                      Zero-to-Full-Stack App complete! Your app is live locally and one click away from production.
                     </p>
                   </div>
+
+                  {/* AI Mega Prompt (shown after user submits idea) */}
+                  {ideaParam && (
+                    <div id="mega-prompt" className="mt-12 p-6 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-purple-800 dark:text-purple-200">AI Mega Prompt</h3>
+                        <button
+                          onClick={copyMegaPrompt}
+                          className="text-xs px-2 py-1 rounded border border-purple-300 dark:border-purple-600 hover:bg-purple-100 dark:hover:bg-purple-800"
+                        >{megaCopySuccess ? "Copied" : "Copy"}</button>
+                      </div>
+                      <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto text-xs whitespace-pre-wrap">
+                        {megaPrompt}
+                      </pre>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -478,6 +668,10 @@ UPLOADTHING_TOKEN=your_secret_key_from_uploadthing`}
                 <div className="prose prose-gray dark:prose-invert max-w-none">
                   <h1 className="text-3xl font-bold mb-6">Architecture Overview</h1>
                   
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    JonStack enforces a single, opinionated path from IDE to production so you can focus on ideas, not glue code. Today the stack covers <strong>web applications</strong>. Mobile and desktop targets are on the roadmap and will reuse the same API layer, database and auth primitives.
+                  </p>
+
                   <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-xl mb-8">
                     <h3 className="text-lg font-semibold mb-4">Project Structure</h3>
                     <pre className="text-sm overflow-x-auto">
@@ -485,13 +679,16 @@ UPLOADTHING_TOKEN=your_secret_key_from_uploadthing`}
 ├── src/
 │   ├── client/
 │   │   ├── components/        React UI elements
+│   │   │   ├── CreateOrganizationButton.tsx   Button + modal to create orgs
+│   │   │   ├── SignInButton.tsx              Log In / Log Out button with modal
+│   │   │   └── SquareUploadButton.tsx        Square image upload component (no inline preview)
 │   │   ├── context/           React contexts & providers
 │   │   ├── pages/             Route components
 │   │   └── utils/             Client-side helpers
 │   ├── server/
 │   │   ├── db/
 │   │   │   ├── queries/       Query helpers
-│   │   │   └── schema.ts      Drizzle schema
+│   │   │   └── schema.ts      Schema for the entire database of the project (add, alter tables — now includes organizations & profiles table)
 │   │   ├── utils/             Server helpers
 │   │   └── uploadthing.ts     Upload handlers
 │   ├── shared/
@@ -885,26 +1082,57 @@ export async function action({ request }: Route.ActionArgs) {
 
               {activeSection === "cursor-rules" && (
                 <div className="prose prose-gray dark:prose-invert max-w-none">
-                  <h1 className="text-3xl font-bold mb-6">Cursor Rules</h1>
+                  <h1 className="text-3xl font-bold mb-6">Cursor AI User Rules</h1>
                   <p className="text-gray-600 dark:text-gray-400 mb-6">
                     Recommended best-practices when working inside the Cursor IDE.
                   </p>
-                  <MarkdownRules />
+                  <CursorAiUserRules />
                 </div>
               )}
 
               {activeSection === "error" && (
                 <div className="prose prose-gray dark:prose-invert max-w-none">
-                  <h1 className="text-3xl font-bold mb-6">Error Handling (Boilerplate)</h1>
-                  <p className="text-gray-600 dark:text-gray-400 mb-6">
-                    Comprehensive error-handling documentation is coming soon. In the meantime, follow these guidelines:
-                  </p>
-                  <ul className="list-disc pl-6 space-y-2 text-sm">
-                    <li>Wrap async operations in <code>try/catch</code> blocks.</li>
-                    <li>Return typed error responses from loaders and actions.</li>
-                    <li>Surface user-friendly messages in the UI.</li>
-                    <li>Log errors to the console in development and to your observability platform in production.</li>
-                  </ul>
+                  <h1 className="text-3xl font-bold mb-6">Troubleshooting & Common Issues</h1>
+
+                  {/* Search Bar */}
+                  <div className="mb-8 flex flex-col sm:flex-row gap-4 items-center max-w-lg">
+                    <input
+                      type="text"
+                      value={issueQuery}
+                      onChange={(e) => setIssueQuery(e.target.value)}
+                      placeholder="Search errors or keywords..."
+                      className="input flex-1"
+                    />
+                    {issueQuery && (
+                      <button
+                        onClick={() => setIssueQuery("")}
+                        className="btn-primary px-4 py-2 text-sm"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Issue List */}
+                  <div className="space-y-6">
+                    {filteredIssues.length === 0 && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400">No matching issues found.</p>
+                    )}
+
+                    {filteredIssues.map((issue) => (
+                      <details
+                        key={issue.id}
+                        className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 border border-red-200 dark:border-red-800"
+                      >
+                        <summary className="cursor-pointer font-medium text-red-700 dark:text-red-300">
+                          {issue.title}
+                        </summary>
+                        <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                          {issue.solution}
+                        </p>
+                      </details>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -919,6 +1147,56 @@ export async function action({ request }: Route.ActionArgs) {
                     <li>Add the provider's script tag in <code>root.tsx</code>.</li>
                     <li>Send custom events from client-side interactions.</li>
                   </ul>
+                </div>
+              )}
+
+              {activeSection === "roadmap" && (
+                <div className="prose prose-gray dark:prose-invert max-w-none">
+                  <h1 className="text-3xl font-bold mb-6">Roadmap</h1>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    We're expanding JonStack beyond the browser:
+                  </p>
+                  <ul className="list-disc pl-6 space-y-2 text-sm">
+                    <li><strong>Q3 2024 – Mobile SDK</strong> (React Native) with shared Supabase auth & Drizzle queries.</li>
+                    <li><strong>Q4 2024 – Desktop</strong> (Electron) using the same React codebase.</li>
+                    <li><strong>Ongoing – AI-First DX</strong>: deeper IDE rules, code-gen wizards and one-shot scaffolds.</li>
+                  </ul>
+                </div>
+              )}
+
+              {activeSection === "project-rules" && (
+                <div className="prose prose-gray dark:prose-invert max-w-none">
+                  <h1 className="text-3xl font-bold mb-6">Project Rules</h1>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    Use the editor below to view or update <code>.mdc</code> rule files located in
+                    your <code>.cursor/rules</code> directory. Changes you copy are ready to paste
+                    into new rule files or share across projects.
+                  </p>
+
+                  {/* Interactive rule editor */}
+                  <CursorProjectRule />
+                </div>
+              )}
+
+              {activeSection === "memories" && (
+                <div className="prose prose-gray dark:prose-invert max-w-none">
+                  <h1 className="text-3xl font-bold mb-6">Memories</h1>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    Cursor stores small pieces of knowledge as <em>memories</em>. They act like
+                    sticky-notes the AI can reference in future sessions.
+                  </p>
+                  <div className="space-y-6">
+                    {memoriesList.map((m) => (
+                      <div key={m.id} className="relative bg-gray-100 dark:bg-gray-800 p-4 rounded-lg text-sm">
+                        <button
+                          onClick={() => navigator.clipboard.writeText(m.text).catch(() => {})}
+                          className="absolute top-2 right-2 px-2 py-0.5 text-xs bg-gray-300 dark:bg-gray-700 rounded hover:bg-gray-400 dark:hover:bg-gray-600"
+                        >Copy</button>
+                        <p className="mb-1 text-gray-700 dark:text-gray-200"><strong>ID:</strong> {m.id}</p>
+                        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{m.text}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

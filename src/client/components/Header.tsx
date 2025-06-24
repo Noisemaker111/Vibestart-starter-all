@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router";
 import { useAuth } from "@client/context/AuthContext";
+import { ThemeToggle } from "@client/components/ThemeToggle";
 
 export function Header() {
   const location = useLocation();
@@ -61,10 +62,13 @@ export function Header() {
             </nav>
           </div>
           
-          {/* User Menu / Get Started */}
+          {/* User Actions */}
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             {session && (
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{session.user.email}</span>
+              <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-300">
+                {session.user.email}
+              </span>
             )}
           </div>
         </div>

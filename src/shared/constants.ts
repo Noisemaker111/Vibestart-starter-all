@@ -1,1 +1,0 @@
-export const DEFAULT_AVATAR_URL = "https://jm6qi1k67z.ufs.sh/f/xjiCC72FKQkxQhOP44lSZHaXm84n9B0tT7Rgd2qzfPijYyVE"; 
