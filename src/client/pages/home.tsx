@@ -1,8 +1,7 @@
 import { Link, useNavigate } from "react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Route } from "./+types/home";
 import { createPortal } from "react-dom";
-import { IdeaCarousel } from "@client/components/IdeaCarousel";
 import ServicesProvided from "@client/components/ServicesProvided";
 import appIdeas from "../../shared/appIdeas";
 
@@ -45,6 +44,17 @@ export default function Home() {
 
   // Replace old arrays with shared list
   const carouselIdeas = appIdeas;
+
+  // State to rotate placeholder suggestions every 4 seconds
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setPlaceholderIndex((idx) => (idx + 1) % carouselIdeas.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [carouselIdeas.length]);
+
+  const currentPlaceholder = carouselIdeas[placeholderIndex] || "Describe your app idea…";
 
   function handleIdeaKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -98,16 +108,47 @@ export default function Home() {
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
                 <div className="relative bg-gray-900/90 backdrop-blur-xl rounded-2xl p-8 border border-gray-800">
-                  <label className="block text-sm font-medium text-gray-400 mb-3">
-                    What are you building?
-                  </label>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                    <label className="text-lg sm:text-xl font-semibold text-gray-300">
+                      Describe your app idea
+                    </label>
+                    <div className="flex items-center gap-2">
+                      {([
+                        { id: "web", label: "Web" },
+                        { id: "app", label: "Mobile" },
+                        { id: "desktop", label: "Desktop" },
+                        { id: "game", label: "Game" },
+                      ] as const).map(({ id, label }) => {
+                        const disabled = isTargetDisabled(id, os);
+                        const selected = target === id;
+                        return (
+                          <div key={id} className="relative">
+                            <button
+                              onClick={() => !disabled && setTarget(id)}
+                              disabled={disabled}
+                              className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium transition-colors ${
+                                selected ? "bg-purple-600 text-white" : "bg-gray-800 text-gray-400"}
+                                ${disabled ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-700"}`}
+                            >
+                              {label}
+                            </button>
+                            {disabled && (
+                              <span className="absolute -top-1 -right-1 bg-gray-700 text-gray-200 text-[10px] px-1 rounded-md select-none">
+                                soon
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                   <textarea
                     value={idea}
                     onChange={(e) => {
                       setIdea(e.target.value);
                     }}
                     onKeyDown={handleIdeaKeyDown}
-                    placeholder="Describe your app idea..."
+                    placeholder={currentPlaceholder}
                     className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-all duration-300 resize-none"
                     rows={3}
                   />
@@ -122,50 +163,7 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* Idea Carousel */}
-                  <div className="mt-6 flex justify-center">
-                    <IdeaCarousel 
-                      ideas={carouselIdeas} 
-                      intervalMs={4000} 
-                      onIdeaClick={(idea) => setIdea(idea)}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Target selector */}
-              <div className="mt-8 flex justify-center">
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-start sm:items-center">
-                  <span className="text-sm text-gray-400">Target:</span>
-                  <div className="flex items-center gap-2">
-                    {([
-                      { id: "web", label: "Web" },
-                      { id: "app", label: "Mobile" },
-                      { id: "desktop", label: "Desktop" },
-                      { id: "game", label: "Game" },
-                    ] as const).map(({ id, label }) => {
-                      const disabled = isTargetDisabled(id, os);
-                      const selected = target === id;
-                      return (
-                        <div key={id} className="relative">
-                          <button
-                            onClick={() => !disabled && setTarget(id)}
-                            disabled={disabled}
-                            className={`px-4 py-1 rounded-full text-sm font-medium transition-colors ${
-                              selected ? "bg-purple-600 text-white" : "bg-gray-800 text-gray-400"}
-                              ${disabled ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-700"}`}
-                          >
-                            {label}
-                          </button>
-                          {disabled && (
-                            <span className="absolute -top-1 -right-1 bg-gray-700 text-gray-200 text-[10px] px-1 rounded-md select-none">
-                              soon
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+                  {/* Idea suggestions now rotate as placeholder text */}
                 </div>
               </div>
 
@@ -186,9 +184,9 @@ export default function Home() {
                 </a>
                 <Link
                   to="/docs"
-                  className="inline-flex items-center justify-center px-8 py-4 font-semibold text-white border border-gray-700 rounded-xl hover:bg-white/5 transition-all duration-200"
+                  className="inline-flex items-center justify-center px-8 py-4 font-semibold text-white borderrounded-xl hover:bg-white/5 transition-all duration-200"
                 >
-                  See How It Works
+                  Docs
                 </Link>
               </div>
             </div>
