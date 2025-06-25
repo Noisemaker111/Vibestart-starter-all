@@ -1,0 +1,65 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+start-coding/
+  - drizzle.config.ts
+  - env.example
+  - package.json (modified)
+  - public/
+    - favicon.ico
+  - react-router.config.ts
+  - README.md
+  - src/
+    - client/
+      - components/
+        - CreateOrganizationButton.tsx
+        - CursorProjectRule.tsx
+        - Header.tsx
+        - IdeaCarousel.tsx
+        - LoginModal.tsx
+        - ServicesProvided.tsx (copy refined)
+        - SignInButton.tsx
+        - SignInForm.tsx
+        - SquareUploadButton.tsx
+        - ThemeToggle.tsx
+      - context/
+        - AuthContext.tsx
+      - pages/
+        - api.animals.tsx
+        - api.images.tsx
+        - api.uploadthing.tsx
+        - docs.tsx
+        - home.tsx
+        - test.tsx
+      - root.tsx
+      - routes.ts
+      - utils/
+        - rateLimit.ts
+        - uploadthing.ts
+    - server/
+      - animals.ts
+      - db/
+        - index.ts
+        - migrations/
+          - 0000_curly_punisher.sql
+          - 0001_flippant_joseph.sql
+          - meta/
+            - _journal.json
+            - 0000_snapshot.json
+            - 0001_snapshot.json
+      - queries/
+      - schema.ts
+    - uploadthing.ts
+    - utils/
+      - anonToken.ts
+      - rateLimit.ts
+  - shared/
+    - app.css
+    - appIdeas.ts
+    - supabase.ts
+  - start-coding.md
+  - tailwind.config.js
+  - tsconfig.json
+  - vite.config.ts
