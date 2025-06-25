@@ -45,7 +45,7 @@ export default function ServicesProvided() {
       title: "AI & Machine Learning",
       icon: <Zap className="w-5 h-5" />,
       color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-      technologies: ["OpenAI GPT-4 API", "T3Chat (roadmap)"] ,
+      technologies: ["OpenRouter", "Chat with AI"] ,
     },
     {
       key: "devops",
