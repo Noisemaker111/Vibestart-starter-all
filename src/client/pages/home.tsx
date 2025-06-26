@@ -62,7 +62,15 @@ export default function Home() {
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   useEffect(() => {
     const timer = setInterval(() => {
-      setPlaceholderIndex((idx) => (idx + 1) % carouselIdeas.length);
+      setPlaceholderIndex((idx) => {
+        if (carouselIdeas.length <= 1) return idx;
+        let next = idx;
+        // Pick a random index different from current
+        while (next === idx) {
+          next = Math.floor(Math.random() * carouselIdeas.length);
+        }
+        return next;
+      });
     }, 4000);
     return () => clearInterval(timer);
   }, [carouselIdeas.length]);
