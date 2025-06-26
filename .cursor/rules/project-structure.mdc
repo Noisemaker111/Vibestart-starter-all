@@ -3,59 +3,48 @@ description:
 globs: 
 alwaysApply: true
 ---
--It is at upmost importance to keep Cursor to keep the live directory map up to date and current;
--Dont add stupid comments on the side the file or folder, just keep it up to date and a simple small sentance of what it does or used for;
+Use Cursor to maintain the live directory map in this file, ensuring its always accurate and up-to-date. Immediately update this after any filesystem change. Keep each entry to a single, concise sentence describing its purpose, with no extraneous comments.
+
 
 # Project Structure — jonstack
-
-jonstack/
-├── src/                         — All source code (client, server & shared)
-│   ├── client/                  — Browser-side React 19 app (SSR-ready)
-│   │   ├── components/          — Reusable UI primitives & widgets
-│   │   │   ├── Header.tsx                     — Top nav bar, routing links, theme toggle
-│   │   │   ├── CreateOrganizationButton.tsx   — Auth-gated modal for creating orgs
-│   │   │   ├── SignInButton.tsx               — Shows Log In / Log Out depending on session
-│   │   │   ├── LoginModal.tsx                 — Portal wrapper around <SignInForm/>
-│   │   │   ├── SignInForm.tsx                 — Email/password + Google OAuth form
-│   │   │   ├── ThemeToggle.tsx                — Light/Dark system-aware switcher
-│   │   │   ├── SquareUploadButton.tsx         — UploadThing avatar/file uploader
-│   │   │   ├── IdeaCarousel.tsx               — Rotating list of idea suggestions
-│   │   │   └── CursorProjectRule.tsx          — Interactive editor for Cursor *.mdc files
-│   │   ├── context/             — React contexts & providers shared across pages
-│   │   │   └── AuthContext.tsx               — Supabase session hook + auto sign-out
-│   │   ├── pages/               — Route modules consumed by React Router 7
-│   │   │   ├── home.tsx                       — Marketing landing page & idea prompt
-│   │   │   ├── docs.tsx                       — In-app documentation with multi-section nav
-│   │   │   ├── test.tsx                       — Integration playground for DB/Auth/Uploads
-│   │   │   ├── api.animals.tsx                — Edge bridge → server/animals.ts
-│   │   │   ├── api.images.tsx                 — Edge bridge → list uploaded images
-│   │   │   └── api.uploadthing.tsx            — Edge bridge → server/uploadthing.ts
-│   │   ├── utils/              — Browser-only helper libraries
-│   │   │   ├── rateLimit.ts                  — Syncs server rate-limit headers to UI
-│   │   │   └── uploadthing.ts                — UploadThing React helpers (typed endpoints)
-│   │   ├── root.tsx            — Remix-style root layout (head, AuthProvider, scripts)
-│   │   └── routes.ts           — Static array mapping URL paths → page modules
-│   ├── server/                 — Code executed on the server / edge runtime
-│   │   ├── db/                 — Drizzle ORM & migration artefacts
-│   │   │   ├── migrations/                 — Auto-generated SQL migrations + snapshots
-│   │   │   ├── schema.ts                    — Single source-of-truth for DB tables
-│   │   │   └── index.ts                     — Drizzle client initialiser (loads .env)
-│   │   ├── utils/              — Node-only helpers (crypto, rate-limit, etc.)
-│   │   │   ├── anonToken.ts                — HMAC-signed anon cookie utilities
-│   │   │   └── rateLimit.ts                — Unified, DB-backed rate limiter
-│   │   ├── animals.ts          — REST-like handler backing /api/animals
-│   │   ├── uploadthing.ts      — UploadThing router; persists uploads → DB
-│   │   └── utils/…             — (future server utilities live here)
-│   ├── shared/                 — Isomorphic code imported by both client & server
-│   │   ├── supabase.ts         — Supabase browser & server client factory
-│   │   ├── appIdeas.ts         — 100+ random app idea strings used for placeholders
-│   │   ├── app.css             — Tailwind CSS entrypoint + custom component classes
-│   │   └── schema.ts           — Centralised Zod validation schemas (planned)
-├── public/                     — Static assets served verbatim (favicon, images)
-├── drizzle.config.ts           — Drizzle migration configuration
-├── vite.config.ts              — Vite 6 SSR build & path aliases
-├── tailwind.config.js          — Tailwind CSS 4 configuration
-├── tsconfig.json               — TypeScript compiler options & path aliases
-├── package.json                — Dependencies & npm scripts
-└── README.md                   — Project overview & local development guide
+src/ — all source code
+src/client/ — React 19 browser app (SSR)
+src/client/components/ — reusable UI primitives
+src/client/components/Header.tsx — nav bar & theme toggle
+src/client/components/CreateOrganizationButton.tsx — org modal (auth-gated)
+src/client/components/SignInButton.tsx — login / logout trigger
+src/client/components/SignInForm.tsx — email+pwd & Google OAuth form
+src/client/components/ThemeToggle.tsx — light/dark switch
+src/client/components/SquareUploadButton.tsx — UploadThing button
+src/client/components/IdeaCarousel.tsx — rotating suggestions
+src/client/context/AuthContext.tsx — Supabase session provider
+src/client/pages/home.tsx — marketing landing page
+src/client/pages/docs.tsx — in-app docs hub
+src/client/pages/test.tsx — integration playground (DB/Auth/Uploads)
+src/client/pages/api.animals.tsx — edge bridge → server/animals
+src/client/pages/api.images.tsx — edge bridge → list uploads
+src/client/pages/api.uploadthing.tsx — edge bridge → uploadthing router
+src/client/utils/rateLimit.ts — syncs rate-limit headers to UI
+src/client/utils/uploadthing.ts — UploadThing React helpers
+src/client/root.tsx — Remix-style root layout
+src/client/routes.ts — static route map
+src/server/ — server / edge runtime code
+src/server/db/ — Drizzle ORM & migrations
+src/server/db/schema.ts — single source-of-truth tables
+src/server/db/index.ts — Drizzle client init (.env loaded)
+src/server/animals.ts — REST-like handler for animals
+src/server/uploadthing.ts — UploadThing upload router
+src/server/utils/anonToken.ts — HMAC-signed anon cookies
+src/server/utils/rateLimit.ts — unified DB-backed rate limiter
+src/shared/ — isomorphic helpers
+src/shared/supabase.ts — Supabase client factory
+src/shared/appIdeas.ts — 100+ placeholder idea strings
+src/shared/app.css — Tailwind entrypoint & utilities
+public/ — static assets
+vite.config.ts — Vite SSR config & aliases
+tailwind.config.js — Tailwind v4 config
+tsconfig.json — TS paths & compiler options
+drizzle.config.ts — Drizzle migration config
+package.json — dependencies & npm scripts
+README.md — project overview
 

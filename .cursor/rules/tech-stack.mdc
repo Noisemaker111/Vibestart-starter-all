@@ -1,8 +1,10 @@
 ---
 description: 
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
+Use this as the authoritative tech stack reference for the project. Always update this immediately after any dependency, version or stack change so its context stays correct.
+
 Stack v2024-06-26
 - lang: TypeScript 5
 - frontend: React 19 + ReactRouter 7 (SSR) via Vite 6 & vite-tsconfig-paths
@@ -15,4 +17,9 @@ Stack v2024-06-26
 - validation: Zod · central [schema.ts](mdc:src/shared/schema.ts)
 - rate-limit: [rateLimit.ts](mdc:src/server/utils/rateLimit.ts)
 - deploy: Vercel primary · Netlify/Fly.io/Railway ok
-Update list on every version/dependency change.
+
+
+
+
+
+
