@@ -3,11 +3,13 @@ import { useState, useEffect } from "react";
 import type { Route } from "./+types/home";
 import { createPortal } from "react-dom";
 import ServicesProvided from "@client/components/ServicesProvided";
-import appIdeas, { type Platform } from "../../shared/appIdeas";
+import appIdeas from "../../shared/appIdeas";
+import type { Platform } from "@shared/platforms";
 import IntegrationChips from "@client/components/IntegrationChips";
 import CreateJonstackCli from "@client/components/CreateJonstackCli";
 import { processIdea } from "@client/utils/integrationTool";
 import type { Integration } from "@client/utils/types";
+import { usePostHog } from "posthog-js/react";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -21,10 +23,13 @@ export default function Home() {
   const [showNameModal, setShowNameModal] = useState(false);
   const [projectName, setProjectName] = useState("");
   const [os, setOs] = useState<"windows" | "mac" | "linux">("windows");
-  const platformToTarget = (p: Platform): "web" | "app" | "desktop" | "game" =>
-    p === "mobile" ? "app" : p;
 
-  const [target, setTarget] = useState<"web" | "app" | "desktop" | "game">(
+  type Target = Platform | "app";
+
+  const platformToTarget = (p: string): Target =>
+    p === "mobile" ? "app" : (p as Target);
+
+  const [target, setTarget] = useState<Target>(
     platformToTarget(appIdeas[0].platform)
   );
   const [activeKeys, setActiveKeys] = useState<string[]>(appIdeas[0].integrations);
@@ -33,6 +38,8 @@ export default function Home() {
   const [lastCall, setLastCall] = useState(0);
 
   const navigate = useNavigate();
+  const posthog = usePostHog();
+  const [ideaStarted, setIdeaStarted] = useState(false);
 
   const realProjects = [
     {
@@ -93,7 +100,7 @@ export default function Home() {
     game: [/\bgame\b/i, /\bgaming\b/i, /\bvr\b/i, /\bunity\b/i, /\bunreal\b/i],
   };
 
-  function detectPlatform(ideaText: string): "web" | "app" | "desktop" | "game" {
+  function detectPlatform(ideaText: string): Target {
     if (!ideaText) return "web";
     const text = ideaText.toLowerCase();
     if (platformKeywords.game.some((r) => r.test(text))) return "game";
@@ -134,7 +141,7 @@ export default function Home() {
   }, [idea]);
 
   /* Helper to determine if a target option should be disabled based on OS */
-  function isTargetDisabled(t: "web" | "app" | "desktop" | "game", currentOs: "windows" | "mac" | "linux") {
+  function isTargetDisabled(t: Target, currentOs: "windows" | "mac" | "linux") {
     // Currently only web target is available universally; others marked soon
     if (t !== "web") {
       return true;
@@ -147,10 +154,31 @@ export default function Home() {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (idea.trim()) {
+        posthog.capture("idea_submitted");
         setShowNameModal(true);
       }
     }
   }
+
+  useEffect(() => {
+    const thresholds = [25, 50, 75, 90];
+    const fired = new Set<number>();
+
+    function onScroll() {
+      const scrollTop = window.scrollY + window.innerHeight;
+      const docHeight = document.documentElement.scrollHeight;
+      const percent = (scrollTop / docHeight) * 100;
+      thresholds.forEach((t) => {
+        if (percent >= t && !fired.has(t)) {
+          posthog.capture("home_scroll_depth", { percentage: t });
+          fired.add(t);
+        }
+      });
+    }
+
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [posthog]);
 
   return (
     <>
@@ -229,6 +257,10 @@ export default function Home() {
                       value={idea}
                       onChange={(e) => {
                         setIdea(e.target.value);
+                        if (!ideaStarted && e.target.value.trim().length > 0) {
+                          posthog.capture("idea_input_started");
+                          setIdeaStarted(true);
+                        }
                       }}
                       onKeyDown={handleIdeaKeyDown}
                       placeholder={currentPlaceholder}
@@ -254,6 +286,7 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
                 <Link
                   to="/docs"
+                  onClick={() => posthog.capture("home_get_building_click")}
                   className="inline-flex items-center justify-center px-8 py-4 font-bold text-black bg-white rounded-xl hover:bg-gray-100 transition-all duration-200"
                 >
                   Get Building

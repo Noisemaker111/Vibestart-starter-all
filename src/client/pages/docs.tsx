@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation } from "react-router";
 import type { Route } from "./+types/docs";
 import CursorProjectRule from "@client/components/CursorProjectRule";
+import type { Platform } from "@shared/platforms";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Cursor auxiliary data (project rule & memories)
@@ -50,10 +51,12 @@ export default function Docs() {
   const ideaParam = searchParams.get("idea") ?? "";
   const projectParam = searchParams.get("project") ?? "";
   const osParam = searchParams.get("os") ?? "";
-  const targetParam = searchParams.get("target") ?? "";
+  type Target = Platform;
+
+  const [target, setTarget] = useState<Target>("web");
 
   const megaPrompt = ideaParam
-    ? `alter the current template to help create this idea, understand the current codebase and make changes and alter the connections, tables, functions, namings all to my project's idea. target platform=${targetParam}. dev os=${osParam}. create a github repo called "${projectParam}". then <user_idea_start>${ideaParam}<user_idea_end>`
+    ? `alter the current template to help create this idea, understand the current codebase and make changes and alter the connections, tables, functions, namings all to my project's idea. target platform=${target}. dev os=${osParam}. create a github repo called "${projectParam}". then <user_idea_start>${ideaParam}<user_idea_end>`
     : "";
 
   const [megaCopySuccess, setMegaCopySuccess] = useState(false);
@@ -126,7 +129,6 @@ export default function Docs() {
 
   // Toggle states for instructions
   const [os, setOs] = useState<"windows" | "mac" | "linux">("windows");
-  const [target, setTarget] = useState<"web" | "mobile" | "desktop" | "game">("web");
 
   const CursorAiUserRules = () => {
     const markdown = `You are CursorDev, an AI assistant powered by the o3 model. Your role is to act as the user's proactive lead software engineer and project manager, switching between expert frontend and backend roles as tasks demand.
@@ -354,10 +356,18 @@ For each response, create distinct agent sections headed by a logical domain tit
                         { id: "mobile", label: "Mobile", disabled: true },
                         { id: "desktop", label: "Desktop", disabled: true },
                         { id: "game", label: "Game", disabled: true },
+                        { id: "discord", label: "Discord Bot", disabled: true },
+                        { id: "telegram", label: "Telegram Bot", disabled: true },
+                        { id: "extension", label: "Browser Extension", disabled: true },
+                        { id: "vscode", label: "VS Code Extension", disabled: true },
+                        { id: "slack", label: "Slack App", disabled: true },
+                        { id: "cli", label: "CLI Tool", disabled: true },
+                        { id: "watch", label: "Smart-watch App", disabled: true },
+                        { id: "arvr", label: "AR/VR", disabled: true },
                       ] as const).map(({ id, label, disabled }) => (
                         <div key={id} className="relative inline-block">
                           <button
-                            onClick={() => !disabled && setTarget(id as any)}
+                            onClick={() => !disabled && setTarget(id as Target)}
                             disabled={disabled}
                             className={`px-4 py-1 rounded-full text-sm font-medium transition-colors ${
                               target === id ? "bg-blue-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"}

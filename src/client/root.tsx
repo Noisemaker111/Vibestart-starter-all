@@ -10,6 +10,7 @@ import type { Route } from "./+types/root";
 import appStylesHref from "@shared/app.css?url";
 import { AuthProvider } from "@client/context/AuthContext";
 import { Header } from "@client/components/Header";
+import { PostHogProvider } from "posthog-js/react";
 
 export const links: Route.LinksFunction = () => [
   { rel: "stylesheet", href: appStylesHref },
@@ -35,10 +36,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body className="bg-gray-50 dark:bg-gray-900">
-        <AuthProvider>
-          <Header />
-          {children}
-        </AuthProvider>
+        <PostHogProvider
+          apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
+          options={{
+            api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+            capture_exceptions: true,
+            debug: import.meta.env.MODE === "development",
+          }}
+        >
+          <AuthProvider>
+            <Header />
+            {children}
+          </AuthProvider>
+        </PostHogProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -77,4 +87,4 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
       )}
     </main>
   );
-} 
+}

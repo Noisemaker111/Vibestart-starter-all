@@ -1,9 +1,11 @@
 import { Link, useLocation } from "react-router";
 import { useAuth } from "@client/context/AuthContext";
+import { usePostHog } from "posthog-js/react";
 
 export function Header() {
   const location = useLocation();
   const { session } = useAuth();
+  const posthog = usePostHog();
 
   const navItems = [
     { href: "/docs", label: "Docs" },
@@ -35,6 +37,7 @@ export function Header() {
                   <Link
                     key={item.href}
                     to={item.href}
+                    onClick={() => posthog.capture(`nav_${item.label.toLowerCase()}_click`)}
                     className={`text-sm font-medium transition-colors ${
                       isActive
                         ? 'text-white'

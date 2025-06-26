@@ -1,4 +1,4 @@
-export type Platform = "web" | "mobile" | "desktop" | "game";
+import type { Platform } from "@shared/platforms";
 
 export interface AppIdea {
   idea: string;
@@ -886,6 +886,36 @@ export const appIdeas: AppIdea[] = [
     idea: "Donation site.",
     integrations: ["database", "maps", "google", "notifications"],
     platform: "web",
+  },
+  {
+    idea: "Browser extension that auto-fills forms and summarises pages with AI assistance",
+    integrations: ["llm", "database", "analytics", "search"],
+    platform: "extension",
+  },
+  {
+    idea: "VS Code extension that generates contextual code snippets and refactors on demand",
+    integrations: ["llm", "database", "realtime", "analytics"],
+    platform: "vscode",
+  },
+  {
+    idea: "Slack app that summarises channels and schedules stand-ups using AI",
+    integrations: ["realtime", "llm", "notifications", "analytics"],
+    platform: "slack",
+  },
+  {
+    idea: "CLI tool that scaffolds serverless functions with best-practice templates",
+    integrations: ["llm", "database", "search"],
+    platform: "cli",
+  },
+  {
+    idea: "Smart-watch fitness coach that tracks workouts and suggests routines",
+    integrations: ["database", "analytics", "notifications", "llm"],
+    platform: "watch",
+  },
+  {
+    idea: "AR/VR museum experience with interactive exhibits and multiplayer tours",
+    integrations: ["realtime", "uploads", "llm", "analytics"],
+    platform: "arvr",
   },
 ];
 

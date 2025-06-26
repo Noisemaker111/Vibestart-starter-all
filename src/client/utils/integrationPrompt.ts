@@ -1,18 +1,5 @@
-// Single source-of-truth list of integrations
-const integrationsList = [
-  { key: "database", label: "Database" },
-  { key: "solana", label: "Solana Sign In" },
-  { key: "google", label: "Google Sign In" },
-  { key: "github", label: "GitHub Sign In" },
-  { key: "llm", label: "LLM Chatbox" },
-  { key: "uploads", label: "Uploads" },
-  { key: "billing", label: "Billing" },
-  { key: "realtime", label: "Realtime Messaging" },
-  { key: "notifications", label: "Notifications" },
-  { key: "analytics", label: "Analytics" },
-  { key: "search", label: "Search" },
-  { key: "maps", label: "Maps" },
-] as const;
+import { INTEGRATIONS as integrationsList } from "@shared/integrations";
+import { PLATFORMS } from "@shared/platforms";
 
 // Build the human-readable prompt section from the list above
 const availableIntegrations =
@@ -25,6 +12,9 @@ const availableIntegrations =
       }
     )
     .join(" \n");
+
+// Build platform list string
+const availablePlatforms = "Available platforms: " + PLATFORMS.join(", ");
 
 /**
  * Detect integrations explicitly referenced in the user's idea.
@@ -61,29 +51,28 @@ export function buildIntegrationPrompt(userIdea: string): string {
       : "";
 
   return `
-  You are an assistant that takes a user's high-level idea and outputs only a JSON array of objects, each with exactly the fields "key" and "label," selecting the relevant integrations from the list below. Do not output anything except the raw JSON array.
+  You are an assistant that takes a user's high-level idea and returns exactly a single JSON object with two fields:
+  {
+    "platform": string,           // one value from the platform list below
+    "integrations": Integration[] // array of { key, label } objects chosen from the list below
+  }
+
+${availablePlatforms}
+
 ${availableIntegrations}
 
-When interpreting the user's idea, think broadly about synonyms and related terms.  For example, "Stripe", "checkout", or "subscription" all imply the "billing" integration, while "chat" or "WebSocket" imply "realtime messaging."  Map such synonyms to the integration keys in the list above.
+When interpreting the user's idea, think broadly about synonyms and related terms. For example, "Stripe", "checkout", or "subscription" all imply the "billing" integration, while "chat" or "WebSocket" imply "realtime". Map such synonyms to the integration keys above.
+
 <user-idea> ${userIdea} <user-idea>
+
 ${mustIncludeDirective}General rules:
 • Unless it is crystal-clear that no user authentication is needed (e.g. entirely offline tool), assume ONE suitable authentication integration (solana, google or github).
 • When in doubt, err on the side of including an integration that might be useful (e.g. payments, maps, analytics). The list should slightly over-specify rather than under-specify.
+
 Step 1 – Prompt Refinement
-If the idea is too generic or spans many domains, inject / assume clarifying details using this mini-template to cover only the elements the user needs:
-• Platform & audience (web, mobile, desktop, game)
-• Core data & storage needs (relational data, file attachments, analytics)
-• Authentication (email/password, social OAuth, blockchain wallets)
-• File handling (uploads, downloads)
-• Real-time features (messaging, live updates)
-• Notifications (in-app, push, email)
-• Search requirements
-• Analytics & reporting
-• Billing & subscriptions
-• AI/LLM features (chatbot, content generation)
-• Blockchain/crypto features (on-chain payments, NFT integration)
-• Any third-party services to integrate
-Produce one cohesive specification paragraph that incorporates only the chosen elements.
+If the idea is too generic or spans many domains, inject / assume clarifying details:
+• Platform & audience (${PLATFORMS.join(", ")})
+
 Step 2 – JSON Generation
 From that refined spec, select only the relevant entries from the options list above and output a JSON array of objects with exactly the fields "key" and "label." Do not include any extra keys, comments or items not in the options list.`;
 } 

@@ -1,9 +1,9 @@
-export type Integration = {
-  key: string;
-  label: string;
-};
+import type { Integration } from "@shared/integrations";
+
+export type { Integration };
 
 export type SpecificationResponse = {
-  specification: string;
+  specification: string; // refined idea or spec paragraph
+  platform?: string;
   integrations: Integration[];
 }; 

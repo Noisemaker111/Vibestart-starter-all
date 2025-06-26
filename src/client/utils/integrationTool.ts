@@ -63,9 +63,21 @@ export const processIdea = async (idea: string): Promise<SpecificationResponse> 
     if (jsonText.startsWith("```")) {
       jsonText = jsonText.replace(/^```[a-zA-Z]*\s*/i, "").replace(/```\s*$/, "").trim();
     }
-    const integrationsArray = JSON.parse(jsonText) as Integration[];
+    const parsed = JSON.parse(jsonText);
+    let integrationsArray: Integration[] = [];
+    let ideaSpec = "";
+    let platform: string | undefined = undefined;
+
+    if (Array.isArray(parsed)) {
+      integrationsArray = parsed as Integration[];
+    } else if (parsed && Array.isArray(parsed.integrations)) {
+      integrationsArray = parsed.integrations as Integration[];
+      ideaSpec = parsed.idea ?? "";
+      platform = parsed.platform;
+    }
+
     console.log("Parsed integrations:", integrationsArray);
-    return { specification: "", integrations: integrationsArray };
+    return { specification: ideaSpec, platform, integrations: integrationsArray };
   } catch (err) {
     console.error("Failed to parse integration list", content, err);
     return { specification: "", integrations: [] };
