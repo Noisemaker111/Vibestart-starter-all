@@ -19,7 +19,10 @@ const availableIntegrations =
   "Available integrations:\n" +
   integrationsList
     .map(
-      (i) => `{ key: "${i.key}",${" ".repeat(12 - i.key.length)}label: "${i.label}" }`
+      (i) => {
+        const padding = Math.max(0, 12 - i.key.length);
+        return `{ key: "${i.key}",${" ".repeat(padding)}label: "${i.label}" }`;
+      }
     )
     .join(" \n");
 
