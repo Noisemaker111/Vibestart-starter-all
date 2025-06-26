@@ -1,0 +1,18 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+Stack v2024-06-26
+- lang: TypeScript 5
+- frontend: React 19 + ReactRouter 7 (SSR) via Vite 6 & vite-tsconfig-paths
+- style: TailwindCSS 4 (@tailwindcss/vite)
+- runtime: Node 18
+- db: PostgreSQL (Supabase) · DrizzleORM 0.44 · schema [schema.ts](mdc:src/server/db/schema.ts)
+- migrations: drizzle-kit CLI
+- auth: SupabaseAuth (Google) · libs @supabase/auth-ui-react & @supabase/supabase-js
+- files: UploadThing · client [uploadthing.ts](mdc:src/client/utils/uploadthing.ts) · server [uploadthing.ts](mdc:src/server/uploadthing.ts)
+- validation: Zod · central [schema.ts](mdc:src/shared/schema.ts)
+- rate-limit: [rateLimit.ts](mdc:src/server/utils/rateLimit.ts)
+- deploy: Vercel primary · Netlify/Fly.io/Railway ok
+Update list on every version/dependency change.

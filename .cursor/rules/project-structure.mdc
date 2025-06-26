@@ -1,10 +1,10 @@
 ---
 description: 
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
--It is at upmost importance to keep CursorDev to keep the live directory map 100 % accurate;
--Dont add stupid comments on the side the file or folder, just keep it up to date of what it does and what it is used for 
+-It is at upmost importance to keep Cursor to keep the live directory map up to date and current;
+-Dont add stupid comments on the side the file or folder, just keep it up to date and a simple small sentance of what it does or used for;
 
 # Project Structure — jonstack
 
