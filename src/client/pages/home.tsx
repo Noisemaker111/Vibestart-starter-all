@@ -4,6 +4,9 @@ import type { Route } from "./+types/home";
 import { createPortal } from "react-dom";
 import ServicesProvided from "@client/components/ServicesProvided";
 import appIdeas from "../../shared/appIdeas";
+import IntegrationChips from "@client/components/IntegrationChips";
+import { processIdea } from "@client/utils/integrationTool";
+import type { Integration } from "@client/utils/types";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -18,6 +21,10 @@ export default function Home() {
   const [projectName, setProjectName] = useState("");
   const [os, setOs] = useState<"windows" | "mac" | "linux">("windows");
   const [target, setTarget] = useState<"web" | "app" | "desktop" | "game">("web");
+  const [activeKeys, setActiveKeys] = useState<string[]>([]);
+  const [specification, setSpecification] = useState<string>("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [lastCall, setLastCall] = useState(0);
 
   const navigate = useNavigate();
 
@@ -55,6 +62,33 @@ export default function Home() {
   }, [carouselIdeas.length]);
 
   const currentPlaceholder = carouselIdeas[placeholderIndex] || "Describe your app idea…";
+
+  useEffect(() => {
+    // Debounced AI call when idea length >=3
+    if (idea.trim().length < 3) {
+      setActiveKeys([]);
+      setSpecification("");
+      return;
+    }
+
+    const debounce = setTimeout(async () => {
+      const now = Date.now();
+      if (now - lastCall < 1000) return; // simple 1-second rate limit
+      try {
+        setAiLoading(true);
+        const result = await processIdea(idea.trim());
+        setSpecification(result.specification);
+        setActiveKeys(result.integrations.map((i: Integration) => i.key));
+        setLastCall(Date.now());
+      } catch (err) {
+        console.error("AI integration selection failed", err);
+      } finally {
+        setAiLoading(false);
+      }
+    }, 700); // 700 ms debounce
+
+    return () => clearTimeout(debounce);
+  }, [idea]);
 
   function handleIdeaKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -151,17 +185,18 @@ export default function Home() {
                     placeholder={currentPlaceholder}
                     className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-all duration-300 resize-none"
                     rows={3}
-                  />
+                  >
+                  </textarea>
+
+                  {/* Integration list */}
+                  <IntegrationChips className="mt-4" activeKeys={activeKeys} />
                   
-                  {/* Dynamic Response */}
-                  {idea && (
-                    <div className="mt-6 p-4 bg-purple-900/20 border border-purple-500/30 rounded-lg animate-in fade-in duration-300">
-                      <p className="text-sm text-purple-300">
-                        Perfect! With JonStack, you'll have {idea.toLowerCase()} running in under 10 minutes.
-                        Everything you need is already set up.
-                      </p>
-                    </div>
+                  {/* Optional spec output */}
+                  {specification && (
+                    <p className="mt-3 text-xs text-gray-400">{specification}</p>
                   )}
+
+                  {/* Dynamic Response removed */}
 
                   {/* Idea suggestions now rotate as placeholder text */}
                 </div>
@@ -173,7 +208,7 @@ export default function Home() {
                   to="/docs"
                   className="inline-flex items-center justify-center px-8 py-4 font-bold text-black bg-white rounded-xl hover:bg-gray-100 transition-all duration-200"
                 >
-                  Get Started
+                  Get Building
                 </Link>
               </div>
             </div>

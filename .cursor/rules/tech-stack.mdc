@@ -3,7 +3,7 @@ description:
 globs: 
 alwaysApply: true
 ---
-Use this as the authoritative tech stack reference for the project. Always update this immediately after any dependency, version or stack change so its context stays correct.
+Use JonDev to maintain the live authoritative tech stack reference for the project. Always update this immediately after any dependency, version or stack change so its context stays correct.
 
 Stack v2024-06-26
 - lang: TypeScript 5

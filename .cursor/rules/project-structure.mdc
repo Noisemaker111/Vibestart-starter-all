@@ -3,7 +3,7 @@ description:
 globs: 
 alwaysApply: true
 ---
-Use Cursor to maintain the live directory map in this file, ensuring its always accurate and up-to-date. Immediately update this after any filesystem change. Keep each entry to a single, concise sentence describing its purpose, with no extraneous comments.
+Use JonDev to maintain the live directory map in this file, ensuring its always accurate and up-to-date. Immediately update this after any filesystem change. Keep each entry to a single, concise sentence describing its purpose, with no extraneous comments.
 
 
 # Project Structure — jonstack
