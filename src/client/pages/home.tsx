@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import ServicesProvided from "@client/components/ServicesProvided";
 import appIdeas, { type Platform } from "../../shared/appIdeas";
 import IntegrationChips from "@client/components/IntegrationChips";
+import CreateJonstackCli from "@client/components/CreateJonstackCli";
 import { processIdea } from "@client/utils/integrationTool";
 import type { Integration } from "@client/utils/types";
 
@@ -124,15 +125,6 @@ export default function Home() {
     return () => clearTimeout(debounce);
   }, [idea]);
 
-  function handleIdeaKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      if (idea.trim()) {
-        setShowNameModal(true);
-      }
-    }
-  }
-
   /* Helper to determine if a target option should be disabled based on OS */
   function isTargetDisabled(t: "web" | "app" | "desktop" | "game", currentOs: "windows" | "mac" | "linux") {
     // Currently only web target is available universally; others marked soon
@@ -141,6 +133,15 @@ export default function Home() {
     }
     // Feature roadmap: allow others later
     return false;
+  }
+
+  function handleIdeaKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (idea.trim()) {
+        setShowNameModal(true);
+      }
+    }
   }
 
   return (
@@ -174,6 +175,9 @@ export default function Home() {
             {/* Interactive Idea Input */}
             <div className="max-w-3xl mx-auto mb-16">
               <div className="relative group">
+                {/* CLI snippet positioned left of card (desktop) */}
+                <CreateJonstackCli className="hidden lg:flex absolute -left-56 top-1/2 -translate-y-1/2" />
+
                 <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
                 <div className="relative bg-gray-900/90 backdrop-blur-xl rounded-2xl p-8 border border-gray-800">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
@@ -212,27 +216,27 @@ export default function Home() {
                         })}
                     </div>
                   </div>
-                  <textarea
-                    value={idea}
-                    onChange={(e) => {
-                      setIdea(e.target.value);
-                    }}
-                    onKeyDown={handleIdeaKeyDown}
-                    placeholder={currentPlaceholder}
-                    className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-all duration-300 resize-none"
-                    rows={3}
-                  >
-                  </textarea>
+                  <div>
+                    <textarea
+                      value={idea}
+                      onChange={(e) => {
+                        setIdea(e.target.value);
+                      }}
+                      onKeyDown={handleIdeaKeyDown}
+                      placeholder={currentPlaceholder}
+                      className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-all duration-300 resize-none"
+                      rows={3}
+                    >
+                    </textarea>
+                  </div>
 
                   {/* Integration list */}
                   <IntegrationChips className="mt-4" activeKeys={activeKeys} />
-                  
+
                   {/* Optional spec output */}
                   {specification && (
                     <p className="mt-3 text-xs text-gray-400">{specification}</p>
                   )}
-
-                  {/* Dynamic Response removed */}
 
                   {/* Idea suggestions now rotate as placeholder text */}
                 </div>
