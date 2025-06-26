@@ -9,32 +9,53 @@ alwaysApply: false
 # Project Structure — jonstack
 
 jonstack/
-├── src/
-│   ├── client/
-│   │   ├── components/        React UI elements
-│   │   │   ├── CreateOrganizationButton.tsx   Button + modal to create orgs
-│   │   │   ├── SignInButton.tsx              Log In / Log Out button with modal
-│   │   │   ├── ThemeToggle.tsx                 Light/Dark mode toggle button
-│   │   │   ├── SquareUploadButton.tsx        Square image upload component (no inline preview)
-│   │   │   ├── CursorProjectRule.tsx        UI for editing Cursor rule files
-│   │   │   └── ...
-│   │   ├── context/           React contexts & providers
-│   │   ├── pages/             Route components
-│   │   │   ├── home.tsx         Landing page with interactive idea input & project naming modal
-│   │   │   └── docs.tsx         Documentation hub (dynamic mega prompt insertion)
-│   │   └── utils/             Client-side helpers
-│   ├── server/
-│   │   ├── db/
-│   │   │   ├── queries/       Query helpers
-│   │   │   └── schema.ts      Schema for the entire database of the project (add, alter tables — now includes organizations & profiles table)
-│   │   ├── utils/             Server helpers
-│   │   └── uploadthing.ts     Upload handlers
-│   ├── shared/
-│   │   ├── supabase.ts        Shared Supabase init
-│   │   └── constants.ts       App-wide constants
-├── public/
-├── package.json
-├── tailwind.config.js
-├── vite.config.ts
-└── README.md
+├── src/                         — All source code (client, server & shared)
+│   ├── client/                  — Browser-side React 19 app (SSR-ready)
+│   │   ├── components/          — Reusable UI primitives & widgets
+│   │   │   ├── Header.tsx                     — Top nav bar, routing links, theme toggle
+│   │   │   ├── CreateOrganizationButton.tsx   — Auth-gated modal for creating orgs
+│   │   │   ├── SignInButton.tsx               — Shows Log In / Log Out depending on session
+│   │   │   ├── LoginModal.tsx                 — Portal wrapper around <SignInForm/>
+│   │   │   ├── SignInForm.tsx                 — Email/password + Google OAuth form
+│   │   │   ├── ThemeToggle.tsx                — Light/Dark system-aware switcher
+│   │   │   ├── SquareUploadButton.tsx         — UploadThing avatar/file uploader
+│   │   │   ├── IdeaCarousel.tsx               — Rotating list of idea suggestions
+│   │   │   └── CursorProjectRule.tsx          — Interactive editor for Cursor *.mdc files
+│   │   ├── context/             — React contexts & providers shared across pages
+│   │   │   └── AuthContext.tsx               — Supabase session hook + auto sign-out
+│   │   ├── pages/               — Route modules consumed by React Router 7
+│   │   │   ├── home.tsx                       — Marketing landing page & idea prompt
+│   │   │   ├── docs.tsx                       — In-app documentation with multi-section nav
+│   │   │   ├── test.tsx                       — Integration playground for DB/Auth/Uploads
+│   │   │   ├── api.animals.tsx                — Edge bridge → server/animals.ts
+│   │   │   ├── api.images.tsx                 — Edge bridge → list uploaded images
+│   │   │   └── api.uploadthing.tsx            — Edge bridge → server/uploadthing.ts
+│   │   ├── utils/              — Browser-only helper libraries
+│   │   │   ├── rateLimit.ts                  — Syncs server rate-limit headers to UI
+│   │   │   └── uploadthing.ts                — UploadThing React helpers (typed endpoints)
+│   │   ├── root.tsx            — Remix-style root layout (head, AuthProvider, scripts)
+│   │   └── routes.ts           — Static array mapping URL paths → page modules
+│   ├── server/                 — Code executed on the server / edge runtime
+│   │   ├── db/                 — Drizzle ORM & migration artefacts
+│   │   │   ├── migrations/                 — Auto-generated SQL migrations + snapshots
+│   │   │   ├── schema.ts                    — Single source-of-truth for DB tables
+│   │   │   └── index.ts                     — Drizzle client initialiser (loads .env)
+│   │   ├── utils/              — Node-only helpers (crypto, rate-limit, etc.)
+│   │   │   ├── anonToken.ts                — HMAC-signed anon cookie utilities
+│   │   │   └── rateLimit.ts                — Unified, DB-backed rate limiter
+│   │   ├── animals.ts          — REST-like handler backing /api/animals
+│   │   ├── uploadthing.ts      — UploadThing router; persists uploads → DB
+│   │   └── utils/…             — (future server utilities live here)
+│   ├── shared/                 — Isomorphic code imported by both client & server
+│   │   ├── supabase.ts         — Supabase browser & server client factory
+│   │   ├── appIdeas.ts         — 100+ random app idea strings used for placeholders
+│   │   ├── app.css             — Tailwind CSS entrypoint + custom component classes
+│   │   └── schema.ts           — Centralised Zod validation schemas (planned)
+├── public/                     — Static assets served verbatim (favicon, images)
+├── drizzle.config.ts           — Drizzle migration configuration
+├── vite.config.ts              — Vite 6 SSR build & path aliases
+├── tailwind.config.js          — Tailwind CSS 4 configuration
+├── tsconfig.json               — TypeScript compiler options & path aliases
+├── package.json                — Dependencies & npm scripts
+└── README.md                   — Project overview & local development guide
 

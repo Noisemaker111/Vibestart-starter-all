@@ -169,24 +169,11 @@ export default function Home() {
 
               {/* CTAs */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-                <a
-                  href="https://github.com/Noisemaker111/jonstack"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-black bg-white rounded-xl hover:bg-gray-100 transition-all duration-200"
-                >
-                  <span className="relative z-10 flex items-center gap-2">
-                    Go Build
-                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </span>
-                </a>
                 <Link
                   to="/docs"
-                  className="inline-flex items-center justify-center px-8 py-4 font-semibold text-white borderrounded-xl hover:bg-white/5 transition-all duration-200"
+                  className="inline-flex items-center justify-center px-8 py-4 font-bold text-black bg-white rounded-xl hover:bg-gray-100 transition-all duration-200"
                 >
-                  Docs
+                  Get Started
                 </Link>
               </div>
             </div>
@@ -322,15 +309,12 @@ export default function Home() {
                   <p className="text-gray-400 mb-8">
                     Every day you spend learning is a day someone else is building your idea.
                   </p>
-                  <a
-                    href="https://github.com/Noisemaker111/jonstack"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    to="/docs"
                     className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
                   >
                     Get JonStack
-                    <span className="text-sm opacity-75"></span>
-                  </a>
+                  </Link>
                 </div>
               </div>
             </section>

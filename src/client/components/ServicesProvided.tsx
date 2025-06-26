@@ -38,7 +38,7 @@ export default function ServicesProvided() {
       title: "Authentication & Security",
       icon: <Shield className="w-5 h-5" />,
       color: "bg-red-500/20 text-red-400 border-red-500/30",
-      technologies: ["Supabase Auth", "OAuth (Google, GitHub)", "Zod validation"],
+      technologies: ["Supabase Auth", "OAuth (Google)", "Zod validation"],
     },
     {
       key: "ai",
@@ -52,7 +52,7 @@ export default function ServicesProvided() {
       title: "DevOps & Deployment",
       icon: <Cloud className="w-5 h-5" />,
       color: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
-      technologies: ["Vercel", "GitHub Actions"],
+      technologies: ["Vercel"],
     },
     {
       key: "mobile",

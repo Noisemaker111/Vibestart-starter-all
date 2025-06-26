@@ -73,22 +73,6 @@ export function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
         </svg>
         Continue with Google
       </button>
-
-      <button
-        type="button"
-        onClick={() =>
-          supabase.auth.signInWithOAuth({
-            provider: "github",
-            options: { redirectTo: OAUTH_REDIRECT_URL || window.location.origin },
-          })
-        }
-        className="inline-flex items-center justify-center gap-3 w-full px-6 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors"
-      >
-        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 0C5.37 0 0 5.37 0 12C0 17.303 3.438 21.8 8.205 23.385C8.805 23.498 9.025 23.15 9.025 22.845C9.025 22.571 9.015 21.744 9.009 20.708C5.672 21.399 4.968 19.182 4.968 19.182C4.422 17.827 3.633 17.459 3.633 17.459C2.546 16.709 3.714 16.724 3.714 16.724C4.922 16.813 5.554 17.994 5.554 17.994C6.636 19.845 8.346 19.348 9.051 19.066C9.156 18.287 9.467 17.761 9.81 17.46C7.145 17.157 4.344 16.112 4.344 11.475C4.344 10.163 4.799 9.083 5.579 8.237C5.456 7.932 5.05 6.69 5.69 5.025C5.69 5.025 6.703 4.697 9.009 6.262C9.965 5.991 10.985 5.856 12 5.851C13.015 5.856 14.035 5.991 14.991 6.262C17.297 4.697 18.309 5.025 18.309 5.025C18.95 6.69 18.543 7.932 18.421 8.237C19.203 9.083 19.654 10.163 19.654 11.475C19.654 16.125 16.848 17.152 14.175 17.449C14.6 17.836 14.982 18.589 14.982 19.754C14.982 21.364 14.968 22.529 14.968 22.845C14.968 23.155 15.185 23.506 15.795 23.385C20.565 21.796 24 17.298 24 12C24 5.37 18.63 0 12 0Z" />
-        </svg>
-        Continue with GitHub
-      </button>
     </form>
   );
 } 
