@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import type { Route } from "./+types/home";
 import { createPortal } from "react-dom";
 import ServicesProvided from "@client/components/ServicesProvided";
-import appIdeas from "../../shared/appIdeas";
+import appIdeas, { type Platform } from "../../shared/appIdeas";
 import IntegrationChips from "@client/components/IntegrationChips";
 import { processIdea } from "@client/utils/integrationTool";
 import type { Integration } from "@client/utils/types";
@@ -20,8 +20,13 @@ export default function Home() {
   const [showNameModal, setShowNameModal] = useState(false);
   const [projectName, setProjectName] = useState("");
   const [os, setOs] = useState<"windows" | "mac" | "linux">("windows");
-  const [target, setTarget] = useState<"web" | "app" | "desktop" | "game">("web");
-  const [activeKeys, setActiveKeys] = useState<string[]>([]);
+  const platformToTarget = (p: Platform): "web" | "app" | "desktop" | "game" =>
+    p === "mobile" ? "app" : p;
+
+  const [target, setTarget] = useState<"web" | "app" | "desktop" | "game">(
+    platformToTarget(appIdeas[0].platform)
+  );
+  const [activeKeys, setActiveKeys] = useState<string[]>(appIdeas[0].integrations);
   const [specification, setSpecification] = useState<string>("");
   const [aiLoading, setAiLoading] = useState(false);
   const [lastCall, setLastCall] = useState(0);
@@ -50,7 +55,7 @@ export default function Home() {
   ];
 
   // Replace old arrays with shared list
-  const carouselIdeas = appIdeas;
+  const carouselIdeas = appIdeas; // AppIdea[]
 
   // State to rotate placeholder suggestions every 4 seconds
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
@@ -61,9 +66,38 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [carouselIdeas.length]);
 
-  const currentPlaceholder = carouselIdeas[placeholderIndex] || "Describe your app idea…";
+  const currentPlaceholder = carouselIdeas[placeholderIndex]?.idea || "Describe your app idea…";
+
+  // Update displayed integrations & platform when the placeholder rotates and user hasn't started typing
+  useEffect(() => {
+    if (idea.trim().length === 0) {
+      const entry = carouselIdeas[placeholderIndex];
+      setActiveKeys(entry.integrations);
+      setTarget(platformToTarget(entry.platform));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [placeholderIndex]);
+
+  const platformKeywords: Record<"app"|"desktop"|"game", RegExp[]> = {
+    app: [/\bmobile\b/i, /\biphone\b/i, /\bandroid\b/i, /\bapp\b/i],
+    desktop: [/\bdesktop\b/i, /\belectron\b/i, /\bwindows\b/i, /\bmac app\b/i, /\bmacos\b/i, /\blinux\b/i],
+    game: [/\bgame\b/i, /\bgaming\b/i, /\bvr\b/i, /\bunity\b/i, /\bunreal\b/i],
+  };
+
+  function detectPlatform(ideaText: string): "web" | "app" | "desktop" | "game" {
+    if (!ideaText) return "web";
+    const text = ideaText.toLowerCase();
+    if (platformKeywords.game.some((r) => r.test(text))) return "game";
+    if (platformKeywords.app.some((r) => r.test(text))) return "app";
+    if (platformKeywords.desktop.some((r) => r.test(text))) return "desktop";
+    return "web";
+  }
 
   useEffect(() => {
+    // Auto-detect platform
+    const detected = detectPlatform(idea.trim());
+    setTarget(detected);
+
     // Debounced AI call when idea length >=3
     if (idea.trim().length < 3) {
       setActiveKeys([]);
@@ -124,7 +158,7 @@ export default function Home() {
               {/* Main Headline */}
               <h1 className="text-6xl lg:text-8xl font-black mb-6 leading-tight">
                 <span className="bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
-                  Production-ready starter kit
+                  Vibe-Ready Tech Stack
                 </span>
                 <br />
                 <span className="text-3xl lg:text-5xl text-gray-400 font-light">
@@ -148,32 +182,34 @@ export default function Home() {
                     </label>
                     <div className="flex items-center gap-2">
                       {([
-                        { id: "web", label: "Web" },
-                        { id: "app", label: "Mobile" },
-                        { id: "desktop", label: "Desktop" },
-                        { id: "game", label: "Game" },
-                      ] as const).map(({ id, label }) => {
-                        const disabled = isTargetDisabled(id, os);
-                        const selected = target === id;
-                        return (
-                          <div key={id} className="relative">
-                            <button
-                              onClick={() => !disabled && setTarget(id)}
-                              disabled={disabled}
-                              className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium transition-colors ${
-                                selected ? "bg-purple-600 text-white" : "bg-gray-800 text-gray-400"}
-                                ${disabled ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-700"}`}
-                            >
-                              {label}
-                            </button>
-                            {disabled && (
-                              <span className="absolute -top-1 -right-1 bg-gray-700 text-gray-200 text-[10px] px-1 rounded-md select-none">
-                                soon
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })}
+                        { id: "web", label: "🌐 Web" },
+                        { id: "app", label: "📱 Mobile" },
+                        { id: "desktop", label: "🖥️ Desktop" },
+                        { id: "game", label: "🎮 Game" },
+                      ] as const)
+                        .filter(({ id }) => id === target)
+                        .map(({ id, label }) => {
+                          const disabled = isTargetDisabled(id, os);
+                          const selected = target === id;
+                          return (
+                            <div key={id} className="relative">
+                              <button
+                                onClick={() => !disabled && setTarget(id)}
+                                disabled={disabled}
+                                className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium transition-colors ${
+                                  selected ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg" : "bg-gray-800 text-gray-400"}
+                                  ${disabled ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-700"}`}
+                              >
+                                {label}
+                              </button>
+                              {disabled && (
+                                <span className="absolute -top-1 -right-1 bg-gray-700 text-gray-200 text-[10px] px-1 rounded-md select-none">
+                                  soon
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
                     </div>
                   </div>
                   <textarea

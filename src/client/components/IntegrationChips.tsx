@@ -11,6 +11,7 @@ import {
   Bell,
   BarChart3,
   Search as SearchIcon,
+  MapPin,
 } from "lucide-react";
 
 interface Integration {
@@ -30,6 +31,7 @@ const integrations: Integration[] = [
   { key: "realtime", label: "Realtime Messaging", icon: <MessageCircle className="w-4 h-4" /> },
   { key: "notifications", label: "Notifications", icon: <Bell className="w-4 h-4" /> },
   { key: "analytics", label: "Analytics", icon: <BarChart3 className="w-4 h-4" /> },
+  { key: "maps", label: "Maps", icon: <MapPin className="w-4 h-4" /> },
   { key: "search", label: "Search", icon: <SearchIcon className="w-4 h-4" /> },
 ];
 
