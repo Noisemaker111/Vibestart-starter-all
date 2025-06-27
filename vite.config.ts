@@ -9,6 +9,14 @@ export default defineConfig({
     reactRouter(), 
     tsconfigPaths()
   ],
+  ssr: {
+    // Ensure PostHog's CommonJS bundle isn't evaluated by Node-SSR.
+    // This avoids "Named export not found" errors at runtime.
+    noExternal: [
+      "posthog-js",
+      "posthog-js/react",
+    ],
+  },
   server: {
     hmr: true,
     watch: {

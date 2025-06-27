@@ -5,8 +5,7 @@ import { availablePlatforms } from "@shared/availablePlatforms";
 
 export function buildPlatformIntegrationPrompt(userIdea: string): string {
   return `
-SYSTEM INSTRUCTIONS – READ CAREFULLY
-────────────────────────────────────
+SYSTEM INSTRUCTIONS – READ CAREFULLY:
 You are a deterministic JSON generator. Your ONLY task is to analyse the <USER_IDEA> and return a SINGLE JSON object that:
 
 • Contains EXACTLY two top-level keys – "platform" and "integrations" (no additional keys, no comments).
@@ -32,9 +31,7 @@ EXAMPLE (for reference only – do not copy):
   "integrations": ["analytics", "database", "llm", "uploads"]
 }
 
-<USER_IDEA>
-${userIdea}
-</USER_IDEA>`;
+<USER_IDEA>${userIdea}</USER_IDEA>`;
 }
 
 // Backward compatibility alias (remove once callers updated)

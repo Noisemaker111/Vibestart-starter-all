@@ -12,30 +12,39 @@ interface IntegrationChipsProps {
 }
 
 export default function IntegrationChips({ className, activeKeys }: IntegrationChipsProps) {
-  // Treat no activeKeys prop as "all active"
-  const activeSet = new Set(activeKeys ?? integrations.map((i) => i.key));
+  /*
+   * Determine which keys to render. Behaviour:
+   * • undefined  → show ALL integrations (default landing state)
+   * • []         → also show ALL integrations (avoids empty UI)
+   * • ["foo"]   → attempt to render matching chip, else fallback chip with raw key
+   */
+  const keysToDisplay: string[] = (() => {
+    if (!activeKeys || activeKeys.length === 0) return integrations.map((i) => i.key);
+    return Array.from(new Set(activeKeys)); // de-duplicate while preserving order
+  })();
 
+  // Debug helper when nothing is rendered unexpectedly
   const warnedRef = React.useRef(false);
-  if (analyticsDebug && activeSet.size === 0 && !warnedRef.current) {
-    console.warn("IntegrationChips: no active integrations to display", { activeKeys });
+  if (analyticsDebug && keysToDisplay.length === 0 && !warnedRef.current) {
+    console.warn("IntegrationChips: no integrations to display", { activeKeys });
     warnedRef.current = true;
   }
 
   return (
     <div className={`flex flex-wrap gap-2 ${className ?? ""}`.trim()}>
-      {integrations
-        .filter((i) => activeSet.has(i.key))
-        .map((i) => {
-          const Icon = i.icon;
-          return (
-            <span
-              key={i.key}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg border border-purple-500 animate-in fade-in"
-            >
-              {Icon && <Icon className="w-4 h-4" />} {i.label}
-            </span>
-          );
-        })}
+      {keysToDisplay.map((key) => {
+        const integration = integrations.find((i) => i.key === key);
+        const Icon = integration?.icon;
+        const label = integration?.label ?? key;
+        return (
+          <span
+            key={key}
+            className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg border border-purple-500 animate-in fade-in"
+          >
+            {Icon && <Icon className="w-4 h-4" />} {label}
+          </span>
+        );
+      })}
     </div>
   );
 } 

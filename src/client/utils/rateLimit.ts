@@ -308,3 +308,56 @@ export function useRateLimit(type: RateLimitType, identifier: string) {
 
 // For React import
 declare const React: any; 
+
+// ────────────────────────────────────────────────────────────────────────────────
+// Local Token Bucket Helper (client-only, no server calls)
+// ────────────────────────────────────────────────────────────────────────────────
+
+interface TokenBucketState {
+  tokens: number;
+  lastRefill: number; // ms epoch
+  callsLastMinute: number[]; // timestamps
+}
+
+const localTokenBuckets = new Map<string, TokenBucketState>();
+
+/**
+ * Consume one token from a local in-memory bucket.
+ * @param bucketId Stable identifier (e.g. "aiTagGeneration")
+ * @param capacity Max tokens in the bucket
+ * @param regenMsPerToken Milliseconds to regenerate ONE token
+ * @param maxPerMinute Additional rolling window cap
+ * @returns true if a token was consumed (you may proceed), false otherwise
+ */
+export function consumeLocalToken(
+  bucketId: string,
+  capacity: number,
+  regenMsPerToken: number,
+  maxPerMinute: number
+): boolean {
+  const now = Date.now();
+  let state = localTokenBuckets.get(bucketId);
+  if (!state) {
+    state = { tokens: capacity, lastRefill: now, callsLastMinute: [] };
+    localTokenBuckets.set(bucketId, state);
+  }
+
+  // Refill based on time elapsed
+  const tokensToAdd = Math.floor((now - state.lastRefill) / regenMsPerToken);
+  if (tokensToAdd > 0) {
+    state.tokens = Math.min(capacity, state.tokens + tokensToAdd);
+    state.lastRefill += tokensToAdd * regenMsPerToken;
+  }
+
+  // Clean old call timestamps (>60s)
+  state.callsLastMinute = state.callsLastMinute.filter((t) => now - t < 60_000);
+
+  // Check limits
+  if (state.tokens <= 0) return false;
+  if (state.callsLastMinute.length >= maxPerMinute) return false;
+
+  // Consume
+  state.tokens -= 1;
+  state.callsLastMinute.push(now);
+  return true;
+} 

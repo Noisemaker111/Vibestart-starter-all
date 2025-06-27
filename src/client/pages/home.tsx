@@ -4,12 +4,14 @@ import type { Route } from "./+types/home";
 import { createPortal } from "react-dom";
 import ServicesProvided from "@client/components/ServicesProvided";
 import appIdeas from "../../shared/appIdeas";
-import type { Platform } from "@shared/availablePlatforms";
+import type { AvailablePlatform } from "@shared/availablePlatforms";
 import IntegrationChips from "@client/components/IntegrationChips";
 import CreateJonstackCli from "@client/components/CreateJonstackCli";
 import { processIdea } from "@client/utils/integrationTool";
-import type { Integration } from "@shared/availableIntegrations";
+import type { AvailableIntegration } from "@shared/availableIntegrations";
 import { usePostHog } from "posthog-js/react";
+import React from "react";
+import { consumeLocalToken } from "@client/utils/rateLimit";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -24,10 +26,25 @@ export default function Home() {
   const [projectName, setProjectName] = useState("");
   const [os, setOs] = useState<"windows" | "mac" | "linux">("windows");
 
-  type Target = Platform | "app";
+  type Target = AvailablePlatform;
 
-  const platformToTarget = (p: string): Target =>
-    p === "mobile" ? "app" : (p as Target);
+  // Map verbose platform identifiers coming from ideas → concise UI targets
+  const platformToTarget = (p: string): Target => {
+    switch (p) {
+      case "mobile-app":
+      case "app":
+        return "app" as Target;
+      case "mobile-game":
+      case "game":
+        return "game" as Target;
+      case "desktop-game":
+      case "desktop":
+        return "desktop" as Target;
+      case "web":
+      default:
+        return "web" as Target;
+    }
+  };
 
   const [target, setTarget] = useState<Target>(
     platformToTarget(appIdeas[0].platform)
@@ -94,46 +111,38 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [placeholderIndex]);
 
-  const platformKeywords: Record<"app"|"desktop"|"game", RegExp[]> = {
-    app: [/\bmobile\b/i, /\biphone\b/i, /\bandroid\b/i, /\bapp\b/i],
-    desktop: [/\bdesktop\b/i, /\belectron\b/i, /\bwindows\b/i, /\bmac app\b/i, /\bmacos\b/i, /\blinux\b/i],
-    game: [/\bgame\b/i, /\bgaming\b/i, /\bvr\b/i, /\bunity\b/i, /\bunreal\b/i],
-  };
 
-  function detectPlatform(ideaText: string): Target {
-    if (!ideaText) return "web";
-    const text = ideaText.toLowerCase();
-    if (platformKeywords.game.some((r) => r.test(text))) return "game";
-    if (platformKeywords.app.some((r) => r.test(text))) return "app";
-    if (platformKeywords.desktop.some((r) => r.test(text))) return "desktop";
-    return "web";
-  }
+  // ─────────────────────────────────────────────────────────────
+  // Throttled AI generation queue (max 1 queued job, 2 s spacing)
+  // ─────────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    // Auto-detect platform
-    const detected = detectPlatform(idea.trim());
-    setTarget(detected);
+  const lastAiCallRef = React.useRef(0); // timestamp ms
+  const queuedIdeaRef = React.useRef<string | null>(null);
 
-    // Debounced AI call when idea length >=3
-    if (idea.trim().length < 3) {
-      // Keep previous integrations but clear any pending AI operations
-      return;
-    }
+  // Helper to run OpenRouter call respecting local token bucket
+  const runAiGeneration = React.useCallback(
+    async (ideaString: string) => {
+      // Guard: ensure at least 2 s since last invocation
+      const since = Date.now() - lastAiCallRef.current;
+      if (since < 2000) {
+        queuedIdeaRef.current = ideaString; // queue latest request (queue size 1)
+        return;
+      }
 
-    const debounce = setTimeout(async () => {
-      const now = Date.now();
-      if (now - lastCall < 1000) return; // simple 1-second rate limit
+      // Check token bucket (40 capacity, regen 1/2 min, 20/min burst)
+      if (!consumeLocalToken("aiTagGen", 40, 2 * 60 * 1000, 20)) return;
+
+      lastAiCallRef.current = Date.now();
+      setAiLoading(true);
       try {
-        setAiLoading(true);
-        const result = await processIdea(idea.trim());
-        setActiveKeys(result.integrations.map((i: Integration) => i.key));
+        const result = await processIdea(ideaString);
+        setActiveKeys(result.integrations.map((i: AvailableIntegration) => i.key));
         if (result.error) {
           setAiError(result.error);
           posthog.capture("ai_error", { message: result.error });
         } else {
           setAiError(null);
         }
-        setLastCall(Date.now());
       } catch (err) {
         console.error("AI integration selection failed", err);
         const msg = (err as Error)?.message || String(err);
@@ -142,10 +151,43 @@ export default function Home() {
       } finally {
         setAiLoading(false);
       }
-    }, 700); // 700 ms debounce
 
-    return () => clearTimeout(debounce);
+      // After finishing, check if something was queued during processing
+      const remaining = 2000 - (Date.now() - lastAiCallRef.current);
+      const delay = Math.max(0, remaining);
+      if (queuedIdeaRef.current) {
+        const nextIdea = queuedIdeaRef.current;
+        queuedIdeaRef.current = null; // clear queue slot
+        setTimeout(() => runAiGeneration(nextIdea), delay);
+      }
+    },
+    [posthog]
+  );
+
+  // Track typing activity timestamps
+  const lastKeyPressRef = React.useRef(Date.now());
+  const ideaRef = React.useRef(idea);
+
+  useEffect(() => {
+    ideaRef.current = idea;
+    if (idea.trim().length > 0) {
+      lastKeyPressRef.current = Date.now();
+    }
   }, [idea]);
+
+  // Poll every 500 ms to see if we should trigger generation
+  useEffect(() => {
+    const id = setInterval(() => {
+      const now = Date.now();
+      const currentIdea = ideaRef.current.trim();
+      if (currentIdea.length < 3) return; // need min input
+      if (now - lastKeyPressRef.current > 2000) return; // user stopped typing >2 s
+
+      runAiGeneration(currentIdea);
+    }, 500);
+
+    return () => clearInterval(id);
+  }, [runAiGeneration]);
 
   /* Helper to determine if a target option should be disabled based on OS */
   function isTargetDisabled(t: Target, currentOs: "windows" | "mac" | "linux") {
@@ -186,6 +228,16 @@ export default function Home() {
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, [posthog]);
+
+  // Predefined project name suggestions for the selector
+  const projectNameOptions = [
+    "TaskFlow",
+    "CodeSnip",
+    "FormPro",
+    "BudgetBuddy",
+    "IdeaHub",
+    "QuickNote",
+  ];
 
   return (
     <>
@@ -461,13 +513,18 @@ export default function Home() {
                 Name your project
               </h3>
 
-              <input
-                type="text"
+              <select
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
-                placeholder="e.g. BudgetBuddy"
                 className="input mb-4"
-              />
+              >
+                <option value="" disabled>Select a project name…</option>
+                {projectNameOptions.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
 
               <button
                 onClick={() => {

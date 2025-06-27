@@ -53,10 +53,21 @@ export default function TestUtilities() {
   // ────────────────────────────────────────────────────────────────────────
   const [llmIdea, setLlmIdea] = useState("");
   const availableModels = [
-    "google/gemini-2.0-flash-001",
+    "mistralai/mistral-7b-instruct",
+
     "openai/gpt-3.5-turbo",
     "openai/gpt-4o-mini",
-    "mistralai/mistral-7b-instruct",
+    "openai/gpt-3.5-turbo-0613",
+    "openai/gpt-4o-mini-2024-07-18",
+    
+    "google/gemini-2.0-flash-001",
+    "google/gemini-2.5-flash-lite-preview-06-17",
+    "google/gemini-2.5-flash-preview-05-20",
+    "google/gemma-2-9b-it",
+    "deepinfra/bf16",
+    "google/gemini-2.0-flash-exp:free",
+    "google/gemini-flash-1.5-8b"
+    
   ];
   const [selectedModel, setSelectedModel] = useState<string>(availableModels[0]);
   const [llmSystemPrompt, setLlmSystemPrompt] = useState("");
@@ -65,6 +76,8 @@ export default function TestUtilities() {
   const [llmStatus, setLlmStatus] = useState<"idle" | "ok" | "error">("idle");
   const [llmError, setLlmError] = useState<string | null>(null);
   const [llmDurationMs, setLlmDurationMs] = useState<number | null>(null);
+  const [llmRequestBody, setLlmRequestBody] = useState<string>("");
+  const [llmRawOutput, setLlmRawOutput] = useState<string>("");
 
   // ─────────────────────────────────────────────────────────────────────
   // Multi-Run Consistency Test state
@@ -74,6 +87,31 @@ export default function TestUtilities() {
   const [multiMatches, setMultiMatches] = useState(0);
   const [multiResults, setMultiResults] = useState<TrimmedPlatformIntegration[]>([]);
   const [multiTimes, setMultiTimes] = useState<number[]>([]);
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Persistent log of multi-run summaries
+  // ─────────────────────────────────────────────────────────────────────
+
+  interface MultiRunSummary {
+    timestamp: number;
+    model: string;
+    firstMs: number;
+    avgMs: number;
+    totalMs: number;
+    cps: number; // cycles per second
+  }
+
+  const [multiLog, setMultiLog] = useState<MultiRunSummary[]>([]);
+
+  // Load saved log after client mounts to avoid SSR hydration mismatch
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("multiRunLog");
+      if (saved) setMultiLog(JSON.parse(saved) as MultiRunSummary[]);
+    } catch {
+      // ignore parse errors or unavailable storage
+    }
+  }, []);
 
   // Re-generate system prompt whenever the idea changes
   useEffect(() => {
@@ -90,18 +128,34 @@ export default function TestUtilities() {
       const res = await processIdea(llmIdea.trim(), selectedModel);
       const end = performance.now();
       setLlmDurationMs(Math.round(end - start));
+      setLlmRequestBody(res.requestBody || "");
+      setLlmRawOutput(res.rawContent || "");
+      // Always display something in the output panel
+      const { platform, integrations, error } = res;
+      setLlmOutput(
+        JSON.stringify(
+          {
+            platform,
+            integrations,
+            ...(error ? { error } : {}),
+          },
+          null,
+          2
+        )
+      );
+
       if (res.error) {
         setLlmError(res.error);
         setLlmStatus("error");
-        setLlmOutput("");
-        return;
+      } else {
+        setLlmStatus("ok");
       }
-      setLlmOutput(JSON.stringify(res, null, 2));
-      setLlmStatus("ok");
     } catch (err: any) {
       setLlmError(err.message || String(err));
       setLlmStatus("error");
       setLlmDurationMs(null);
+      setLlmRequestBody("");
+      setLlmRawOutput("");
     }
   }
 
@@ -149,6 +203,21 @@ export default function TestUtilities() {
     }
 
     setMultiRunning(false);
+
+    // Record a summary entry for this 10× run
+    if (multiTimes.length === 10) {
+      const sum = multiTimes.reduce((a, b) => a + b, 0);
+      const avg = Math.round(sum / multiTimes.length);
+      const entry: MultiRunSummary = {
+        timestamp: Date.now(),
+        model: selectedModel,
+        firstMs: multiTimes[0] ?? 0,
+        avgMs: avg,
+        totalMs: sum,
+        cps: avg > 0 ? Number((1000 / avg).toFixed(2)) : 0,
+      };
+      setMultiLog((prev) => [entry, ...prev]);
+    }
   }
 
   /* ──────────────────────────────────────────────────────────────────────── */
@@ -467,22 +536,19 @@ export default function TestUtilities() {
           </p>
 
           <div className="space-y-3">
-            {/* Model selector (editable) */}
+            {/* Model selector (dropdown) */}
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium" htmlFor="model-input">Model:</label>
-              <input
-                id="model-input"
-                list="model-options"
+              <label className="text-sm font-medium" htmlFor="model-select">Model:</label>
+              <select
+                id="model-select"
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
                 className="input max-w-xs py-1 px-2 text-sm"
-                placeholder="e.g. google/gemini-2.0-flash-001"
-              />
-              <datalist id="model-options">
+              >
                 {availableModels.map((m) => (
-                  <option key={m} value={m} />
+                  <option key={m} value={m}>{m}</option>
                 ))}
-              </datalist>
+              </select>
             </div>
             <textarea
               value={llmIdea}
@@ -490,6 +556,14 @@ export default function TestUtilities() {
               placeholder="Your idea…"
               rows={3}
               className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg"
+            />
+
+            {/* System prompt (read-only) */}
+            <textarea
+              value={llmSystemPrompt}
+              readOnly
+              rows={6}
+              className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-xs font-mono"
             />
 
             <div className="flex flex-wrap gap-3">
@@ -503,17 +577,35 @@ export default function TestUtilities() {
               </button>
             </div>
 
-            {multiCompleted === 10 && (
-              <div className="mt-4 text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                <div>
-                  Identical results: {multiMatches} / 10 → {Math.round((multiMatches / 10) * 100)}%
-                </div>
-                {multiTimes.length === 10 && (
-                  <div>
-                    Avg time: {Math.round(multiTimes.reduce((a,b)=>a+b,0)/multiTimes.length)} ms (runs: {multiTimes.join(", ")})
-                  </div>
-                )}
+            {multiCompleted === 10 && multiTimes.length === 10 && (
+              <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                {(() => {
+                  const percent = Math.round((multiMatches / 10) * 100);
+                  const first = multiTimes[0];
+                  const total = multiTimes.reduce((a, b) => a + b, 0);
+                  const avg = Math.round(total / multiTimes.length);
+                  const cps = (1000 / avg).toFixed(2);
+                  return `${selectedModel} • ${percent}% first: ${first}ms avg: ${avg}ms cps: ${cps}`;
+                })()}
               </div>
+            )}
+
+            {/* History of multi-run summaries */}
+            {multiLog.length > 0 && (
+              <details className="mt-6">
+                <summary className="cursor-pointer text-sm font-semibold">Run History ({multiLog.length})</summary>
+                <div className="mt-2 space-y-1 text-xs font-mono">
+                  {multiLog.map((entry, idx) => (
+                    <div key={idx} className="flex flex-wrap gap-x-3">
+                      <span>{new Date(entry.timestamp).toLocaleTimeString()}</span>
+                      <span>model: {entry.model}</span>
+                      <span>first: {entry.firstMs}ms</span>
+                      <span>avg: {entry.avgMs}ms</span>
+                      <span>{entry.cps} cycles/s</span>
+                    </div>
+                  ))}
+                </div>
+              </details>
             )}
 
             {llmError && (
@@ -528,6 +620,24 @@ export default function TestUtilities() {
               <pre className="bg-gray-900 text-gray-100 text-xs p-4 rounded-lg overflow-x-auto">
                 {llmOutput}
               </pre>
+            )}
+
+            {llmRequestBody && (
+              <details className="mt-4">
+                <summary className="cursor-pointer text-sm font-semibold">Request JSON</summary>
+                <pre className="bg-gray-900 text-gray-100 text-xs p-4 rounded-lg overflow-x-auto">
+                  {llmRequestBody}
+                </pre>
+              </details>
+            )}
+
+            {llmRawOutput && (
+              <details className="mt-4">
+                <summary className="cursor-pointer text-sm font-semibold">Raw Model Output</summary>
+                <pre className="bg-gray-900 text-gray-100 text-xs p-4 rounded-lg overflow-x-auto">
+                  {llmRawOutput}
+                </pre>
+              </details>
             )}
           </div>
         </div>
