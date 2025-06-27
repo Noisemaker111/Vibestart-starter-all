@@ -113,8 +113,10 @@ export default function TestUtilities() {
     }
   }, []);
 
-  // Re-generate system prompt whenever the idea changes
+  // Re-generate the system prompt only in development so it never leaks into
+  // HTML on production builds.
   useEffect(() => {
+    if (!import.meta.env.DEV) return; // skip in prod
     if (manualPromptEdited) return; // keep user edits
     setLlmSystemPrompt(buildPlatformIntegrationPrompt(llmIdea));
   }, [llmIdea, manualPromptEdited]);
@@ -525,128 +527,144 @@ export default function TestUtilities() {
       </details>
 
       {/* LLM Chat */}
-      <details className="mb-10 bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
-        <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-lg bg-indigo-50 dark:bg-indigo-900/20">
-          LLM Chat
-          <StatusIcon status={llmStatus} />
-        </summary>
-        <div className="p-6 space-y-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Enter an idea to generate an integration specification via OpenRouter. The generated system prompt and raw output are shown for debugging.
-          </p>
+      {/* The full interactive section is only rendered during development. In
+         production we output a minimal placeholder so the system prompt and other
+         internals never reach the DOM. */}
+      {import.meta.env.DEV ? (
+        <details className="mb-10 bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
+          <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center gap-2">
+            <span>LLM Chat</span>
+            <StatusIcon status={llmStatus} />
+          </summary>
+          <div className="p-6 space-y-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Enter an idea to generate an integration specification via OpenRouter. The generated system prompt and raw output are shown for debugging.
+            </p>
 
-          <div className="space-y-3">
-            {/* Model selector (dropdown) */}
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium" htmlFor="model-select">Model:</label>
-              <select
-                id="model-select"
-                value={selectedModel}
-                onChange={(e) => setSelectedModel(e.target.value)}
-                className="input max-w-xs py-1 px-2 text-sm"
-              >
-                {availableModels.map((m) => (
-                  <option key={m} value={m}>{m}</option>
-                ))}
-              </select>
-            </div>
-            <textarea
-              value={llmIdea}
-              onChange={(e) => setLlmIdea(e.target.value)}
-              placeholder="Your idea…"
-              rows={3}
-              className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg"
-            />
-
-            {/* System prompt (read-only) */}
-            <textarea
-              value={llmSystemPrompt}
-              readOnly
-              rows={6}
-              className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-xs font-mono"
-            />
-
-            <div className="flex flex-wrap gap-3">
-              <button onClick={runLlmChat} className="btn-primary">Run LLM Chat</button>
-              <button
-                onClick={runMultiTest}
-                disabled={multiRunning}
-                className="btn-primary bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
-              >
-                {multiRunning ? `Running… (${multiCompleted}/10)` : "Run 10×"}
-              </button>
-            </div>
-
-            {multiCompleted === 10 && multiTimes.length === 10 && (
-              <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-                {(() => {
-                  const percent = Math.round((multiMatches / 10) * 100);
-                  const first = multiTimes[0];
-                  const total = multiTimes.reduce((a, b) => a + b, 0);
-                  const avg = Math.round(total / multiTimes.length);
-                  const cps = (1000 / avg).toFixed(2);
-                  return `${selectedModel} • ${percent}% first: ${first}ms avg: ${avg}ms cps: ${cps}`;
-                })()}
-              </div>
-            )}
-
-            {/* History of multi-run summaries */}
-            {multiLog.length > 0 && (
-              <details className="mt-6">
-                <summary className="cursor-pointer text-sm font-semibold">Run History ({multiLog.length})</summary>
-                <div className="mt-2 space-y-1 text-xs font-mono">
-                  {multiLog.map((entry, idx) => (
-                    <div key={idx} className="flex flex-wrap gap-x-3">
-                      <span>{new Date(entry.timestamp).toLocaleTimeString()}</span>
-                      <span>model: {entry.model}</span>
-                      <span>first: {entry.firstMs}ms</span>
-                      <span>avg: {entry.avgMs}ms</span>
-                      <span>{entry.cps} cycles/s</span>
-                    </div>
+            <div className="space-y-3">
+              {/* Model selector (dropdown) */}
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium" htmlFor="model-select">Model:</label>
+                <select
+                  id="model-select"
+                  value={selectedModel}
+                  onChange={(e) => setSelectedModel(e.target.value)}
+                  className="input max-w-xs py-1 px-2 text-sm"
+                >
+                  {availableModels.map((m) => (
+                    <option key={m} value={m}>{m}</option>
                   ))}
+                </select>
+              </div>
+              <textarea
+                value={llmIdea}
+                onChange={(e) => setLlmIdea(e.target.value)}
+                placeholder="Your idea…"
+                rows={3}
+                className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg"
+              />
+
+              {/* System prompt (read-only) */}
+              <textarea
+                value={llmSystemPrompt}
+                readOnly
+                rows={6}
+                className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-xs font-mono"
+              />
+
+              <div className="flex flex-wrap gap-3">
+                <button onClick={runLlmChat} className="btn-primary">Run LLM Chat</button>
+                <button
+                  onClick={runMultiTest}
+                  disabled={multiRunning}
+                  className="btn-primary bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
+                >
+                  {multiRunning ? `Running… (${multiCompleted}/10)` : "Run 10×"}
+                </button>
+              </div>
+
+              {multiCompleted === 10 && multiTimes.length === 10 && (
+                <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                  {(() => {
+                    const percent = Math.round((multiMatches / 10) * 100);
+                    const first = multiTimes[0];
+                    const total = multiTimes.reduce((a, b) => a + b, 0);
+                    const avg = Math.round(total / multiTimes.length);
+                    const cps = (1000 / avg).toFixed(2);
+                    return `${selectedModel} • ${percent}% first: ${first}ms avg: ${avg}ms cps: ${cps}`;
+                  })()}
                 </div>
-              </details>
-            )}
+              )}
 
-            {llmError && (
-              <p className="text-sm text-red-600 dark:text-red-400 break-all">Error: {llmError}</p>
-            )}
+              {/* History of multi-run summaries */}
+              {multiLog.length > 0 && (
+                <details className="mt-6">
+                  <summary className="cursor-pointer text-sm font-semibold">Run History ({multiLog.length})</summary>
+                  <div className="mt-2 space-y-1 text-xs font-mono">
+                    {multiLog.map((entry, idx) => (
+                      <div key={idx} className="flex flex-wrap gap-x-3">
+                        <span>{new Date(entry.timestamp).toLocaleTimeString()}</span>
+                        <span>model: {entry.model}</span>
+                        <span>first: {entry.firstMs}ms</span>
+                        <span>avg: {entry.avgMs}ms</span>
+                        <span>{entry.cps} cycles/s</span>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
 
-            {llmDurationMs !== null && (
-              <p className="text-xs text-gray-500 dark:text-gray-400">Time: {llmDurationMs} ms</p>
-            )}
+              {llmError && (
+                <p className="text-sm text-red-600 dark:text-red-400 break-all">Error: {llmError}</p>
+              )}
 
-            {llmOutput && (
-              <pre className="bg-gray-900 text-gray-100 text-xs p-4 rounded-lg overflow-x-auto">
-                {llmOutput}
-              </pre>
-            )}
+              {llmDurationMs !== null && (
+                <p className="text-xs text-gray-500 dark:text-gray-400">Time: {llmDurationMs} ms</p>
+              )}
 
-            {llmRequestBody && (
-              <details className="mt-4">
-                <summary className="cursor-pointer text-sm font-semibold">Request JSON</summary>
+              {llmOutput && (
                 <pre className="bg-gray-900 text-gray-100 text-xs p-4 rounded-lg overflow-x-auto">
-                  {llmRequestBody}
+                  {llmOutput}
                 </pre>
-              </details>
-            )}
+              )}
 
-            {llmRawOutput && (
-              <details className="mt-4">
-                <summary className="cursor-pointer text-sm font-semibold">Raw Model Output</summary>
-                <pre className="bg-gray-900 text-gray-100 text-xs p-4 rounded-lg overflow-x-auto">
-                  {llmRawOutput}
-                </pre>
-              </details>
-            )}
+              {llmRequestBody && (
+                <details className="mt-4">
+                  <summary className="cursor-pointer text-sm font-semibold">Request JSON</summary>
+                  <pre className="bg-gray-900 text-gray-100 text-xs p-4 rounded-lg overflow-x-auto">
+                    {llmRequestBody}
+                  </pre>
+                </details>
+              )}
+
+              {llmRawOutput && (
+                <details className="mt-4">
+                  <summary className="cursor-pointer text-sm font-semibold">Raw Model Output</summary>
+                  <pre className="bg-gray-900 text-gray-100 text-xs p-4 rounded-lg overflow-x-auto">
+                    {llmRawOutput}
+                  </pre>
+                </details>
+              )}
+            </div>
           </div>
-        </div>
-      </details>
+        </details>
+      ) : (
+        <details className="mb-10 bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
+          <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center gap-2">
+            <span>LLM Chat</span>
+            <span className="ml-2 bg-yellow-900/30 text-yellow-300 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-md">soon</span>
+          </summary>
+          <div className="p-6">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Feature coming soon.</p>
+          </div>
+        </details>
+      )}
 
       {/* Maps / Address Autocomplete (Placeholder) */}
       <details className="mb-10 bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
-        <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-lg bg-orange-50 dark:bg-orange-900/20">
-          Maps / Address Autocomplete
+        <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-lg bg-orange-50 dark:bg-orange-900/20 flex items-center gap-2">
+          <span>Maps / Address Autocomplete</span>
+          <span className="ml-2 bg-yellow-900/30 text-yellow-300 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-md">soon</span>
         </summary>
         <div className="p-6">
           <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -657,8 +675,9 @@ export default function TestUtilities() {
 
       {/* Realtime Chat (Placeholder) */}
       <details className="mb-10 bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
-        <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-lg bg-teal-50 dark:bg-teal-900/20">
-          Realtime Chat
+        <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-lg bg-teal-50 dark:bg-teal-900/20 flex items-center gap-2">
+          <span>Realtime Chat</span>
+          <span className="ml-2 bg-yellow-900/30 text-yellow-300 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-md">soon</span>
         </summary>
         <div className="p-6">
           <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -669,8 +688,9 @@ export default function TestUtilities() {
 
       {/* Deployment Section Placeholder */}
       <details className="mb-10 bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
-        <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-lg bg-yellow-50 dark:bg-yellow-900/20">
-          Deployment
+        <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-lg bg-yellow-50 dark:bg-yellow-900/20 flex items-center gap-2">
+          <span>Deployment</span>
+          <span className="ml-2 bg-yellow-900/30 text-yellow-300 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-md">soon</span>
         </summary>
         <div className="p-6">
           <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -684,8 +704,9 @@ export default function TestUtilities() {
 
       {/* Analytics Section Placeholder */}
       <details className="mb-10 bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
-        <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-lg bg-gray-50 dark:bg-gray-900/20">
-          Analytics
+        <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-lg bg-gray-50 dark:bg-gray-900/20 flex items-center gap-2">
+          <span>Analytics</span>
+          <span className="ml-2 bg-yellow-900/30 text-yellow-300 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-md">soon</span>
         </summary>
         <div className="p-6">
           <p className="text-sm text-gray-600 dark:text-gray-400">
