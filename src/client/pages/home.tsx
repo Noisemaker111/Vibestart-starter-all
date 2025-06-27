@@ -251,6 +251,14 @@ export default function Home() {
         <section className="relative min-h-screen flex items-center justify-center px-4 pt-8 sm:pt-14 md:pt-14 lg:pt-28">
           <div className="max-w-6xl mx-auto w-full">
             <div className="text-center mb-12">
+              {/* Release badge */}
+              <span
+                role="status"
+                aria-label="Alpha version label"
+                className="inline-block mb-4 bg-yellow-900/50 text-yellow-300 text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-md select-none"
+              >
+                alpha version
+              </span>
               {/* Main Headline */}
               <h1 className="text-6xl lg:text-8xl font-black mb-6 leading-tight">
                 <span className="bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
