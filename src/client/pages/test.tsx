@@ -5,6 +5,12 @@ import { SquareUploadButton } from "@client/components/SquareUploadButton";
 import { SignInButton } from "@client/components/SignInButton";
 import { CreateOrganizationButton } from "@client/components/CreateOrganizationButton";
 import { useAuth } from "@client/context/AuthContext";
+import {
+  processIdea,
+  trimPlatformIntegrationResponse,
+  type TrimmedPlatformIntegration,
+} from "@client/utils/integrationTool";
+import { buildPlatformIntegrationPrompt } from "@client/utils/platformIntegrationPrompt";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -41,6 +47,109 @@ export default function TestUtilities() {
 
   // Add after other state definitions
   const [uploadthingApiStatus, setUploadthingApiStatus] = useState<"idle" | "ok" | "error">("idle");
+
+  // ────────────────────────────────────────────────────────────────────────
+  // LLM Chat test state & helpers
+  // ────────────────────────────────────────────────────────────────────────
+  const [llmIdea, setLlmIdea] = useState("");
+  const availableModels = [
+    "google/gemini-2.0-flash-001",
+    "openai/gpt-3.5-turbo",
+    "openai/gpt-4o-mini",
+    "mistralai/mistral-7b-instruct",
+  ];
+  const [selectedModel, setSelectedModel] = useState<string>(availableModels[0]);
+  const [llmSystemPrompt, setLlmSystemPrompt] = useState("");
+  const [manualPromptEdited, setManualPromptEdited] = useState(false);
+  const [llmOutput, setLlmOutput] = useState("");
+  const [llmStatus, setLlmStatus] = useState<"idle" | "ok" | "error">("idle");
+  const [llmError, setLlmError] = useState<string | null>(null);
+  const [llmDurationMs, setLlmDurationMs] = useState<number | null>(null);
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Multi-Run Consistency Test state
+  // ─────────────────────────────────────────────────────────────────────
+  const [multiRunning, setMultiRunning] = useState(false);
+  const [multiCompleted, setMultiCompleted] = useState(0);
+  const [multiMatches, setMultiMatches] = useState(0);
+  const [multiResults, setMultiResults] = useState<TrimmedPlatformIntegration[]>([]);
+  const [multiTimes, setMultiTimes] = useState<number[]>([]);
+
+  // Re-generate system prompt whenever the idea changes
+  useEffect(() => {
+    if (manualPromptEdited) return; // keep user edits
+    setLlmSystemPrompt(buildPlatformIntegrationPrompt(llmIdea));
+  }, [llmIdea, manualPromptEdited]);
+
+  async function runLlmChat() {
+    if (!llmIdea.trim()) return;
+    setLlmError(null);
+    setLlmStatus("idle");
+    try {
+      const start = performance.now();
+      const res = await processIdea(llmIdea.trim(), selectedModel);
+      const end = performance.now();
+      setLlmDurationMs(Math.round(end - start));
+      if (res.error) {
+        setLlmError(res.error);
+        setLlmStatus("error");
+        setLlmOutput("");
+        return;
+      }
+      setLlmOutput(JSON.stringify(res, null, 2));
+      setLlmStatus("ok");
+    } catch (err: any) {
+      setLlmError(err.message || String(err));
+      setLlmStatus("error");
+      setLlmDurationMs(null);
+    }
+  }
+
+  async function runMultiTest() {
+    if (!llmIdea.trim() || multiRunning) return;
+
+    setMultiRunning(true);
+    setMultiCompleted(0);
+    setMultiMatches(0);
+    setMultiResults([]);
+    setMultiTimes([]);
+
+    let baseline: TrimmedPlatformIntegration | null = null;
+    let matches = 0;
+    const results: TrimmedPlatformIntegration[] = [];
+
+    for (let i = 0; i < 10; i++) {
+      try {
+        const startTime = performance.now();
+        const res = await processIdea(llmIdea.trim(), selectedModel);
+        const endTime = performance.now();
+        const elapsed = Math.round(endTime - startTime);
+        setMultiTimes((prev) => [...prev, elapsed]);
+        const trimmed = trimPlatformIntegrationResponse(res);
+        results.push(trimmed);
+
+        if (i === 0) {
+          baseline = trimmed;
+          matches += 1;
+        } else if (
+          baseline &&
+          trimmed.platform === baseline.platform &&
+          trimmed.integrations.length === baseline.integrations.length &&
+          trimmed.integrations.every((val, idx) => val === baseline!.integrations[idx])
+        ) {
+          matches += 1;
+        }
+      } catch (err) {
+        console.error("multi run error", err);
+      }
+
+      setMultiCompleted(i + 1);
+      setMultiMatches(matches);
+      setMultiResults([...results]);
+    }
+
+    setMultiRunning(false);
+  }
 
   /* ──────────────────────────────────────────────────────────────────────── */
   /* Animals helpers                                                         */
@@ -343,6 +452,108 @@ export default function TestUtilities() {
             <SignInButton />
             {session && <CreateOrganizationButton />}
           </div>
+        </div>
+      </details>
+
+      {/* LLM Chat */}
+      <details className="mb-10 bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
+        <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-lg bg-indigo-50 dark:bg-indigo-900/20">
+          LLM Chat
+          <StatusIcon status={llmStatus} />
+        </summary>
+        <div className="p-6 space-y-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Enter an idea to generate an integration specification via OpenRouter. The generated system prompt and raw output are shown for debugging.
+          </p>
+
+          <div className="space-y-3">
+            {/* Model selector (editable) */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium" htmlFor="model-input">Model:</label>
+              <input
+                id="model-input"
+                list="model-options"
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                className="input max-w-xs py-1 px-2 text-sm"
+                placeholder="e.g. google/gemini-2.0-flash-001"
+              />
+              <datalist id="model-options">
+                {availableModels.map((m) => (
+                  <option key={m} value={m} />
+                ))}
+              </datalist>
+            </div>
+            <textarea
+              value={llmIdea}
+              onChange={(e) => setLlmIdea(e.target.value)}
+              placeholder="Your idea…"
+              rows={3}
+              className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg"
+            />
+
+            <div className="flex flex-wrap gap-3">
+              <button onClick={runLlmChat} className="btn-primary">Run LLM Chat</button>
+              <button
+                onClick={runMultiTest}
+                disabled={multiRunning}
+                className="btn-primary bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
+              >
+                {multiRunning ? `Running… (${multiCompleted}/10)` : "Run 10×"}
+              </button>
+            </div>
+
+            {multiCompleted === 10 && (
+              <div className="mt-4 text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                <div>
+                  Identical results: {multiMatches} / 10 → {Math.round((multiMatches / 10) * 100)}%
+                </div>
+                {multiTimes.length === 10 && (
+                  <div>
+                    Avg time: {Math.round(multiTimes.reduce((a,b)=>a+b,0)/multiTimes.length)} ms (runs: {multiTimes.join(", ")})
+                  </div>
+                )}
+              </div>
+            )}
+
+            {llmError && (
+              <p className="text-sm text-red-600 dark:text-red-400 break-all">Error: {llmError}</p>
+            )}
+
+            {llmDurationMs !== null && (
+              <p className="text-xs text-gray-500 dark:text-gray-400">Time: {llmDurationMs} ms</p>
+            )}
+
+            {llmOutput && (
+              <pre className="bg-gray-900 text-gray-100 text-xs p-4 rounded-lg overflow-x-auto">
+                {llmOutput}
+              </pre>
+            )}
+          </div>
+        </div>
+      </details>
+
+      {/* Maps / Address Autocomplete (Placeholder) */}
+      <details className="mb-10 bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
+        <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-lg bg-orange-50 dark:bg-orange-900/20">
+          Maps / Address Autocomplete
+        </summary>
+        <div className="p-6">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Maps & address autocomplete tests will be added here.
+          </p>
+        </div>
+      </details>
+
+      {/* Realtime Chat (Placeholder) */}
+      <details className="mb-10 bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
+        <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-lg bg-teal-50 dark:bg-teal-900/20">
+          Realtime Chat
+        </summary>
+        <div className="p-6">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Realtime chat integration tests will be added here.
+          </p>
         </div>
       </details>
 

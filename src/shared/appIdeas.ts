@@ -1,4 +1,4 @@
-import type { Platform } from "@shared/platforms";
+import type { AvailablePlatform } from "@shared/availablePlatforms";
 
 export interface AppIdea {
   idea: string;

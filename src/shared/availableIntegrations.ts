@@ -16,14 +16,14 @@ import {
 
 import { FaDiscord } from "react-icons/fa";
 
-export interface Integration {
+export interface AvailableIntegration {
   key: string;
   label: string;
   /** Optional icon component for UI usage */
   icon?: ComponentType<{ className?: string }>;
 }
 
-export const INTEGRATIONS: readonly Integration[] = [
+export const availableIntegrations: readonly AvailableIntegration[] = [
   { key: "database", label: "Database", icon: Database },
   { key: "solana", label: "Solana Sign In", icon: Fingerprint },
   { key: "google", label: "Google Sign In", icon: LogIn },
@@ -39,4 +39,4 @@ export const INTEGRATIONS: readonly Integration[] = [
   { key: "search", label: "Search", icon: SearchIcon },
 ] as const;
 
-export type IntegrationKey = typeof INTEGRATIONS[number]["key"]; 
+export type AvailableIntegrationKey = typeof availableIntegrations[number]["key"]; 

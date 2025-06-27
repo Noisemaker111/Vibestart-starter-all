@@ -1,7 +1,8 @@
 import React from "react";
-import { INTEGRATIONS } from "@shared/integrations";
+import { availableIntegrations } from "@shared/availableIntegrations";
+import { analyticsDebug } from "@shared/debug";
 
-const integrations = INTEGRATIONS;
+const integrations = availableIntegrations;
 
 interface IntegrationChipsProps {
   /** Additional Tailwind classes */
@@ -13,6 +14,12 @@ interface IntegrationChipsProps {
 export default function IntegrationChips({ className, activeKeys }: IntegrationChipsProps) {
   // Treat no activeKeys prop as "all active"
   const activeSet = new Set(activeKeys ?? integrations.map((i) => i.key));
+
+  const warnedRef = React.useRef(false);
+  if (analyticsDebug && activeSet.size === 0 && !warnedRef.current) {
+    console.warn("IntegrationChips: no active integrations to display", { activeKeys });
+    warnedRef.current = true;
+  }
 
   return (
     <div className={`flex flex-wrap gap-2 ${className ?? ""}`.trim()}>

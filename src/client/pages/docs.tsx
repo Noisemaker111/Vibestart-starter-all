@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation } from "react-router";
 import type { Route } from "./+types/docs";
 import CursorProjectRule from "@client/components/CursorProjectRule";
-import type { Platform } from "@shared/platforms";
+import type { Platform } from "@shared/availablePlatforms";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Cursor auxiliary data (project rule & memories)

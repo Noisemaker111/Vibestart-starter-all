@@ -11,6 +11,7 @@ import appStylesHref from "@shared/app.css?url";
 import { AuthProvider } from "@client/context/AuthContext";
 import { Header } from "@client/components/Header";
 import { PostHogProvider } from "posthog-js/react";
+import { analyticsDebug } from "@shared/debug";
 
 export const links: Route.LinksFunction = () => [
   { rel: "stylesheet", href: appStylesHref },
@@ -41,7 +42,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           options={{
             api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
             capture_exceptions: true,
-            debug: import.meta.env.MODE === "development",
+            debug: analyticsDebug,
           }}
         >
           <AuthProvider>

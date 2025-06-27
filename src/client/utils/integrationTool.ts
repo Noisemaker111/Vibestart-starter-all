@@ -1,12 +1,28 @@
-import type { Integration, SpecificationResponse } from "./types.ts";
-import { buildIntegrationPrompt } from "./integrationPrompt";
+import type { AvailableIntegration } from "@shared/availableIntegrations";
+import { buildPlatformIntegrationPrompt } from "./platformIntegrationPrompt";
+import { analyticsDebug } from "@shared/debug";
 
-export const processIdea = async (idea: string): Promise<SpecificationResponse> => {
+export interface SpecificationResponse {
+  platform?: string;
+  integrations: AvailableIntegration[];
+  error?: string;
+}
+
+export const DEFAULT_MODEL = "google/gemini-2.0-flash-001" as const;
+
+export const processIdea = async (
+  idea: string,
+  model: string = DEFAULT_MODEL
+): Promise<SpecificationResponse> => {
   const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || import.meta.env.VITE_OPENROUTER_KEY;
+
+  if (analyticsDebug) {
+    console.debug("[processIdea] idea", idea);
+  }
 
   if (!apiKey) {
     console.warn("OpenRouter API key missing – skipping AI integration selection");
-    return { specification: "", integrations: [] };
+    return { integrations: [], error: "OpenRouter API key missing" };
   }
 
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -18,11 +34,12 @@ export const processIdea = async (idea: string): Promise<SpecificationResponse> 
       "X-Title": "JonStack", // site name for OpenRouter attribution
     },
     body: JSON.stringify({
-      model: "google/gemini-2.0-flash-001", // default model – change via .env if desired
+      model,
+      temperature: 0.1,
       messages: [
         {
           role: "system",
-          content: buildIntegrationPrompt(idea),
+          content: buildPlatformIntegrationPrompt(idea),
         },
       ],
       tools: [
@@ -44,6 +61,10 @@ export const processIdea = async (idea: string): Promise<SpecificationResponse> 
     }),
   });
 
+  if (analyticsDebug) {
+    console.debug("[processIdea] response status", response.status);
+  }
+
   if (!response.ok) {
     let errorDetails: unknown = null;
     try {
@@ -52,11 +73,15 @@ export const processIdea = async (idea: string): Promise<SpecificationResponse> 
       // ignore
     }
     console.error(`OpenRouter error ${response.status}:`, errorDetails);
-    return { specification: "", integrations: [] };
+    return { integrations: [], error: `OpenRouter error ${response.status}` };
   }
 
   const data = await response.json();
   const content = data?.choices?.[0]?.message?.content;
+
+  if (analyticsDebug) {
+    console.debug("[processIdea] raw content", content);
+  }
 
   try {
     let jsonText = content?.trim() ?? "";
@@ -64,22 +89,41 @@ export const processIdea = async (idea: string): Promise<SpecificationResponse> 
       jsonText = jsonText.replace(/^```[a-zA-Z]*\s*/i, "").replace(/```\s*$/, "").trim();
     }
     const parsed = JSON.parse(jsonText);
-    let integrationsArray: Integration[] = [];
-    let ideaSpec = "";
+    let integrationsArray: AvailableIntegration[] = [];
     let platform: string | undefined = undefined;
 
     if (Array.isArray(parsed)) {
-      integrationsArray = parsed as Integration[];
+      integrationsArray = parsed as AvailableIntegration[];
     } else if (parsed && Array.isArray(parsed.integrations)) {
-      integrationsArray = parsed.integrations as Integration[];
-      ideaSpec = parsed.idea ?? "";
+      integrationsArray = parsed.integrations as AvailableIntegration[];
       platform = parsed.platform;
     }
 
-    console.log("Parsed integrations:", integrationsArray);
-    return { specification: ideaSpec, platform, integrations: integrationsArray };
+    if (analyticsDebug) console.log("Parsed integrations:", integrationsArray);
+
+    return { platform, integrations: integrationsArray };
   } catch (err) {
     console.error("Failed to parse integration list", content, err);
-    return { specification: "", integrations: [] };
+    return { integrations: [], error: (err as Error)?.message || "Parse error" };
   }
-}; 
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper to trim the specification response down to primitives
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface TrimmedPlatformIntegration {
+  platform?: string;
+  integrations: string[]; // integration keys only
+}
+
+export function trimPlatformIntegrationResponse(
+  result: SpecificationResponse
+): TrimmedPlatformIntegration {
+  const keys = (result.integrations ?? []).map((i) => i.key);
+  const deduped = Array.from(new Set(keys)).sort();
+  return {
+    platform: result.platform ?? "",
+    integrations: deduped,
+  };
+} 

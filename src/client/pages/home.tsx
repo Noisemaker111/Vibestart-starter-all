@@ -4,11 +4,11 @@ import type { Route } from "./+types/home";
 import { createPortal } from "react-dom";
 import ServicesProvided from "@client/components/ServicesProvided";
 import appIdeas from "../../shared/appIdeas";
-import type { Platform } from "@shared/platforms";
+import type { Platform } from "@shared/availablePlatforms";
 import IntegrationChips from "@client/components/IntegrationChips";
 import CreateJonstackCli from "@client/components/CreateJonstackCli";
 import { processIdea } from "@client/utils/integrationTool";
-import type { Integration } from "@client/utils/types";
+import type { Integration } from "@shared/availableIntegrations";
 import { usePostHog } from "posthog-js/react";
 
 export function meta({}: Route.MetaArgs) {
@@ -33,9 +33,9 @@ export default function Home() {
     platformToTarget(appIdeas[0].platform)
   );
   const [activeKeys, setActiveKeys] = useState<string[]>(appIdeas[0].integrations);
-  const [specification, setSpecification] = useState<string>("");
   const [aiLoading, setAiLoading] = useState(false);
   const [lastCall, setLastCall] = useState(0);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const posthog = usePostHog();
@@ -116,8 +116,7 @@ export default function Home() {
 
     // Debounced AI call when idea length >=3
     if (idea.trim().length < 3) {
-      setActiveKeys([]);
-      setSpecification("");
+      // Keep previous integrations but clear any pending AI operations
       return;
     }
 
@@ -127,11 +126,19 @@ export default function Home() {
       try {
         setAiLoading(true);
         const result = await processIdea(idea.trim());
-        setSpecification(result.specification);
         setActiveKeys(result.integrations.map((i: Integration) => i.key));
+        if (result.error) {
+          setAiError(result.error);
+          posthog.capture("ai_error", { message: result.error });
+        } else {
+          setAiError(null);
+        }
         setLastCall(Date.now());
       } catch (err) {
         console.error("AI integration selection failed", err);
+        const msg = (err as Error)?.message || String(err);
+        setAiError(msg);
+        posthog.capture("ai_error", { message: msg });
       } finally {
         setAiLoading(false);
       }
@@ -272,11 +279,6 @@ export default function Home() {
 
                   {/* Integration list */}
                   <IntegrationChips className="mt-4" activeKeys={activeKeys} />
-
-                  {/* Optional spec output */}
-                  {specification && (
-                    <p className="mt-3 text-xs text-gray-400">{specification}</p>
-                  )}
 
                   {/* Idea suggestions now rotate as placeholder text */}
                 </div>

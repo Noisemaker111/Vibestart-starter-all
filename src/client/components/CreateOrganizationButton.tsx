@@ -6,11 +6,6 @@ interface Props {
   className?: string;
 }
 
-/**
- * CreateOrganizationButton is visible only when the user is authenticated.
- * Clicking the button opens a modal prompting for an organization name. On
- * submit, the organization is persisted via Supabase and the modal closes.
- */
 export function CreateOrganizationButton({ className }: Props) {
   const { session } = useAuth();
   const [open, setOpen] = useState(false);
