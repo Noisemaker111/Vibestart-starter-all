@@ -48,14 +48,14 @@ export default function TestUtilities() {
   // ────────────────────────────────────────────────────────────────────────
   const [llmIdea, setLlmIdea] = useState("");
   const availableModels = [
+    "google/gemini-2.0-flash-001",
     "mistralai/mistral-7b-instruct",
 
     "openai/gpt-3.5-turbo",
     "openai/gpt-4o-mini",
     "openai/gpt-3.5-turbo-0613",
     "openai/gpt-4o-mini-2024-07-18",
-    
-    "google/gemini-2.0-flash-001",
+  
     "google/gemini-2.5-flash-lite-preview-06-17",
     "google/gemini-2.5-flash-preview-05-20",
     "google/gemma-2-9b-it",
