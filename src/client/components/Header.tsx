@@ -9,7 +9,6 @@ export function Header() {
 
   const navItems = [
     { href: "/docs", label: "Docs" },
-    { href: "/test", label: "Test" }
   ];
 
   return (
@@ -38,10 +37,10 @@ export function Header() {
                     key={item.href}
                     to={item.href}
                     onClick={() => posthog.capture(`nav_${item.label.toLowerCase()}_click`)}
-                    className={`text-sm font-medium transition-colors ${
+                    className={`text-sm font-semibold transition-colors ${
                       isActive
-                        ? 'text-white'
-                        : 'text-white/80 hover:text-white'
+                        ? 'text-purple-500 drop-shadow-sm'
+                        : 'text-purple-400 hover:text-purple-300 drop-shadow-sm'
                     }`}
                   >
                     {item.label}

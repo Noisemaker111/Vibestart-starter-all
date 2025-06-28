@@ -4,7 +4,7 @@ import type { Route } from "./+types/home";
 import { createPortal } from "react-dom";
 import ServicesProvided from "@client/components/ServicesProvided";
 import appIdeas from "../../shared/appIdeas";
-import type { AvailablePlatform } from "@shared/availablePlatforms";
+import type { AvailablePlatformKey } from "@shared/availablePlatforms";
 import IntegrationChips from "@client/components/IntegrationChips";
 import CreateJonstackCli from "@client/components/CreateJonstackCli";
 import { processIdea } from "@client/utils/integrationTool";
@@ -26,29 +26,28 @@ export default function Home() {
   const [projectName, setProjectName] = useState("");
   const [os, setOs] = useState<"windows" | "mac" | "linux">("windows");
 
-  type Target = AvailablePlatform;
+  // Use the platform key union rather than full object interface
+  type Target = AvailablePlatformKey;
 
   // Map verbose platform identifiers coming from ideas → concise UI targets
   const platformToTarget = (p: string): Target => {
     switch (p) {
       case "mobile-app":
       case "app":
-        return "app" as Target;
+        return "app";
       case "mobile-game":
       case "game":
-        return "game" as Target;
+        return "game";
       case "desktop-game":
       case "desktop":
-        return "desktop" as Target;
+        return "desktop";
       case "web":
       default:
-        return "web" as Target;
+        return "web";
     }
   };
 
-  const [target, setTarget] = useState<Target>(
-    platformToTarget(appIdeas[0].platform)
-  );
+  const [target, setTarget] = useState<Target>(platformToTarget(appIdeas[0].platform));
   const [activeKeys, setActiveKeys] = useState<string[]>(appIdeas[0].integrations);
   const [aiLoading, setAiLoading] = useState(false);
   const [lastCall, setLastCall] = useState(0);
@@ -285,15 +284,17 @@ export default function Home() {
                 <div className="relative bg-gray-900/90 backdrop-blur-xl rounded-2xl p-8 border border-gray-800">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
                     <label className="text-lg sm:text-xl font-semibold text-gray-300">
-                      Describe your app idea
+                      Give me your idea
                     </label>
                     <div className="flex items-center gap-2">
-                      {([
-                        { id: "web", label: "🌐 Web" },
-                        { id: "app", label: "📱 Mobile" },
-                        { id: "desktop", label: "🖥️ Desktop" },
-                        { id: "game", label: "🎮 Game" },
-                      ] as const)
+                      {(
+                        [
+                          { id: "web", label: "🌐 Web" },
+                          { id: "app", label: "📱 Mobile" },
+                          { id: "desktop", label: "🖥️ Desktop" },
+                          { id: "game", label: "🎮 Game" },
+                        ] as const satisfies readonly { id: Target; label: string }[]
+                      )
                         .filter(({ id }) => id === target)
                         .map(({ id, label }) => {
                           const disabled = isTargetDisabled(id, os);
@@ -303,9 +304,7 @@ export default function Home() {
                               <button
                                 onClick={() => !disabled && setTarget(id)}
                                 disabled={disabled}
-                                className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium transition-colors ${
-                                  selected ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg" : "bg-gray-800 text-gray-400"}
-                                  ${disabled ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-700"}`}
+                                className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium transition-colors ${selected ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg" : "bg-gray-800 text-gray-400"} ${disabled ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-700"}`}
                               >
                                 {label}
                               </button>
@@ -351,7 +350,16 @@ export default function Home() {
                   onClick={() => posthog.capture("home_get_building_click")}
                   className="inline-flex items-center justify-center px-8 py-4 font-bold text-black bg-white rounded-xl hover:bg-gray-100 transition-all duration-200"
                 >
-                  Get VibeStart
+                  Get Building
+                </Link>
+
+                {/* Docs button – minimal styling so only text is visible */}
+                <Link
+                  to="/docs"
+                  onClick={() => posthog.capture("home_docs_click")}
+                  className="inline-flex items-center justify-center px-8 py-4 font-semibold text-purple-500 drop-shadow-sm hover:text-purple-400 transition-colors duration-200"
+                >
+                  Docs
                 </Link>
               </div>
             </div>
@@ -491,7 +499,7 @@ export default function Home() {
                     to="/docs"
                     className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
                   >
-                    Get VibeStart
+                    Get Building
                   </Link>
                 </div>
               </div>

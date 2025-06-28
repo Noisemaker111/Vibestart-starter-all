@@ -11,7 +11,6 @@ import appStylesHref from "@shared/app.css?url";
 import { AuthProvider } from "@client/context/AuthContext";
 import { Header } from "@client/components/Header";
 import { PostHogProvider } from "posthog-js/react";
-import { analyticsDebug } from "@shared/debug";
 
 export const links: Route.LinksFunction = () => [
   { rel: "stylesheet", href: appStylesHref },
@@ -37,19 +36,26 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body className="bg-gray-50 dark:bg-gray-900">
-        <PostHogProvider
-          apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
-          options={{
-            api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
-            capture_exceptions: true,
-            debug: analyticsDebug,
-          }}
-        >
+        {isPostHogConfigured ? (
+          <PostHogProvider
+            apiKey={POSTHOG_KEY}
+            options={{
+              api_host: POSTHOG_HOST || undefined,
+              capture_exceptions: true,
+              debug: import.meta.env.DEV,
+            }}
+          >
+            <AuthProvider>
+              <Header />
+              {children}
+            </AuthProvider>
+          </PostHogProvider>
+        ) : (
           <AuthProvider>
             <Header />
             {children}
           </AuthProvider>
-        </PostHogProvider>
+        )}
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -89,3 +95,16 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     </main>
   );
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PostHog configuration helpers – avoid runtime 404/401 when env not set
+// ─────────────────────────────────────────────────────────────────────────────
+
+const POSTHOG_KEY = import.meta.env.VITE_PUBLIC_POSTHOG_KEY ?? "";
+const POSTHOG_HOST = import.meta.env.VITE_PUBLIC_POSTHOG_HOST ?? "";
+
+// Treat placeholder or empty string as "not configured"
+const isPostHogConfigured =
+  typeof POSTHOG_KEY === "string" &&
+  POSTHOG_KEY.trim() !== "" &&
+  POSTHOG_KEY !== "your_posthog_api_key_here";

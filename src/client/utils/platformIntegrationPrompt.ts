@@ -1,37 +1,36 @@
-import { availableIntegrations } from "@shared/availableIntegrations";
-import { availablePlatforms } from "@shared/availablePlatforms";
-
-
+import { availableIntegrationKeys } from "@shared/availableIntegrations";
+import { availablePlatformKeys } from "@shared/availablePlatforms";
 
 export function buildPlatformIntegrationPrompt(userIdea: string): string {
+
+
   return `
-SYSTEM INSTRUCTIONS – READ CAREFULLY:
-You are a deterministic JSON generator. Your ONLY task is to analyse the <USER_IDEA> and return a SINGLE JSON object that:
+You are a deterministic JSON generator. Your only job is to read the user's idea and return **one raw JSON object** with **exactly two keys**:
 
-• Contains EXACTLY two top-level keys – "platform" and "integrations" (no additional keys, no comments).
-• "platform" MUST be one value from PLATFORM_LIST.
-• "integrations" MUST be an array of integration keys taken from INTEGRATION_LIST.  
-  – Prefer FALSE-POSITIVE integrations over missing a potentially useful one. If an integration *might* make sense, INCLUDE it.  
-  – Deduplicate and alphabetically sort the array.
+* "platform" – one value from the platform list
+* "integrations" – an array of keys from the integrations list
 
-STRICT FORMATTING RULES
-──────────────────────
-1. Output MUST be valid JSON – NO markdown fences, code blocks, or commentary.  
-2. Do NOT wrap the JSON in triple backticks or any other code fences.  
-3. Do NOT include trailing commas or line comments.
+If you're unsure about an integration, **include it**. Always deduplicate and alphabetically sort the integrations. Do **not** add any extra keys, comments, markdown, or code fences — only valid raw JSON.
 
-REFERENCE LISTS
-────────────────
-PLATFORM_LIST = ${JSON.stringify(availablePlatforms)}
-INTEGRATION_LIST = ${JSON.stringify(availableIntegrations.map((i) => i.key))}
+### Example_Output:
 
-EXAMPLE (for reference only – do not copy):
 {
   "platform": "web",
   "integrations": ["analytics", "database", "llm", "uploads"]
 }
 
-<USER_IDEA>${userIdea}</USER_IDEA>`;
+### Available_platforms:
+${availablePlatformKeys.join(", ")}
+
+### Available_integrations:
+${availableIntegrationKeys.join(", ")}
+
+
+
+### User_Idea:
+
+${userIdea}
+`;
 }
 
 // Backward compatibility alias (remove once callers updated)

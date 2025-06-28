@@ -1,7 +1,7 @@
 import type { AvailableIntegration } from "@shared/availableIntegrations";
 import { buildPlatformIntegrationPrompt } from "./platformIntegrationPrompt";
-import { analyticsDebug } from "@shared/debug";
 import { availableIntegrations } from "@shared/availableIntegrations";
+import { z } from "zod";
 
 export interface SpecificationResponse {
   platform?: string;
@@ -21,9 +21,7 @@ export const processIdea = async (
 ): Promise<SpecificationResponse> => {
   const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || import.meta.env.VITE_OPENROUTER_KEY;
 
-  if (analyticsDebug) {
-    console.debug("[processIdea] idea", idea);
-  }
+  if (import.meta.env.DEV) console.debug("[processIdea] idea", idea);
 
   if (!apiKey) {
     console.warn("OpenRouter API key missing – skipping AI integration selection");
@@ -33,29 +31,19 @@ export const processIdea = async (
   const bodyObj = {
     model,
     temperature: 0.1,
+    // Encourage the model to respond with structured JSON only
+    response_format: { type: "json_object" as const },
     messages: [
       {
         role: "system",
         content: buildPlatformIntegrationPrompt(idea),
       },
-    ],
-    tools: [
       {
-        type: "function",
-        function: {
-          name: "processUserIdea",
-          description: "Process a user idea into a specification and required integrations",
-          parameters: {
-            type: "object",
-            properties: {
-              idea: { type: "string", description: "The user idea to be processed" },
-            },
-            required: ["idea"],
-          },
-        },
+        role: "user",
+        content: `Analyze this idea and return the required integrations: ${idea}`,
       },
     ],
-  };
+  } as const;
 
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -68,9 +56,7 @@ export const processIdea = async (
     body: JSON.stringify(bodyObj),
   });
 
-  if (analyticsDebug) {
-    console.debug("[processIdea] response status", response.status);
-  }
+  if (import.meta.env.DEV) console.debug("[processIdea] response status", response.status);
 
   if (!response.ok) {
     let errorDetails: unknown = null;
@@ -84,123 +70,64 @@ export const processIdea = async (
       const maybeMsg = (errorDetails as any).message || (errorDetails as any).error || (errorDetails as any).detail;
       if (maybeMsg && typeof maybeMsg === "string") errMsg += ` – ${maybeMsg}`;
     }
-    if (analyticsDebug) {
-      console.error(errMsg, errorDetails);
-    }
+    if (import.meta.env.DEV) console.error(errMsg, errorDetails);
     return { integrations: [], error: errMsg };
   }
 
   const data = await response.json();
 
-  // The model may respond either via plain JSON in the `content` field OR via
-  // the OpenAI function-calling format (tool_calls). Prefer tool_calls when present
-  // because it guarantees valid JSON.
-  const toolArgs: unknown =
-    data?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments || null;
+  const rawContent: string = (data?.choices?.[0]?.message?.content ?? "").trim();
 
-  // Keep a copy of the raw string we attempt to parse for easier debugging
-  const rawContent = typeof toolArgs === "string" && toolArgs
-    ? toolArgs
-    : (data?.choices?.[0]?.message?.content ?? "");
-
-  if (analyticsDebug) {
-    console.debug("[processIdea] raw content", rawContent);
-  }
+  if (import.meta.env.DEV) console.debug("[processIdea] raw content", rawContent);
 
   try {
-    // Choose the safest JSON source available
-    let jsonText =
-      typeof toolArgs === "string" && toolArgs.trim().length > 0
-        ? toolArgs.trim()
-        : (typeof toolArgs === "object" && toolArgs !== null)
-          ? JSON.stringify(toolArgs)
-          : (rawContent as string).trim();
+    let jsonText = rawContent;
 
-    // Strip markdown fences when using content fallback
+    // Remove fenced code blocks (```json ... ```)
     if (jsonText.startsWith("```")) {
       jsonText = jsonText.replace(/^```[a-zA-Z]*\s*/i, "").replace(/```\s*$/, "").trim();
     }
 
-    if (jsonText === "") {
-      throw new Error("Received empty JSON string from model");
+    if (jsonText === "") throw new Error("Empty JSON received from model");
+
+    const decodedJson = JSON.parse(jsonText);
+
+    // Zod schemas for robust validation
+    const RawKeyArray = z.array(z.string());
+    const SpecObject = z.object({
+      platform: z.string().optional(),
+      integrations: z.array(z.string()),
+    });
+
+    let integrationKeys: string[];
+    let platform: string | undefined;
+
+    if (RawKeyArray.safeParse(decodedJson).success) {
+      integrationKeys = decodedJson as string[];
+    } else {
+      const spec = SpecObject.parse(decodedJson);
+      integrationKeys = spec.integrations;
+      platform = spec.platform;
     }
 
-    const parsed = JSON.parse(jsonText);
-    let integrationsArray: AvailableIntegration[] = [];
-    let platform: string | undefined = undefined;
-
-    if (Array.isArray(parsed)) {
-      // Model returned a raw array (likely of keys)
-      integrationsArray = mapKeysToIntegrations(parsed);
-    } else if (parsed && Array.isArray(parsed.integrations)) {
-      integrationsArray = mapKeysToIntegrations(parsed.integrations);
-      platform = parsed.platform;
-    }
-
-    if (analyticsDebug) console.log("Parsed integrations:", integrationsArray);
+    const integrationsArray = mapKeysToIntegrations(integrationKeys);
 
     return {
       platform,
       integrations: integrationsArray,
       requestBody: JSON.stringify(bodyObj, null, 2),
-      rawContent: rawContent,
+      rawContent,
     };
   } catch (err) {
-    // Fallback: try to extract first JSON object within the content
-    try {
-      if (typeof rawContent === "string") {
-        const firstBrace = rawContent.indexOf("{");
-        const lastBrace = rawContent.lastIndexOf("}");
-        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-          const snippet = rawContent.slice(firstBrace, lastBrace + 1);
-          const fallbackParsed = JSON.parse(snippet);
-          const fallbackInts: AvailableIntegration[] = Array.isArray(fallbackParsed.integrations)
-            ? mapKeysToIntegrations(fallbackParsed.integrations)
-            : [];
-          return {
-            platform: fallbackParsed.platform,
-            integrations: fallbackInts,
-            requestBody: JSON.stringify(bodyObj, null, 2),
-            rawContent: rawContent,
-            error: "Parsed via fallback (response contained extra text)",
-          };
-        }
-      }
-    } catch {
-      // ignore
-    }
-
-    if (analyticsDebug) {
-      console.error("Failed to parse integration list", rawContent, err);
-    }
+    if (import.meta.env.DEV) console.error("[processIdea] Failed to parse integration list", rawContent, err);
     return {
       integrations: [],
-      error: (err as Error)?.message || "Parse error",
+      error: (err as Error)?.message ?? "Parse error",
       requestBody: JSON.stringify(bodyObj, null, 2),
-      rawContent: rawContent,
+      rawContent,
     };
   }
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Helper to trim the specification response down to primitives
-// ─────────────────────────────────────────────────────────────────────────────
-
-export interface TrimmedPlatformIntegration {
-  platform?: string;
-  integrations: string[]; // integration keys only
-}
-
-export function trimPlatformIntegrationResponse(
-  result: SpecificationResponse
-): TrimmedPlatformIntegration {
-  const keys = (result.integrations ?? []).map((i) => i.key);
-  const deduped = Array.from(new Set(keys)).sort();
-  return {
-    platform: result.platform ?? "",
-    integrations: deduped,
-  };
-}
 
 function mapKeysToIntegrations(keys: string[]): AvailableIntegration[] {
   return keys

@@ -8,4 +8,5 @@
 # Environment files
 .env*
 !.env.example
+.env
 .env.local

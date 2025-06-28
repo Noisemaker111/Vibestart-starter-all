@@ -35,8 +35,12 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
   { key: "realtime", label: "Realtime Messaging", icon: MessageCircle },
   { key: "notifications", label: "Notifications", icon: Bell },
   { key: "analytics", label: "Analytics", icon: BarChart3 },
-  { key: "maps", label: "Maps", icon: MapPin },
-  { key: "search", label: "Search", icon: SearchIcon },
+  { key: "maps", label: "Maps", icon: MapPin }
 ] as const;
 
-export type AvailableIntegrationKey = typeof availableIntegrations[number]["key"]; 
+export type AvailableIntegrationKey = typeof availableIntegrations[number]["key"];
+
+// Convenience list of integration keys
+export const availableIntegrationKeys: readonly AvailableIntegrationKey[] = availableIntegrations.map(
+  (integration) => integration.key
+) as AvailableIntegrationKey[]; 

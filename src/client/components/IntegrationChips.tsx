@@ -1,6 +1,5 @@
 import React from "react";
 import { availableIntegrations } from "@shared/availableIntegrations";
-import { analyticsDebug } from "@shared/debug";
 
 const integrations = availableIntegrations;
 
@@ -25,7 +24,7 @@ export default function IntegrationChips({ className, activeKeys }: IntegrationC
 
   // Debug helper when nothing is rendered unexpectedly
   const warnedRef = React.useRef(false);
-  if (analyticsDebug && keysToDisplay.length === 0 && !warnedRef.current) {
+  if (import.meta.env.DEV && keysToDisplay.length === 0 && !warnedRef.current) {
     console.warn("IntegrationChips: no integrations to display", { activeKeys });
     warnedRef.current = true;
   }
