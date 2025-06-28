@@ -247,7 +247,7 @@ export default function Home() {
         </div>
 
         {/* Hero Section - Completely New Design */}
-        <section className="relative min-h-screen flex items-center justify-center px-4 pt-8 sm:pt-14 md:pt-14 lg:pt-28">
+        <section className="relative min-h-screen flex items-center justify-center px-4 pt-8 sm:pt-14 md:pt-14">
           <div className="max-w-6xl mx-auto w-full">
             <div className="text-center mb-12">
               {/* Release badge */}
