@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation } from "react-router";
 import type { Route } from "./+types/docs";
 import CursorProjectRule from "@client/components/CursorProjectRule";
-import type { Platform } from "@shared/availablePlatforms";
+import type { AvailablePlatform as Platform } from "@shared/availablePlatforms";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Cursor auxiliary data (project rule & memories)
@@ -40,8 +40,8 @@ const memoriesList: Memory[] = [
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Documentation - JonStack" },
-    { name: "description", content: "Complete guide to using JonStack" },
+    { title: "Documentation - VibeStart" },
+    { name: "description", content: "Complete guide to using VibeStart" },
   ];
 }
 

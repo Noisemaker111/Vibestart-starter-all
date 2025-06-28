@@ -15,8 +15,8 @@ import { consumeLocalToken } from "@client/utils/rateLimit";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "JonStack - Where Ideas Become Apps in Minutes" },
-    { name: "description", content: "Skip the learning curve. Talk to your code. Ship real products." },
+    { title: "VibeStart - Where Ideas Become Apps in Minutes" },
+    { name: "description", content: "Skip the learning curve. Talk to your code. Ship real products with VibeStart." },
   ];
 }
 
@@ -271,7 +271,7 @@ export default function Home() {
               </h1>
 
               <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-12">
-                JonStack is a standardized, all-in-one stack for AI IDEs. Launch production-ready apps—web, mobile, desktop or games—without drowning in expert-only docs. Auth, database, uploads and tests come pre-wired so you can focus on ideas, not integrations.
+                VibeStart is a standardized, all-in-one starter for AI IDEs. Launch production-ready apps—web, mobile, desktop or games—without drowning in expert-only docs. Auth, database, uploads and tests come pre-wired so you can focus on ideas, not integrations.
               </p>
             </div>
 
@@ -351,7 +351,7 @@ export default function Home() {
                   onClick={() => posthog.capture("home_get_building_click")}
                   className="inline-flex items-center justify-center px-8 py-4 font-bold text-black bg-white rounded-xl hover:bg-gray-100 transition-all duration-200"
                 >
-                  Get Building
+                  Get VibeStart
                 </Link>
               </div>
             </div>
@@ -367,7 +367,7 @@ export default function Home() {
                     Real Apps. Real Revenue. Real Fast.
                   </h2>
                   <p className="text-gray-400">
-                    These were all someone's "weekend project" with JonStack
+                    These were all someone's "weekend project" with VibeStart
                   </p>
                 </div>
 
@@ -408,14 +408,14 @@ export default function Home() {
                     You need your idea live, getting feedback, making money.
                   </p>
                   <p>
-                    JonStack + AI = Your personal senior developer who already knows 
+                    VibeStart + AI = Your personal senior developer who already knows 
                     the entire codebase. Just describe what you want to build.
                   </p>
                 </div>
 
                 <div className="mt-12 grid md:grid-cols-2 gap-8 text-left">
                   <div className="bg-red-900/10 border border-red-900/30 rounded-xl p-6">
-                    <h3 className="text-red-400 font-semibold mb-3">Without JonStack</h3>
+                    <h3 className="text-red-400 font-semibold mb-3">Without VibeStart</h3>
                     <ul className="space-y-2 text-gray-400">
                       <li>• 2 weeks setting up auth</li>
                       <li>• 1 week configuring database</li>
@@ -425,7 +425,7 @@ export default function Home() {
                     </ul>
                   </div>
                   <div className="bg-green-900/10 border border-green-900/30 rounded-xl p-6">
-                    <h3 className="text-green-400 font-semibold mb-3">With JonStack</h3>
+                    <h3 className="text-green-400 font-semibold mb-3">With VibeStart</h3>
                     <ul className="space-y-2 text-gray-400">
                       <li>• Auth works instantly</li>
                       <li>• Database ready to go</li>
@@ -445,7 +445,7 @@ export default function Home() {
                 <p className="text-gray-400 max-w-3xl mx-auto mb-10">
                   Tools like Replit, Vercel&nbsp;v0, Convex or Lovable are fantastic for rapid tinkering—but their
                   databases, auth layers and hosting stay locked behind closed dashboards.
-                  JonStack flips the script by <strong>open-sourcing the entire production stack</strong>—database,
+                  VibeStart flips the script by <strong>open-sourcing the entire production starter</strong>—database,
                   auth, uploads, UI and tests—into <em>your</em> GitHub repository from the very first commit.
                 </p>
 
@@ -460,7 +460,7 @@ export default function Home() {
                     </ul>
                   </div>
                   <div className="bg-purple-900/20 rounded-2xl p-8 border border-purple-700 shadow-lg">
-                    <h3 className="text-xl font-semibold mb-3">JonStack Approach</h3>
+                    <h3 className="text-xl font-semibold mb-3">VibeStart Approach</h3>
                     <ul className="space-y-2 text-purple-200 text-sm list-disc pl-4">
                       <li>PostgreSQL schema lives in <code>src/server/db/schema.ts</code></li>
                       <li>Supabase auth—bring your own keys, zero vendor lock-in</li>
@@ -491,7 +491,7 @@ export default function Home() {
                     to="/docs"
                     className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
                   >
-                    Get JonStack
+                    Get VibeStart
                   </Link>
                 </div>
               </div>

@@ -5,19 +5,14 @@ import { SquareUploadButton } from "@client/components/SquareUploadButton";
 import { SignInButton } from "@client/components/SignInButton";
 import { CreateOrganizationButton } from "@client/components/CreateOrganizationButton";
 import { useAuth } from "@client/context/AuthContext";
-import {
-  processIdea,
-  trimPlatformIntegrationResponse,
-  type TrimmedPlatformIntegration,
-} from "@client/utils/integrationTool";
-import { buildPlatformIntegrationPrompt } from "@client/utils/platformIntegrationPrompt";
+import { processIdea } from "@client/utils/integrationTool";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Tech Stack Test Utilities - JonStack" },
+    { title: "Integration Test Utilities - VibeStart" },
     {
       name: "description",
-      content: "Interactive tools to verify each integration in JonStack.",
+      content: "Interactive tools to verify each integration in VibeStart.",
     },
   ];
 }
@@ -70,159 +65,9 @@ export default function TestUtilities() {
     
   ];
   const [selectedModel, setSelectedModel] = useState<string>(availableModels[0]);
-  const [llmSystemPrompt, setLlmSystemPrompt] = useState("");
-  const [manualPromptEdited, setManualPromptEdited] = useState(false);
   const [llmOutput, setLlmOutput] = useState("");
-  const [llmStatus, setLlmStatus] = useState<"idle" | "ok" | "error">("idle");
-  const [llmError, setLlmError] = useState<string | null>(null);
-  const [llmDurationMs, setLlmDurationMs] = useState<number | null>(null);
-  const [llmRequestBody, setLlmRequestBody] = useState<string>("");
-  const [llmRawOutput, setLlmRawOutput] = useState<string>("");
 
-  // ─────────────────────────────────────────────────────────────────────
-  // Multi-Run Consistency Test state
-  // ─────────────────────────────────────────────────────────────────────
-  const [multiRunning, setMultiRunning] = useState(false);
-  const [multiCompleted, setMultiCompleted] = useState(0);
-  const [multiMatches, setMultiMatches] = useState(0);
-  const [multiResults, setMultiResults] = useState<TrimmedPlatformIntegration[]>([]);
-  const [multiTimes, setMultiTimes] = useState<number[]>([]);
-
-  // ─────────────────────────────────────────────────────────────────────
-  // Persistent log of multi-run summaries
-  // ─────────────────────────────────────────────────────────────────────
-
-  interface MultiRunSummary {
-    timestamp: number;
-    model: string;
-    firstMs: number;
-    avgMs: number;
-    totalMs: number;
-    cps: number; // cycles per second
-  }
-
-  const [multiLog, setMultiLog] = useState<MultiRunSummary[]>([]);
-
-  // Load saved log after client mounts to avoid SSR hydration mismatch
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("multiRunLog");
-      if (saved) setMultiLog(JSON.parse(saved) as MultiRunSummary[]);
-    } catch {
-      // ignore parse errors or unavailable storage
-    }
-  }, []);
-
-  // Re-generate the system prompt only in development so it never leaks into
-  // HTML on production builds.
-  useEffect(() => {
-    if (!import.meta.env.DEV) return; // skip in prod
-    if (manualPromptEdited) return; // keep user edits
-    setLlmSystemPrompt(buildPlatformIntegrationPrompt(llmIdea));
-  }, [llmIdea, manualPromptEdited]);
-
-  async function runLlmChat() {
-    if (!llmIdea.trim()) return;
-    setLlmError(null);
-    setLlmStatus("idle");
-    try {
-      const start = performance.now();
-      const res = await processIdea(llmIdea.trim(), selectedModel);
-      const end = performance.now();
-      setLlmDurationMs(Math.round(end - start));
-      setLlmRequestBody(res.requestBody || "");
-      setLlmRawOutput(res.rawContent || "");
-      // Always display something in the output panel
-      const { platform, integrations, error } = res;
-      setLlmOutput(
-        JSON.stringify(
-          {
-            platform,
-            integrations,
-            ...(error ? { error } : {}),
-          },
-          null,
-          2
-        )
-      );
-
-      if (res.error) {
-        setLlmError(res.error);
-        setLlmStatus("error");
-      } else {
-        setLlmStatus("ok");
-      }
-    } catch (err: any) {
-      setLlmError(err.message || String(err));
-      setLlmStatus("error");
-      setLlmDurationMs(null);
-      setLlmRequestBody("");
-      setLlmRawOutput("");
-    }
-  }
-
-  async function runMultiTest() {
-    if (!llmIdea.trim() || multiRunning) return;
-
-    setMultiRunning(true);
-    setMultiCompleted(0);
-    setMultiMatches(0);
-    setMultiResults([]);
-    setMultiTimes([]);
-
-    let baseline: TrimmedPlatformIntegration | null = null;
-    let matches = 0;
-    const results: TrimmedPlatformIntegration[] = [];
-
-    for (let i = 0; i < 10; i++) {
-      try {
-        const startTime = performance.now();
-        const res = await processIdea(llmIdea.trim(), selectedModel);
-        const endTime = performance.now();
-        const elapsed = Math.round(endTime - startTime);
-        setMultiTimes((prev) => [...prev, elapsed]);
-        const trimmed = trimPlatformIntegrationResponse(res);
-        results.push(trimmed);
-
-        if (i === 0) {
-          baseline = trimmed;
-          matches += 1;
-        } else if (
-          baseline &&
-          trimmed.platform === baseline.platform &&
-          trimmed.integrations.length === baseline.integrations.length &&
-          trimmed.integrations.every((val, idx) => val === baseline!.integrations[idx])
-        ) {
-          matches += 1;
-        }
-      } catch (err) {
-        console.error("multi run error", err);
-      }
-
-      setMultiCompleted(i + 1);
-      setMultiMatches(matches);
-      setMultiResults([...results]);
-    }
-
-    setMultiRunning(false);
-
-    // Record a summary entry for this 10× run
-    if (multiTimes.length === 10) {
-      const sum = multiTimes.reduce((a, b) => a + b, 0);
-      const avg = Math.round(sum / multiTimes.length);
-      const entry: MultiRunSummary = {
-        timestamp: Date.now(),
-        model: selectedModel,
-        firstMs: multiTimes[0] ?? 0,
-        avgMs: avg,
-        totalMs: sum,
-        cps: avg > 0 ? Number((1000 / avg).toFixed(2)) : 0,
-      };
-      setMultiLog((prev) => [entry, ...prev]);
-    }
-  }
-
-  /* ──────────────────────────────────────────────────────────────────────── */
+  // ────────────────────────────────────────────────────────────────────────
   /* Animals helpers                                                         */
   /* ──────────────────────────────────────────────────────────────────────── */
 
@@ -391,6 +236,27 @@ export default function TestUtilities() {
     setApiError(null);
   }
 
+  async function runLlmChat() {
+    if (!llmIdea.trim()) return;
+    try {
+      const res = await processIdea(llmIdea.trim(), selectedModel);
+      const { platform, integrations, error } = res;
+      setLlmOutput(
+        JSON.stringify(
+          {
+            platform,
+            integrations,
+            ...(error ? { error } : {}),
+          },
+          null,
+          2
+        )
+      );
+    } catch (err: any) {
+      setLlmOutput(`Error: ${err.message || String(err)}`);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900 py-10 px-4 container mx-auto max-w-4xl">
       <div className="flex items-center justify-between mb-8">
@@ -534,7 +400,6 @@ export default function TestUtilities() {
         <details className="mb-10 bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
           <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center gap-2">
             <span>LLM Chat</span>
-            <StatusIcon status={llmStatus} />
           </summary>
           <div className="p-6 space-y-4">
             <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -542,7 +407,6 @@ export default function TestUtilities() {
             </p>
 
             <div className="space-y-3">
-              {/* Model selector (dropdown) */}
               <div className="flex items-center gap-2">
                 <label className="text-sm font-medium" htmlFor="model-select">Model:</label>
                 <select
@@ -564,87 +428,13 @@ export default function TestUtilities() {
                 className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg"
               />
 
-              {/* System prompt (read-only) */}
-              <textarea
-                value={llmSystemPrompt}
-                readOnly
-                rows={6}
-                className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-xs font-mono"
-              />
-
               <div className="flex flex-wrap gap-3">
                 <button onClick={runLlmChat} className="btn-primary">Run LLM Chat</button>
-                <button
-                  onClick={runMultiTest}
-                  disabled={multiRunning}
-                  className="btn-primary bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
-                >
-                  {multiRunning ? `Running… (${multiCompleted}/10)` : "Run 10×"}
-                </button>
               </div>
 
-              {multiCompleted === 10 && multiTimes.length === 10 && (
-                <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-                  {(() => {
-                    const percent = Math.round((multiMatches / 10) * 100);
-                    const first = multiTimes[0];
-                    const total = multiTimes.reduce((a, b) => a + b, 0);
-                    const avg = Math.round(total / multiTimes.length);
-                    const cps = (1000 / avg).toFixed(2);
-                    return `${selectedModel} • ${percent}% first: ${first}ms avg: ${avg}ms cps: ${cps}`;
-                  })()}
-                </div>
-              )}
-
-              {/* History of multi-run summaries */}
-              {multiLog.length > 0 && (
-                <details className="mt-6">
-                  <summary className="cursor-pointer text-sm font-semibold">Run History ({multiLog.length})</summary>
-                  <div className="mt-2 space-y-1 text-xs font-mono">
-                    {multiLog.map((entry, idx) => (
-                      <div key={idx} className="flex flex-wrap gap-x-3">
-                        <span>{new Date(entry.timestamp).toLocaleTimeString()}</span>
-                        <span>model: {entry.model}</span>
-                        <span>first: {entry.firstMs}ms</span>
-                        <span>avg: {entry.avgMs}ms</span>
-                        <span>{entry.cps} cycles/s</span>
-                      </div>
-                    ))}
-                  </div>
-                </details>
-              )}
-
-              {llmError && (
-                <p className="text-sm text-red-600 dark:text-red-400 break-all">Error: {llmError}</p>
-              )}
-
-              {llmDurationMs !== null && (
-                <p className="text-xs text-gray-500 dark:text-gray-400">Time: {llmDurationMs} ms</p>
-              )}
-
-              {llmOutput && (
-                <pre className="bg-gray-900 text-gray-100 text-xs p-4 rounded-lg overflow-x-auto">
-                  {llmOutput}
-                </pre>
-              )}
-
-              {llmRequestBody && (
-                <details className="mt-4">
-                  <summary className="cursor-pointer text-sm font-semibold">Request JSON</summary>
-                  <pre className="bg-gray-900 text-gray-100 text-xs p-4 rounded-lg overflow-x-auto">
-                    {llmRequestBody}
-                  </pre>
-                </details>
-              )}
-
-              {llmRawOutput && (
-                <details className="mt-4">
-                  <summary className="cursor-pointer text-sm font-semibold">Raw Model Output</summary>
-                  <pre className="bg-gray-900 text-gray-100 text-xs p-4 rounded-lg overflow-x-auto">
-                    {llmRawOutput}
-                  </pre>
-                </details>
-              )}
+              <pre className="bg-gray-900 text-gray-100 text-xs p-4 rounded-lg overflow-x-auto min-h-[160px]">
+                {llmOutput || "Output will appear here…"}
+              </pre>
             </div>
           </div>
         </details>

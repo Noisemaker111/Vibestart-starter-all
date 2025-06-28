@@ -25,7 +25,7 @@ export function Header() {
                 </svg>
               </div>
               <span className="text-lg font-semibold text-white group-hover:text-blue-400 transition-colors">
-                JonStack
+                VibeStart
               </span>
             </Link>
 
