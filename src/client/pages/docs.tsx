@@ -7,7 +7,7 @@ import MemoriesSection from "@client/components/docs/CursorDocs/MemoriesSection"
 // import type { AvailablePlatform as Platform } from "@shared/availablePlatforms";
 import { availablePlatforms } from "@shared/availablePlatforms";
 import { availableIntegrations } from "@shared/availableIntegrations";
-import { useOs } from "@client/context/OSContext";
+import { useOs } from "@client/context/OsContext";
 import BuildTab from "@client/components/docs/build/BuildTab";
 import IntegrationsDocsContent from "@client/components/docs/integration/IntegrationsDocsContent";
 

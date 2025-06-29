@@ -9,7 +9,7 @@ import {
 import type { Route } from "./+types/root";
 import appStylesHref from "@shared/app.css?url";
 import { AuthProvider } from "@client/context/AuthContext";
-import { OSProvider } from "@client/context/OSContext";
+import { OSProvider } from "@client/context/OsContext";
 import { Header } from "@client/components/Header";
 import { PostHogProvider } from "posthog-js/react";
 
