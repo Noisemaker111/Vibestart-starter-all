@@ -1,21 +1,15 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-// -----------------------------------------------------------------------------
 // Types
-// -----------------------------------------------------------------------------
+export type OSType = "windows" | "mac" | "linux";
 
-type OsType = "windows" | "mac" | "linux";
-
-interface OsContextValue {
-  os: OsType;
-  setOs: (os: OsType) => void;
+interface OSContextValue {
+  os: OSType;
+  setOs: (os: OSType) => void;
 }
 
-// -----------------------------------------------------------------------------
-// Helpers – detect user OS (best-effort, client-side only)
-// -----------------------------------------------------------------------------
-
-function detectDefaultOs(): OsType {
+// Detect user OS best-effort
+function detectDefaultOS(): OSType {
   if (typeof navigator === "undefined") return "windows"; // SSR fallback
   const ua = navigator.userAgent || navigator.platform || "";
   if (/Win/i.test(ua)) return "windows";
@@ -24,46 +18,35 @@ function detectDefaultOs(): OsType {
   return "windows";
 }
 
-// -----------------------------------------------------------------------------
-// Context implementation
-// -----------------------------------------------------------------------------
+const OSContext = createContext<OSContextValue | undefined>(undefined);
 
-const OsContext = createContext<OsContextValue | undefined>(undefined);
+export function OSProvider({ children }: { children: React.ReactNode }) {
+  const [os, setOs] = useState<OSType>(() => detectDefaultOS());
 
-export function OsProvider({ children }: { children: React.ReactNode }) {
-  const [os, setOs] = useState<OsType>(() => detectDefaultOs());
-
-  // Persist choice in localStorage so refresh preserves selection
+  // Persist selection
   useEffect(() => {
     try {
       localStorage.setItem("vibestart_selected_os", os);
-    } catch {
-      /* ignore */
-    }
+    } catch {}
   }, [os]);
 
-  // Initialise from storage on first render (client only)
+  // Restore on mount (client-side)
   useEffect(() => {
     try {
       const stored = localStorage.getItem("vibestart_selected_os");
       if (stored === "windows" || stored === "mac" || stored === "linux") {
         setOs(stored);
       }
-    } catch {
-      /* ignore */
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    } catch {}
   }, []);
 
-  const value = useMemo<OsContextValue>(() => ({ os, setOs }), [os]);
+  const value = useMemo<OSContextValue>(() => ({ os, setOs }), [os]);
 
-  return <OsContext.Provider value={value}>{children}</OsContext.Provider>;
+  return <OSContext.Provider value={value}>{children}</OSContext.Provider>;
 }
 
-export function useOs(): OsContextValue {
-  const ctx = useContext(OsContext);
-  if (!ctx) {
-    throw new Error("useOs() must be used within an OsProvider");
-  }
+export function useOs(): OSContextValue {
+  const ctx = useContext(OSContext);
+  if (!ctx) throw new Error("useOs() must be used within an OSProvider");
   return ctx;
 } 

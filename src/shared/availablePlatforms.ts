@@ -16,15 +16,15 @@ export interface AvailablePlatform {
   label: string;
   /** Optional icon component for UI usage */
   icon?: ComponentType<{ className?: string }>;
-  /** Availability status (e.g., available, soon) */
+  /** Availability status (e.g., available now, soon, or far in the roadmap) */
   status?: "available" | "soon";
 }
 
 export const availablePlatforms: readonly AvailablePlatform[] = [
   { key: "web", label: "Web", icon: Globe, status: "available" },
   { key: "mobile-app", label: "Mobile App", icon: Smartphone, status: "available" },
-  { key: "mobile-game", label: "Mobile Game", icon: Gamepad2, status: "soon" },
   { key: "desktop", label: "Desktop App", icon: Monitor, status: "available" },
+  { key: "mobile-game", label: "Mobile Game", icon: Gamepad2, status: "soon" },
   { key: "desktop-game", label: "Desktop Game", icon: Gamepad2, status: "soon" },
   { key: "discord", label: "Discord Bot", icon: FaDiscord, status: "soon" },
   { key: "telegram", label: "Telegram Bot", icon: FaTelegramPlane, status: "soon" },

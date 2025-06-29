@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { processIdea } from "@client/utils/integrationTool";
-import { DEFAULT_MODEL } from "@client/utils/integrationTool";
+import { processIdea } from "@client/utils/integrationLLM";
+import { DEFAULT_MODEL } from "@client/utils/integrationLLM";
 
 
 export default function DocsTestLLM() {

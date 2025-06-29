@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router";
 import { useAuth } from "@client/context/AuthContext";
 import { usePostHog } from "posthog-js/react";
-import { useOs } from "@client/context/OsContext";
+import { useOs } from "@client/context/OSContext";
 import { FaWindows, FaApple, FaLinux } from "react-icons/fa";
 
 export function Header() {

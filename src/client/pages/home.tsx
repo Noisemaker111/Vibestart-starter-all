@@ -8,13 +8,13 @@ import HomeIdeaCard from "@client/components/home/IdeaCard";
 import VibeStartOtherInfo from "@client/components/home/OtherInfo";
 import HomeOtherCTA from "@client/components/home/OtherCTA";
 import appIdeas from "../../shared/appIdeas";
-import { processIdea } from "@client/utils/integrationTool";
+import { processIdea } from "@client/utils/integrationLLM";
 import type { AvailableIntegration } from "@shared/availableIntegrations";
 import type { AvailablePlatformKey } from "@shared/availablePlatforms";
 import { usePostHog } from "posthog-js/react";
 import React from "react";
 import { consumeLocalToken } from "@client/utils/rateLimit";
-import SoonBadge from "@client/components/SoonBadge";
+import Badge from "@client/components/Badge";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -34,6 +34,10 @@ export default function Home() {
   const navigate = useNavigate();
   const posthog = usePostHog();
   const [ideaStarted, setIdeaStarted] = useState(false);
+  // Timestamp (ms) when the current typing session started – resets when input is cleared
+  const typingStartRef = React.useRef<number | null>(null);
+  // Indicates whether we've already fired the "mid-typing" AI request for the current session
+  const initialAiTriggeredRef = React.useRef(false);
 
   const realProjects = [
     {
@@ -160,6 +164,23 @@ export default function Home() {
   // Centralized idea change handler for the textarea input
   const handleIdeaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setIdea(e.target.value);
+    const trimmed = e.target.value.trim();
+
+    // Record the start of a fresh typing session
+    if (trimmed.length > 0 && typingStartRef.current === null) {
+      typingStartRef.current = Date.now();
+      initialAiTriggeredRef.current = false;
+    }
+
+    // Show "Analyzing…" placeholder as soon as the user types ≥3 characters
+    if (trimmed.length >= 3) {
+      setAiLoading(true);
+    } else if (trimmed.length === 0) {
+      // Reset when input cleared
+      setAiLoading(false);
+      typingStartRef.current = null;
+    }
+
     if (!ideaStarted && e.target.value.trim().length > 0) {
       posthog.capture("idea_input_started");
       setIdeaStarted(true);
@@ -199,6 +220,39 @@ export default function Home() {
   // Reusable build link for CTAs
   const buildLink = `/docs?section=build-idea&platform=${encodeURIComponent(target)}&integrations=${encodeURIComponent(activeKeys.join(","))}${idea.trim() ? `&idea=${encodeURIComponent(idea.trim())}` : ""}`;
 
+  /*
+   * Fire an early AI request 2 s after the user first starts typing, even if they
+   * are still typing. This helps surface intermediate results so the UI doesn't
+   * feel stuck when users keep typing continuously.
+   */
+  useEffect(() => {
+    const trimmed = idea.trim();
+    if (trimmed.length < 3) return; // not enough signal yet
+
+    // If we haven't registered a typing start, bail (shouldn't happen)
+    if (typingStartRef.current === null) return;
+
+    // If the early call has already been triggered for this session, nothing to do
+    if (initialAiTriggeredRef.current) return;
+
+    const elapsed = Date.now() - typingStartRef.current;
+    const remaining = 2000 - elapsed;
+
+    if (remaining <= 0) {
+      // We're already ≥2 s into typing – run immediately
+      runAiGeneration(trimmed);
+      initialAiTriggeredRef.current = true;
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      runAiGeneration(trimmed);
+      initialAiTriggeredRef.current = true;
+    }, remaining);
+
+    return () => clearTimeout(timer);
+  }, [idea, runAiGeneration]);
+
   return (
     <>
       <main className="min-h-screen bg-black text-white overflow-hidden">
@@ -223,8 +277,8 @@ export default function Home() {
                 className="relative flex items-center gap-2 px-4 py-2 mb-6 mx-auto rounded-md bg-gray-950/90 border border-gray-700 text-gray-100 text-sm sm:text-base whitespace-nowrap shadow-sm opacity-90 w-max"
                 aria-label="vibestartcommand coming soon"
               >
-                <code className="select-none font-mono">vibestartcommand</code>
-                <SoonBadge />
+                <code className="select-none font-mono">npx create-vibestart</code>
+                <Badge label="soon" />
               </div>
               <HomeIdeaCard
                 idea={idea}

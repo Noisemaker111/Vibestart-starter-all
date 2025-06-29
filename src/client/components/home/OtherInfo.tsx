@@ -1,4 +1,4 @@
-import ServicesProvided from "@client/components/ServicesProvided";
+import TechStack from "@client/components/TechStack";
 import React from "react";
 
 interface RealProject {
@@ -15,8 +15,8 @@ interface Props {
 export default function VibeStartOtherInfo({ realProjects }: Props) {
   return (
     <>
-      {/* Services Provided Section */}
-      <ServicesProvided />
+      {/* Tech Stack Section */}
+      <TechStack />
 
       {/* Real Projects Section */}
       <section className="relative py-20 px-4">

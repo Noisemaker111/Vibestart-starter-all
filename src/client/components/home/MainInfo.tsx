@@ -9,7 +9,7 @@ export default function VibeStartMainInfo() {
         </span>
         <br />
         <span className="text-3xl lg:text-5xl text-gray-400 font-light">
-          Start building in minutes.
+          Start your idea in minutes.
         </span>
       </h1>
 

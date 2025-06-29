@@ -7,10 +7,9 @@
 .env.test
 .env.production
 .env
-.env.development.local
+!/.env.example
 
 .react-router/
-build/
 node_modules/
 
 package-lock.json

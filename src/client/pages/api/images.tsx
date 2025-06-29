@@ -5,7 +5,10 @@ import { verify, generateSignedToken } from "@server/utils/anonToken";
 
 export async function loader({ request }: { request: Request }) {
   const cookieName = "anon_token";
-  const incomingCookie = request.headers.get("cookie")?.split(/;\s*/).find((c) => c.startsWith(`${cookieName}=`))?.split("=")[1];
+  const incomingCookie = request.headers
+    .get("cookie")?.split(/;\s*/)
+    .find((c) => c.startsWith(`${cookieName}=`))
+    ?.split("=")[1];
   let token = verify(incomingCookie) ?? null;
   let setCookieHeader: string | null = null;
   if (!token) {
@@ -30,7 +33,10 @@ export async function loader({ request }: { request: Request }) {
 export async function action({ request }: { request: Request }) {
   if (request.method === "DELETE") {
     const cookieName = "anon_token";
-    const incomingCookie = request.headers.get("cookie")?.split(/;\s*/).find((c) => c.startsWith(`${cookieName}=`))?.split("=")[1];
+    const incomingCookie = request.headers
+      .get("cookie")?.split(/;\s*/)
+      .find((c) => c.startsWith(`${cookieName}=`))
+      ?.split("=")[1];
     const token = verify(incomingCookie) ?? null;
     if (!token) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });

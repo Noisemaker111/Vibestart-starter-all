@@ -1,63 +1,96 @@
 ---
-description: Project Structure and understanding of connections and workings of codebase
+description: 
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
+<project-structure>
 src/ — all source code
 src/client/ — React 19 browser app (SSR)
-src/client/components/ — reusable UI primitives
-src/client/components/Header.tsx — nav bar & theme toggle
-src/client/components/CreateOrganizationButton.tsx — org modal (auth-gated)
-src/client/components/SignInButton.tsx — login / logout trigger
-src/client/components/SignInForm.tsx — email+pwd & Google OAuth form
-src/client/components/CreateJonstackCli.tsx — CLI generator helper
-src/client/components/CursorProjectRule.tsx — displays project rules
-src/client/components/DocsTestAuth.tsx — docs auth test component
-src/client/components/DocsTestBilling.tsx — docs billing test component
-src/client/components/DocsTestDatabase.tsx — docs database test component
-src/client/components/DocsTestLLM.tsx — docs LLM test component
-src/client/components/DocsTestMaps.tsx — docs maps test component
-src/client/components/DocsTestRealtimeMessages.tsx — realtime docs test component
-src/client/components/DocsTestUploads.tsx — docs uploads test component
-src/client/components/IntegrationChips.tsx — chips UI summarizing integrations
-src/client/components/LoginModal.tsx — auth login modal
-src/client/components/ServicesProvided.tsx — list of platform services
-src/client/components/SoonBadge.tsx — "Soon" badge component
-src/client/components/SquareUploadButton.tsx — UploadThing button
-src/client/components/IdeaCarousel.tsx — rotating suggestions
-src/client/context/AuthContext.tsx — Supabase session provider
-src/client/pages/home.tsx — marketing landing page
-src/client/pages/docs.tsx — in-app docs hub
-src/client/pages/api.animals.tsx — edge bridge → server/animals
-src/client/pages/api.images.tsx — edge bridge → list uploads
-src/client/pages/api.uploadthing.tsx — edge bridge → uploadthing router
-src/client/utils/rateLimit.ts — syncs rate-limit headers to UI
-src/client/utils/uploadthing.ts — UploadThing React helpers
-src/client/utils/integrationTool.ts — integration utilities
-src/client/utils/platformIntegrationPrompt.ts — LLM prompt builder for integrations
+src/client/components/ — reusable UI primitives & feature sections
+  • Header.tsx — nav bar & theme toggle
+  • IdeaCarousel.tsx — rotating suggestions
+  • IntegrationChips.tsx — chips UI summarizing integrations
+  • Badge.tsx — generic reusable badge component (replaces SoonBadge)
+  • TechStack.tsx — production-ready stack overview (was ServicesProvided)
+  ├─ auth/ — auth-related UI
+  │   • CreateOrganizationButton.tsx — org modal (auth-gated)
+  │   • LoginModal.tsx — modal wrapper for SignInForm
+  │   • SignInButton.tsx — login / logout trigger
+  │   • SignInForm.tsx — email+pwd & Google OAuth form
+  ├─ uploads/
+  │   • SquareUploadButton.tsx — UploadThing button
+  ├─ home/ — landing-page focused components
+  │   • MainInfo.tsx
+  │   • IdeaCard.tsx
+  │   • OtherCTA.tsx
+  │   • OtherInfo.tsx (embeds TechStack)
+  │   • VersionTag.tsx
+  └─ docs/
+      ├─ cursor/
+      │   • CursorProjectRule.tsx — displays project rules
+      ├─ command/ — blueprint components (TBD)
+      └─ test/ — example usage of integrations
+          • TestAuth.tsx, TestBilling.tsx, TestDatabase.tsx,
+            TestLLM.tsx, TestMaps.tsx, TestOrganisations.tsx,
+            TestRealtimeMessages.tsx, TestUploads.tsx
+          • BuildIdeaTab.tsx — dynamic build guide customised per platform/integrations
+src/client/context/ — React context providers
+  • AuthContext.tsx — Supabase session provider
+  • OsContext.tsx — OS detection helper
+src/client/pages/ — router pages (React Router)
+  • home.tsx — marketing landing page
+  • docs.tsx — in-app docs hub
+  • api.animals.tsx — edge bridge → server/animals
+  • api.images.tsx — edge bridge → list uploads
+  • api.uploadthing.tsx — edge bridge → uploadthing router
+src/client/utils/ — browser helpers
+  • integrationLLM.ts, platformIntegrationPrompt.ts — AI utilities
+  • rateLimit.ts — syncs rate-limit headers to UI
+  • uploadthing.ts — UploadThing React helpers
+  • (plus generated types)
 src/client/root.tsx — Remix-style root layout
 src/client/routes.ts — static route map
-src/server/ — server / edge runtime code
-src/server/db/ — Drizzle ORM & migrations
-src/server/db/queries/ — typed Drizzle query builders
-src/server/db/schema.ts — single source-of-truth tables
-src/server/db/index.ts — Drizzle client init (.env loaded)
-src/server/animals.ts — REST-like handler for animals
-src/server/uploadthing.ts — UploadThing upload router
-src/server/utils/anonToken.ts — HMAC-signed anon cookies
-src/server/utils/rateLimit.ts — unified DB-backed rate limiter
-src/shared/ — isomorphic helpers
-src/shared/supabase.ts — Supabase client factory
-src/shared/appIdeas.ts — 100+ placeholder idea strings
-src/shared/app.css — Tailwind entrypoint & utilities
-public/ — static assets
-vite.config.ts — Vite SSR config & aliases
-react-router.config.ts — React Router build/dev config
+
+src/server/ — edge runtime + API logic
+  • animals.ts — REST-like handler for animals
+  • uploadthing.ts — UploadThing upload router
+  ├─ utils/
+  │   • anonToken.ts — HMAC-signed anon cookies
+  │   • rateLimit.ts — unified DB-backed rate limiter
+  └─ db/
+      • index.ts — Drizzle client init (.env loaded)
+      • schema.ts — single source-of-truth tables
+      ├─ migrations/ — SQL migration files generated by drizzle-kit
+      └─ queries/ — typed Drizzle query builders
+
+src/shared/ — isomorphic helpers (importable client & server)
+  • appIdeas.ts — hundreds of placeholder ideas
+  • availableIntegrations.ts — integration metadata
+  • availablePlatforms.ts — platform metadata
+  • memories.ts — memory persistence across sessions
+  • project-rules.ts, user-rules.ts — runtime-loaded rule sets
+  • supabase.ts — Supabase client factory
+  • app.css — Tailwind entrypoint & utilities
+
+public/ — static assets (favicon, images, etc.)
+
 tailwind.config.js — Tailwind v4 config
+react-router.config.ts — React Router build/dev config
+vite.config.ts — Vite SSR config & aliases
 tsconfig.json — TS paths & compiler options
 drizzle.config.ts — Drizzle migration config
-start-coding.md — project quickstart guide
-env.example — sample environment variables
 package.json — dependencies & npm scripts
 README.md — project overview
+start-coding.md — project quickstart guide
+env.example — sample environment variables
+
+src/types/ — global TypeScript type declarations
+  • raw.d.ts — raw import module declarations
+
+src/types/ — global TypeScript type declarations
+  • app.css — Tailwind entrypoint & utilities
+</project-structure>
+
+
+
 
