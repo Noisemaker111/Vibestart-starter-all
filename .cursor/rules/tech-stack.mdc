@@ -3,9 +3,6 @@ description:
 globs: 
 alwaysApply: true
 ---
-Use JonDev to maintain the live authoritative tech stack reference for the project. Always update this immediately after any dependency, version or stack change so its context stays correct.
-
-Stack v2024-06-26
 - lang: TypeScript 5
 - frontend: React 19 + ReactRouter 7 (SSR) via Vite 6 & vite-tsconfig-paths
 - style: TailwindCSS 4 (@tailwindcss/vite)
@@ -16,7 +13,10 @@ Stack v2024-06-26
 - files: UploadThing · client [uploadthing.ts](mdc:src/client/utils/uploadthing.ts) · server [uploadthing.ts](mdc:src/server/uploadthing.ts)
 - validation: Zod · central [schema.ts](mdc:src/shared/schema.ts)
 - rate-limit: [rateLimit.ts](mdc:src/server/utils/rateLimit.ts)
-- deploy: Vercel primary · Netlify/Fly.io/Railway ok
+- analytics: PostHog JS
+- date: Day.js
+- icons: Lucide React
+- deploy: Vercel primary
 
 
 

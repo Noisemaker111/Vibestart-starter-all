@@ -9,6 +9,7 @@ import {
 import type { Route } from "./+types/root";
 import appStylesHref from "@shared/app.css?url";
 import { AuthProvider } from "@client/context/AuthContext";
+import { OsProvider } from "@client/context/OsContext";
 import { Header } from "@client/components/Header";
 import { PostHogProvider } from "posthog-js/react";
 
@@ -46,14 +47,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
             }}
           >
             <AuthProvider>
-              <Header />
-              {children}
+              <OsProvider>
+                <Header />
+                {children}
+              </OsProvider>
             </AuthProvider>
           </PostHogProvider>
         ) : (
           <AuthProvider>
-            <Header />
-            {children}
+            <OsProvider>
+              <Header />
+              {children}
+            </OsProvider>
           </AuthProvider>
         )}
         <ScrollRestoration />

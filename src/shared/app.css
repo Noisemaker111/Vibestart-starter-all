@@ -8,3 +8,57 @@
     @apply relative inline-flex items-center justify-center px-6 py-3 font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed;
   }
 } 
+
+/* --------------------------------------------------------------------------
+   Global scrollbar theming (light & dark) and helper utilities
+   -------------------------------------------------------------------------- */
+
+/* Default custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f3f4f6; /* tailwind gray-100 */
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: #1f2937; /* tailwind gray-800 */
+}
+
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-track {
+    background: #1f2937; /* tailwind gray-800 */
+  }
+}
+
+/* Thumb */
+::-webkit-scrollbar-thumb {
+  background: #9ca3af; /* tailwind gray-400 */
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6b7280; /* tailwind gray-500 */
+}
+
+/* Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #9ca3af #f3f4f6;
+}
+
+html.dark {
+  scrollbar-color: #6b7280 #1f2937;
+}
+
+/* Utility to hide scrollbars but keep scroll behavior */
+.scrollbar-none {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none; /* WebKit */
+} 

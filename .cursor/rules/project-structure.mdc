@@ -1,12 +1,8 @@
 ---
-description: 
+description: Project Structure and understanding of connections and workings of codebase
 globs: 
-alwaysApply: true
+alwaysApply: false
 ---
-Use JonDev to maintain the live directory map in this file, ensuring its always accurate and up-to-date. Immediately update this after any filesystem change. Keep each entry to a single, concise sentence describing its purpose, with no extraneous comments.
-
-
-# Project Structure — jonstack
 src/ — all source code
 src/client/ — React 19 browser app (SSR)
 src/client/components/ — reusable UI primitives
@@ -14,22 +10,36 @@ src/client/components/Header.tsx — nav bar & theme toggle
 src/client/components/CreateOrganizationButton.tsx — org modal (auth-gated)
 src/client/components/SignInButton.tsx — login / logout trigger
 src/client/components/SignInForm.tsx — email+pwd & Google OAuth form
-src/client/components/ThemeToggle.tsx — light/dark switch
+src/client/components/CreateJonstackCli.tsx — CLI generator helper
+src/client/components/CursorProjectRule.tsx — displays project rules
+src/client/components/DocsTestAuth.tsx — docs auth test component
+src/client/components/DocsTestBilling.tsx — docs billing test component
+src/client/components/DocsTestDatabase.tsx — docs database test component
+src/client/components/DocsTestLLM.tsx — docs LLM test component
+src/client/components/DocsTestMaps.tsx — docs maps test component
+src/client/components/DocsTestRealtimeMessages.tsx — realtime docs test component
+src/client/components/DocsTestUploads.tsx — docs uploads test component
+src/client/components/IntegrationChips.tsx — chips UI summarizing integrations
+src/client/components/LoginModal.tsx — auth login modal
+src/client/components/ServicesProvided.tsx — list of platform services
+src/client/components/SoonBadge.tsx — "Soon" badge component
 src/client/components/SquareUploadButton.tsx — UploadThing button
 src/client/components/IdeaCarousel.tsx — rotating suggestions
 src/client/context/AuthContext.tsx — Supabase session provider
 src/client/pages/home.tsx — marketing landing page
 src/client/pages/docs.tsx — in-app docs hub
-src/client/pages/test.tsx — integration playground (DB/Auth/Uploads)
 src/client/pages/api.animals.tsx — edge bridge → server/animals
 src/client/pages/api.images.tsx — edge bridge → list uploads
 src/client/pages/api.uploadthing.tsx — edge bridge → uploadthing router
 src/client/utils/rateLimit.ts — syncs rate-limit headers to UI
 src/client/utils/uploadthing.ts — UploadThing React helpers
+src/client/utils/integrationTool.ts — integration utilities
+src/client/utils/platformIntegrationPrompt.ts — LLM prompt builder for integrations
 src/client/root.tsx — Remix-style root layout
 src/client/routes.ts — static route map
 src/server/ — server / edge runtime code
 src/server/db/ — Drizzle ORM & migrations
+src/server/db/queries/ — typed Drizzle query builders
 src/server/db/schema.ts — single source-of-truth tables
 src/server/db/index.ts — Drizzle client init (.env loaded)
 src/server/animals.ts — REST-like handler for animals
@@ -42,9 +52,12 @@ src/shared/appIdeas.ts — 100+ placeholder idea strings
 src/shared/app.css — Tailwind entrypoint & utilities
 public/ — static assets
 vite.config.ts — Vite SSR config & aliases
+react-router.config.ts — React Router build/dev config
 tailwind.config.js — Tailwind v4 config
 tsconfig.json — TS paths & compiler options
 drizzle.config.ts — Drizzle migration config
+start-coding.md — project quickstart guide
+env.example — sample environment variables
 package.json — dependencies & npm scripts
 README.md — project overview
 

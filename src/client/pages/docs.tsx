@@ -1,8 +1,11 @@
-import { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router";
 import type { Route } from "./+types/docs";
 import CursorProjectRule from "@client/components/CursorProjectRule";
-import type { AvailablePlatform as Platform } from "@shared/availablePlatforms";
+// import type { AvailablePlatform as Platform } from "@shared/availablePlatforms";
+import { availablePlatforms } from "@shared/availablePlatforms";
+import { useOs } from "@client/context/OsContext";
+import IntegrationChips from "@client/components/IntegrationChips";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Cursor auxiliary data (project rule & memories)
@@ -50,13 +53,60 @@ export default function Docs() {
   const searchParams = new URLSearchParams(location.search);
   const ideaParam = searchParams.get("idea") ?? "";
   const projectParam = searchParams.get("project") ?? "";
-  const osParam = searchParams.get("os") ?? "";
-  type Target = Platform;
+  const sectionParam = searchParams.get("section") ?? "";
+  const platformParam = searchParams.get("platform") ?? "";
+  const integrationsParam = searchParams.get("integrations") ?? "";
 
-  const [target, setTarget] = useState<Target>("web");
+  // OS param in URL (legacy) – no longer used
+  type Target = typeof availablePlatforms[number]["key"];
+
+  // Determine initial platform index from param or default 0
+  const initialTargetIdx = (() => {
+    const idx = availablePlatforms.findIndex((p) => p.key === platformParam);
+    return idx === -1 ? 0 : idx;
+  })();
+
+  const [targetIdx, setTargetIdx] = useState(initialTargetIdx);
+
+  // Parse integration keys from param – split by comma/space, dedupe
+  const integrationKeysFromParam = React.useMemo(() => {
+    return Array.from(
+      new Set(
+        integrationsParam
+          .split(/[ ,]+/)
+          .map((k) => k.trim())
+          .filter(Boolean)
+      )
+    );
+  }, [integrationsParam]);
+
+  const target = availablePlatforms[targetIdx].key as Target;
+
+  // Global OS
+  const { os } = useOs();
+
+  // Platform dropdown state
+  const [platformOpen, setPlatformOpen] = useState(false);
+  const platformBtnRef = useRef<HTMLButtonElement | null>(null);
+  const platformMenuRef = useRef<HTMLDivElement | null>(null);
+
+  // Close when clicking outside
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (
+        platformOpen &&
+        !platformBtnRef.current?.contains(e.target as Node) &&
+        !platformMenuRef.current?.contains(e.target as Node)
+      ) {
+        setPlatformOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [platformOpen]);
 
   const megaPrompt = ideaParam
-    ? `alter the current template to help create this idea, understand the current codebase and make changes and alter the connections, tables, functions, namings all to my project's idea. target platform=${target}. dev os=${osParam}. create a github repo called "${projectParam}". then <user_idea_start>${ideaParam}<user_idea_end>`
+    ? `alter the current template to help create this idea, understand the current codebase and make changes and alter the connections, tables, functions, namings all to my project's idea. target platform=${target}. dev os=${os}. create a github repo called "${projectParam}". then <user_idea_start>${ideaParam}<user_idea_end>`
     : "";
 
   const [megaCopySuccess, setMegaCopySuccess] = useState(false);
@@ -68,7 +118,9 @@ export default function Docs() {
     }).catch(() => {});
   }
 
-  const [activeSection, setActiveSection] = useState("zero-to-100");
+  const [activeSection, setActiveSection] = useState(
+    sectionParam || (ideaParam ? "build-idea" : "zero-to-100")
+  );
 
   // Track Tech Stack dropdown visibility
   const [techOpen, setTechOpen] = useState(false);
@@ -117,6 +169,7 @@ export default function Docs() {
     { id: "cursor-rules", title: "User Rules" },
     { id: "project-rules", title: "Project Rules" },
     { id: "memories", title: "Memories" },
+    { id: "build-idea", title: "Build Idea" },
     { id: "architecture", title: "Tech Stack Overview" },
     { id: "database", title: "Database" },
     { id: "authentication", title: "Authentication" },
@@ -126,9 +179,6 @@ export default function Docs() {
     { id: "analytics", title: "Analytics" },
     { id: "roadmap", title: "Roadmap" },
   ] as const;
-
-  // Toggle states for instructions
-  const [os, setOs] = useState<"windows" | "mac" | "linux">("windows");
 
   const CursorAiUserRules = () => {
     const markdown = `You are CursorDev, an AI assistant powered by the o3 model. Your role is to act as the user's proactive lead software engineer and project manager, switching between expert frontend and backend roles as tasks demand.
@@ -172,11 +222,62 @@ For each response, create distinct agent sections headed by a logical domain tit
           {/* Sidebar Navigation */}
           <aside className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-24 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Documentation</h3>
+              <div className="flex items-center justify-between mb-4 gap-3">
+                <h3 className="font-semibold text-gray-900 dark:text-white">Documentation</h3>
+                <div className="relative">
+                  <button
+                    ref={platformBtnRef}
+                    onClick={() => setPlatformOpen((o) => !o)}
+                    className="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                    title={`Platform: ${availablePlatforms[targetIdx].label}`}
+                  >
+                    {(() => {
+                      const IconComp = availablePlatforms[targetIdx].icon;
+                      if (IconComp) {
+                        return <IconComp className="w-4 h-4 text-gray-700 dark:text-gray-300" />;
+                      }
+                      return (
+                        <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                          {availablePlatforms[targetIdx].label.substring(0, 2).toUpperCase()}
+                        </span>
+                      );
+                    })()}
+                  </button>
+
+                  {platformOpen && (
+                    <div
+                      ref={platformMenuRef}
+                      className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10 max-h-72 overflow-y-auto scrollbar-none"
+                    >
+                      {availablePlatforms.map((p, idx) => {
+                        const Icon = p.icon;
+                        return (
+                          <button
+                            key={p.key}
+                            onClick={() => {
+                              setTargetIdx(idx);
+                              setPlatformOpen(false);
+                            }}
+                            className={`relative flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                              idx === targetIdx ? "bg-gray-100 dark:bg-gray-700" : ""
+                            }`}
+                          >
+                            {Icon ? <Icon className="w-4 h-4" /> : null}
+                            <span>{p.label}</span>
+                            {p.key !== "web" && (
+                              <span className="ml-auto text-[10px] uppercase font-semibold bg-yellow-900/40 text-yellow-300 px-1.5 py-0.5 rounded-md">soon</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
               <nav className="space-y-2">
                 {/* Top-level quick start */}
                 {leafSections
-                  .filter((s) => s.id === "zero-to-100")
+                  .filter((s) => ["zero-to-100","build-idea"].includes(s.id))
                   .map((section) => (
                     <button
                       key={section.id}
@@ -323,63 +424,12 @@ For each response, create distinct agent sections headed by a logical domain tit
                   
                   {/* Toggles */}
                   <div className="flex flex-wrap items-center gap-6 mb-10">
-                    {/* OS Switch */}
+                    {/* OS Display (moved to header) */}
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">OS:</span>
-                      {([
-                        { id: "windows", label: "Windows", disabled: false },
-                        { id: "mac", label: "macOS", disabled: true },
-                        { id: "linux", label: "Linux", disabled: true },
-                      ] as const).map(({ id, label, disabled }) => (
-                        <div key={id} className="relative inline-block">
-                          <button
-                            onClick={() => !disabled && setOs(id as any)}
-                            disabled={disabled}
-                            className={`px-4 py-1 rounded-full text-sm font-medium transition-colors ${
-                              os === id ? "bg-blue-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"}
-                              ${disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-300 dark:hover:bg-gray-600"}`}
-                          >
-                            {label}
-                          </button>
-                          {disabled && (
-                            <span className="absolute -top-1 -right-1 bg-gray-700 text-gray-200 text-[10px] px-1 rounded-md">soon</span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Target Switch */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">Target:</span>
-                      {([
-                        { id: "web", label: "Web", disabled: false },
-                        { id: "mobile", label: "Mobile", disabled: true },
-                        { id: "desktop", label: "Desktop", disabled: true },
-                        { id: "game", label: "Game", disabled: true },
-                        { id: "discord", label: "Discord Bot", disabled: true },
-                        { id: "telegram", label: "Telegram Bot", disabled: true },
-                        { id: "extension", label: "Browser Extension", disabled: true },
-                        { id: "vscode", label: "VS Code Extension", disabled: true },
-                        { id: "slack", label: "Slack App", disabled: true },
-                        { id: "cli", label: "CLI Tool", disabled: true },
-                        { id: "watch", label: "Smart-watch App", disabled: true },
-                        { id: "arvr", label: "AR/VR", disabled: true },
-                      ] as const).map(({ id, label, disabled }) => (
-                        <div key={id} className="relative inline-block">
-                          <button
-                            onClick={() => !disabled && setTarget(id as Target)}
-                            disabled={disabled}
-                            className={`px-4 py-1 rounded-full text-sm font-medium transition-colors ${
-                              target === id ? "bg-blue-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"}
-                              ${disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-300 dark:hover:bg-gray-600"}`}
-                          >
-                            {label}
-                          </button>
-                          {disabled && (
-                            <span className="absolute -top-1 -right-1 bg-gray-700 text-gray-200 text-[10px] px-1 rounded-md">soon</span>
-                          )}
-                        </div>
-                      ))}
+                      <span className="px-4 py-1 rounded-full text-sm font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                        {os.charAt(0).toUpperCase() + os.slice(1)}
+                      </span>
                     </div>
                   </div>
                   
@@ -1130,6 +1180,26 @@ export async function action({ request }: Route.ActionArgs) {
                     <li><strong>Q4 2024 – Desktop</strong> (Electron) using the same React codebase.</li>
                     <li><strong>Ongoing – AI-First DX</strong>: deeper IDE rules, code-gen wizards and one-shot scaffolds.</li>
                   </ul>
+                </div>
+              )}
+
+              {activeSection === "build-idea" && (
+                <div className="prose prose-gray dark:prose-invert max-w-none">
+                  <h1 className="text-3xl font-bold mb-6">Build Idea</h1>
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-4 mb-8">
+                    {ideaParam && (
+                      <div className="flex-1 bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                        <h2 className="text-lg font-semibold mb-2">Idea</h2>
+                        <p className="text-sm whitespace-pre-wrap break-words">{ideaParam}</p>
+                      </div>
+                    )}
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg min-w-[150px] text-center self-stretch">
+                      <h2 className="text-lg font-semibold mb-2">Platform</h2>
+                      <p className="text-sm capitalize">{availablePlatforms[targetIdx].label}</p>
+                    </div>
+                  </div>
+                  <IntegrationChips className="mb-6" activeKeys={integrationKeysFromParam} />
+                  <p className="text-gray-600 dark:text-gray-400">More content coming soon...</p>
                 </div>
               )}
 

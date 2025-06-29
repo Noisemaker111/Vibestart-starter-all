@@ -1,11 +1,16 @@
 import { Link, useLocation } from "react-router";
 import { useAuth } from "@client/context/AuthContext";
 import { usePostHog } from "posthog-js/react";
+import { useOs } from "@client/context/OsContext";
+import { FaWindows, FaApple, FaLinux } from "react-icons/fa";
 
 export function Header() {
   const location = useLocation();
   const { session } = useAuth();
   const posthog = usePostHog();
+
+  // Global OS state
+  const { os, setOs } = useOs();
 
   const navItems = [
     { href: "/docs", label: "Docs" },
@@ -13,8 +18,8 @@ export function Header() {
 
   return (
     <header className="bg-gray-900/90 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+      <div className="mx-auto px-4 max-w-7xl">
+        <div className="flex items-center justify-between h-16 gap-4">
           {/* Logo and Navigation */}
           <div className="flex items-center gap-4">
             <Link to="/" className="flex items-center gap-3 group">
@@ -50,13 +55,38 @@ export function Header() {
             </nav>
           </div>
           
-          {/* User Actions */}
+          {/* OS Selector Slider & User Actions */}
           <div className="flex items-center gap-4">
-            {session && (
-              <span className="hidden sm:block text-sm font-medium text-gray-300">
-                {session.user.email}
-              </span>
-            )}
+            <div className="hidden md:flex items-center">
+              <div className="relative bg-gray-800 rounded-full px-1 py-1 flex items-center gap-1">
+                {(
+                  [
+                    { id: "windows", icon: FaWindows },
+                    { id: "mac", icon: FaApple },
+                    { id: "linux", icon: FaLinux },
+                  ] as const
+                ).map(({ id, icon: Icon }) => (
+                  <button
+                    key={id}
+                    onClick={() => setOs(id)}
+                    className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${
+                      os === id ? "bg-purple-600 text-white" : "text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* User Actions */}
+            <div className="flex items-center gap-4">
+              {session && (
+                <span className="hidden sm:block text-sm font-medium text-gray-300">
+                  {session.user.email}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
