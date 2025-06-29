@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { FaDiscord } from "react-icons/fa";
+import { SiSolana } from "react-icons/si";
 
 export interface AvailableIntegration {
   key: string;
@@ -52,7 +53,7 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
   {
     key: "solana",
     label: "Solana Sign In",
-    icon: Fingerprint,
+    icon: SiSolana,
     status: "available",
     prerequisites: ["Create a Supabase account – https://supabase.com/docs/guides/getting-started"],
     envVars: ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY"],
