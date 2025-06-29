@@ -1,15 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import type { Route } from "./+types/docs";
-import CursorProjectRule from "@client/components/docs/CursorDocs/CursorProjectRule";
-import CursorUserRulesSection from "@client/components/docs/CursorDocs/CursorUserRulesSection";
-import MemoriesSection from "@client/components/docs/CursorDocs/MemoriesSection";
+import CursorProjectRule from "@client/components/docs/CursorDocs/CursorProjectRules";
+import CursorUserRulesSection from "@client/components/docs/CursorDocs/CursorUserRules";
+import MemoriesSection from "@client/components/docs/CursorDocs/CursorMemories";
 // import type { AvailablePlatform as Platform } from "@shared/availablePlatforms";
 import { availablePlatforms } from "@shared/availablePlatforms";
 import { availableIntegrations } from "@shared/availableIntegrations";
 import { useOs } from "@client/context/OsContext";
 import BuildTab from "@client/components/docs/build/BuildTab";
 import IntegrationsDocsContent from "@client/components/docs/integration/IntegrationsDocsContent";
+import PlatformChip from "@client/components/PlatformChip";
+import CliDocsContent from "@client/components/docs/cli/CliDocsContent";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -20,6 +22,7 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Docs() {
   const location = useLocation();
+  const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
   const ideaParam = searchParams.get("idea") ?? "";
   const projectParam = searchParams.get("project") ?? "";
@@ -93,23 +96,28 @@ export default function Docs() {
     sectionParam || "build-idea"
   );
 
-  // Track Tech Stack dropdown visibility
+  // Track Platforms & Tech Stack dropdown visibility
+  const [platformsOpen, setPlatformsOpen] = useState(false);
   const [techOpen, setTechOpen] = useState(false);
 
   // Dropdown for Cursor integration (User Rules, Project Rules, Memories)
   const [cursorOpen, setCursorOpen] = useState(false);
 
   // Leaf-level documentation sections (i.e. selectable pages)
-  const leafSections = [
+  type DocsSection = { id: string; title: string; soon?: boolean };
+
+  const leafSections: readonly DocsSection[] = [
     { id: "cursor-rules", title: "User Rules" },
     { id: "project-rules", title: "Project Rules" },
     { id: "memories", title: "Memories" },
     { id: "build-idea", title: "Build Idea" },
+    { id: "cli", title: "CLI", soon: true },
+    { id: "platforms", title: "Platforms" },
     { id: "database", title: "Database" },
     { id: "authentication", title: "Authentication" },
     { id: "file-uploads", title: "File Uploads" },
     { id: "analytics", title: "Analytics" },
-  ] as const;
+  ];
 
   // Preserve original order defined in availablePlatforms.ts
   const platformsToShow = availablePlatforms;
@@ -121,6 +129,32 @@ export default function Docs() {
     return [...avail, ...soon];
   }, []);
 
+  // ---------------------------------------------------------------------------
+  // Keep URL in sync when the user switches sections or platforms so that
+  // each view can be linked to directly (deep-linking).
+  // ---------------------------------------------------------------------------
+
+  // Update "section" query param when activeSection changes
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("section") !== activeSection) {
+      params.set("section", activeSection);
+      navigate({ pathname: location.pathname, search: params.toString() }, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSection]);
+
+  // Update "platform" query param when targetIdx (selected platform) changes
+  useEffect(() => {
+    const platformKey = availablePlatforms[targetIdx].key;
+    const params = new URLSearchParams(location.search);
+    if (params.get("platform") !== platformKey) {
+      params.set("platform", platformKey);
+      navigate({ pathname: location.pathname, search: params.toString() }, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetIdx]);
+
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -130,7 +164,7 @@ export default function Docs() {
             <div className="sticky top-24 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
               <div className="flex items-center justify-between mb-4 gap-3">
                 <h3 className="font-semibold text-gray-900 dark:text-white">Documentation</h3>
-                <div className="relative">
+                <div className="relative hidden">
                   <button
                     ref={platformBtnRef}
                     onClick={() => setPlatformOpen((o) => !o)}
@@ -184,7 +218,7 @@ export default function Docs() {
               <nav className="space-y-2">
                 {/* Top-level quick start */}
                 {leafSections
-                  .filter((s) => ["build-idea"].includes(s.id))
+                  .filter((s) => ["build-idea","cli"].includes(s.id))
                   .map((section) => (
                     <button
                       key={section.id}
@@ -195,7 +229,10 @@ export default function Docs() {
                           : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                       }`}
                     >
-                      <span className="text-sm">{section.title}</span>
+                      <span className="text-sm flex-1">{section.title}</span>
+                      {section.soon && (
+                        <span className="text-[10px] uppercase font-semibold bg-yellow-900/40 text-yellow-300 px-1.5 py-0.5 rounded-md">soon</span>
+                      )}
                     </button>
                   ))}
 
@@ -228,16 +265,72 @@ export default function Docs() {
                       .map((section) => (
                         <button
                           key={section.id}
-                          onClick={() => setActiveSection(section.id)}
+                          onClick={() => {
+                            if (!section.soon) setActiveSection(section.id);
+                          }}
                           className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
                             activeSection === section.id
                               ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 font-medium'
                               : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-                          }`}
+                          } ${section.soon ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          disabled={section.soon}
                         >
                           <span className="text-sm">{section.title}</span>
                         </button>
                       ))}
+                  </div>
+                )}
+
+                {/* Platforms (dropdown) */}
+                <button
+                  onClick={() => setPlatformsOpen((o) => !o)}
+                  className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
+                    platformsOpen || activeSection === 'platforms'
+                      ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 font-medium'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <span className="text-sm flex-1">Platforms</span>
+                  <svg
+                    className={`w-3 h-3 transition-transform ${platformsOpen ? 'rotate-90' : ''}`}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M6 6L14 10L6 14V6Z" />
+                  </svg>
+                </button>
+
+                {platformsOpen && (
+                  <div className="pl-4 space-y-2">
+                    {availablePlatforms.map((p) => {
+                      const idx = availablePlatforms.findIndex((x) => x.key === p.key);
+                      const Icon = p.icon;
+                      return (
+                        <button
+                          key={p.key}
+                          onClick={() => {
+                            if (p.status !== 'soon') {
+                              setTargetIdx(idx);
+                              setActiveSection('platforms');
+                            }
+                          }}
+                          className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
+                            activeSection === 'platforms' && idx === targetIdx
+                              ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 font-medium'
+                              : p.status === 'soon'
+                                ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
+                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                          }`}
+                          disabled={p.status === 'soon'}
+                        >
+                          {Icon ? <Icon className="w-4 h-4" /> : null}
+                          <span className="text-sm flex-1">{p.label}</span>
+                          {p.status === 'soon' && (
+                            <span className="ml-auto text-[10px] uppercase font-semibold bg-yellow-900/40 text-yellow-300 px-1.5 py-0.5 rounded-md">soon</span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
 
@@ -312,7 +405,7 @@ export default function Docs() {
               >
                 {leafSections.map((section) => (
                   <option key={section.id} value={section.id}>
-                    {section.title}
+                    {section.title}{section.soon ? " (soon)" : ""}
                   </option>
                 ))}
               </select>
@@ -378,6 +471,23 @@ function MyComponent() {
                 <IntegrationsDocsContent integrationKey={activeSection} />
               )}
 
+              {activeSection === "platforms" && (
+                <div className="prose prose-gray dark:prose-invert max-w-none">
+                  <h1 className="text-3xl font-bold mb-6">Target Platforms</h1>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    VibeStart scaffolds apps for multiple runtimes. Pick one now or extend later—code sharing is first-class.
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    {availablePlatforms.map((p) => (
+                      <PlatformChip key={p.key} platform={p} />
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-6">
+                    Need help choosing a platform? Reach out to <a href="https://twitter.com/vibecodejon" target="_blank" rel="noopener" className="underline">@vibecodejon</a> on Twitter.
+                  </p>
+                </div>
+              )}
+
               {activeSection === "cursor-rules" && <CursorUserRulesSection />}
 
               {activeSection === "project-rules" && (
@@ -403,6 +513,8 @@ function MyComponent() {
                   integrationKeys={integrationKeysFromParam}
                 />
               )}
+
+              {activeSection === "cli" && <CliDocsContent />}
             </div>
           </div>
         </div>

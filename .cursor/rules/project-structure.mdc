@@ -3,7 +3,7 @@ description:
 globs: 
 alwaysApply: true
 ---
-<project-structure>
+
 src/ — all source code
 src/client/ — React 19 browser app (SSR)
 src/client/components/ — reusable UI primitives & feature sections
@@ -89,8 +89,6 @@ src/types/ — global TypeScript type declarations
 
 src/types/ — global TypeScript type declarations
   • app.css — Tailwind entrypoint & utilities
-</project-structure>
-
 
 
 

@@ -61,7 +61,7 @@ export default function IntegrationChips({ className, activeKeys, showAllIfEmpty
         return (
           <span
             key={key}
-            className={`relative inline-flex items-center gap-1 pl-3 ${onRemove ? "pr-6" : "pr-3"} py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg border border-purple-500 animate-in fade-in ${integration?.status === "soon" ? "opacity-70 blur-[1px]" : ""}`}
+            className={`relative inline-flex items-center justify-center gap-1 min-w-[9rem] pl-3 ${onRemove ? "pr-6" : "pr-3"} py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg border border-purple-500 animate-in fade-in ${integration?.status === "soon" ? "opacity-70 blur-[1px]" : ""}`}
           >
             {Icon && <Icon className="w-4 h-4" />} {label}
             {integration?.status === "soon" && (
@@ -84,7 +84,7 @@ export default function IntegrationChips({ className, activeKeys, showAllIfEmpty
         <button
           type="button"
           onClick={onAdd}
-          className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-600 to-blue-600 text-white border border-purple-500 hover:opacity-80 transition animate-in fade-in"
+          className="inline-flex items-center justify-center gap-1 min-w-[9rem] px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-600 to-blue-600 text-white border border-purple-500 hover:opacity-80 transition animate-in fade-in"
         >
           <Plus className="w-4 h-4" /> Add
         </button>

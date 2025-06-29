@@ -506,6 +506,11 @@ export const appIdeas: AppIdea[] = [
   "idea":"AR language translator overlaying subtitles in real time",
   "platform":"arvr",
   "integrations":["api","llm","realtime"]
+  },
+  {
+  "idea":"Contact form spam filter with AI-driven bot detection",
+  "platform":"web",
+  "integrations":["analytics","bot-detection","database","api"]
   }
   ]
 

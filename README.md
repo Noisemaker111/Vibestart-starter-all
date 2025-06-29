@@ -179,3 +179,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 | Q3 2024 | Mobile SDK (React Native) |
 | Q4 2024 | Desktop packaging (Electron) |
 | 2025 | CLI scaffolds, AI code-gen recipes |
+
+
+
+after steps 1 and 2 i want a step called setting up your enviroment thats when we are going to be bring in the @MemoriesSection.tsx @CursorUserRulesSection.tsx@cursor-project-rules.ts  we need to provide the user with a prompt that they can give cursor to input the memories. it will be something like this: 
+
+I will be providing you with a list 

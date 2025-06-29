@@ -31,6 +31,7 @@ export interface AvailableIntegration {
   prerequisites?: string[];
   /** Environment variables the CLI sets up (deduplicated later) */
   envVars?: string[];
+  cliFlag?: string;
 }
 
 export const availableIntegrations: readonly AvailableIntegration[] = [
@@ -57,6 +58,7 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
     status: "available",
     prerequisites: ["Create a Supabase account – https://supabase.com/docs/guides/getting-started"],
     envVars: ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY"],
+    cliFlag: "solanasignin",
   },
   {
     key: "google",
@@ -120,6 +122,16 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
   { key: "sms", label: "SMS", icon: MessageCircle, status: "soon" },
   { key: "files", label: "Files", icon: File, status: "soon" },
   { key: "whiteboard", label: "Whiteboard", icon: FaChalkboard, status: "soon" },
+  {
+    key: "bot-detection",
+    label: "Bot Detection",
+    icon: Shield,
+    status: "available",
+    prerequisites: [
+      "Create a Cloudflare Turnstile account – https://developers.cloudflare.com/turnstile/"
+    ],
+    envVars: [],
+  },
 ] as const;
 
 export type AvailableIntegrationKey = typeof availableIntegrations[number]["key"];

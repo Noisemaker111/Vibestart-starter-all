@@ -128,6 +128,11 @@ export default function Home() {
       try {
         const result = await processIdea(ideaString);
         setActiveKeys(result.integrations.map((i: AvailableIntegration) => i.key));
+
+        // Automatically update selected platform if the AI suggests one and it's valid
+        if (result.platform && availablePlatforms.some((p) => p.key === result.platform)) {
+          setTarget(result.platform as AvailablePlatformKey);
+        }
         if (result.error) {
           setAiError(result.error);
           posthog.capture("ai_error", { message: result.error });
