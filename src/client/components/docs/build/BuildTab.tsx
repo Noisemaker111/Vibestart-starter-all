@@ -4,14 +4,14 @@ import { FaPlus } from "react-icons/fa";
 import type { FC } from "react";
 import React from "react";
 
-interface BuildIdeaTabProps {
+interface BuildTabProps {
   idea?: string;
   platformLabel: string;
   integrationKeys?: string[];
   className?: string;
 }
 
-const BuildIdeaTab: FC<BuildIdeaTabProps> = ({ idea, platformLabel: _unused, integrationKeys, className }) => {
+const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel: _unused, integrationKeys, className }) => {
   const [selectedKeys, setSelectedKeys] = React.useState<string[]>(() => {
     if (integrationKeys && integrationKeys.length > 0) return integrationKeys;
     try {
@@ -111,6 +111,9 @@ const BuildIdeaTab: FC<BuildIdeaTabProps> = ({ idea, platformLabel: _unused, int
                 >
                   {Icon && <Icon className="w-4 h-4" />}
                   <span>{intg.label}</span>
+                  {intg.status === "soon" && (
+                    <span className="ml-auto text-[10px] font-semibold uppercase text-purple-400">soon</span>
+                  )}
                 </button>
               );
             })}
@@ -135,4 +138,4 @@ const BuildIdeaTab: FC<BuildIdeaTabProps> = ({ idea, platformLabel: _unused, int
   );
 };
 
-export default BuildIdeaTab; 
+export default BuildTab; 

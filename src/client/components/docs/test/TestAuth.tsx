@@ -1,5 +1,5 @@
-import { SignInButton } from "@client/components/SignInButton";
-import { CreateOrganizationButton } from "@client/components/CreateOrganizationButton";
+import { SignInButton } from "@client/components/auth/SignInButton";
+import { CreateOrganizationButton } from "@client/components/auth/CreateOrganizationButton";
 import { useAuth } from "@client/context/AuthContext";
 
 // Local status indicator util

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@shared/supabase";
 import { useAuth } from "@client/context/AuthContext";
-import { LoginModal } from "@client/components/LoginModal";
+import { LoginModal } from "@client/components/auth/LoginModal";
 
 interface Props {
   className?: string;
@@ -9,8 +9,8 @@ interface Props {
 
 /**
  * SignInButton shows a "Log In" button when the user is signed out and a
- * "Log Out" button when signed in. Clicking "Log In" opens the existing
- * <LoginModal/> component. Clicking "Log Out" signs the user out via Supabase.
+ * "Log Out" button when signed in. Clicking "Log In" opens the <LoginModal/>
+ * component. Clicking "Log Out" signs the user out via Supabase.
  */
 export function SignInButton({ className }: Props) {
   const { session } = useAuth();

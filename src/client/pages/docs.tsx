@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router";
 import type { Route } from "./+types/docs";
-import CursorProjectRule from "@client/components/CursorProjectRule";
+import CursorProjectRule from "@client/components/docs/cursor/CursorProjectRule";
 // import type { AvailablePlatform as Platform } from "@shared/availablePlatforms";
 import { availablePlatforms } from "@shared/availablePlatforms";
 import { availableIntegrations } from "@shared/availableIntegrations";
 import { useOs } from "@client/context/OsContext";
-import BuildIdeaTab from "@client/components/BuildIdeaTab";
+import BuildIdeaTab from "@client/components/docs/build/BuildTab";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Cursor auxiliary data (project rule & memories)

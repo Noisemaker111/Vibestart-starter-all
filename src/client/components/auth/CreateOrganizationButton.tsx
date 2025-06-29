@@ -25,7 +25,7 @@ export function CreateOrganizationButton({ className }: Props) {
 
     const { error } = await supabase
       .from("organizations")
-      .insert({ name: name.trim(), owner_id: session.user.id });
+      .insert({ name: name.trim(), owner_id: session!.user.id });
 
     setLoading(false);
 

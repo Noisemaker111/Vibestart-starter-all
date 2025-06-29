@@ -10,10 +10,7 @@ interface Props {
 }
 
 /**
- * SquareUploadButton renders a 96×96px upload trigger that forwards the
- * upload response to the caller. The component no longer shows an inline
- * preview thumbnail; instead, callers should render their own image feed or
- * gallery once they receive the upload response.
+ * SquareUploadButton renders a 96×96px upload trigger.
  */
 export function SquareUploadButton({ onUploadComplete, className }: Props) {
   return (
@@ -21,7 +18,6 @@ export function SquareUploadButton({ onUploadComplete, className }: Props) {
       <UploadButton
         endpoint="imageUploader"
         onClientUploadComplete={(res: ClientUploadedFileData<null>[]) => {
-          // Forward the upload response to parent components.
           onUploadComplete?.(res as unknown as UploadResponse);
         }}
         onUploadError={(error) => {
@@ -29,7 +25,6 @@ export function SquareUploadButton({ onUploadComplete, className }: Props) {
         }}
         appearance={{
           button({ ready }) {
-            // Purple gradient background similar to previous btn-primary, square shape
             return `relative w-24 h-24 rounded-xl flex items-center justify-center text-white shadow-lg transition-all duration-200 bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-transparent ${
               ready ? "" : "opacity-50 cursor-not-allowed"
             }`;
@@ -75,8 +70,6 @@ export function SquareUploadButton({ onUploadComplete, className }: Props) {
           },
         }}
       />
-
-      {/* Inline preview removed to avoid duplication with global image feed */}
     </div>
   );
 } 

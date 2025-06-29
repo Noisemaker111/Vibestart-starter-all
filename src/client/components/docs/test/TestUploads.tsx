@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { SquareUploadButton } from "@client/components/SquareUploadButton";
+import { SquareUploadButton } from "@client/components/uploads/SquareUploadButton";
 
 // Local status indicator util
 function StatusIcon({ status }: { status: "idle" | "ok" | "error" }) {

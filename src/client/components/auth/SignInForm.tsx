@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@shared/supabase";
 
-
-
-export const OAUTH_REDIRECT_URL = import.meta.env.VITE_SUPABASE_REDIRECT ?? ""; 
-
+export const OAUTH_REDIRECT_URL = import.meta.env.VITE_SUPABASE_REDIRECT ?? "";
 
 export function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
   const [email, setEmail] = useState("");

@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom";
-import { SignInForm } from "@client/components/SignInForm";
+import { SignInForm } from "@client/components/auth/SignInForm";
 
 interface Props {
   open: boolean;
