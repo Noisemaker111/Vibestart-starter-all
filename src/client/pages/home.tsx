@@ -1,21 +1,24 @@
 import { Link, useNavigate } from "react-router";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import type { Route } from "./+types/home";
 import { availablePlatforms } from "@shared/availablePlatforms";
 import VersionTag from "@client/components/home/VersionTag";
 import VibeStartMainInfo from "@client/components/home/MainInfo";
 import HomeIdeaCard from "@client/components/home/IdeaCard";
-import VibeStartOtherInfo from "@client/components/home/OtherInfo";
-import HomeOtherCTA from "@client/components/home/OtherCTA";
-import appIdeas from "../../shared/appIdeas";
 import { processIdea } from "@client/utils/integrationLLM";
 import type { AvailableIntegration } from "@shared/availableIntegrations";
 import type { AvailablePlatformKey } from "@shared/availablePlatforms";
-import { usePostHog } from "posthog-js/react";
-import React from "react";
 import { consumeLocalToken } from "@client/utils/rateLimit";
 import Badge from "@client/components/Badge";
 import { HOME_PLACEHOLDER_ROTATE_MS } from "@shared/constants";
+import { usePostHog } from "posthog-js/react";
+
+// Lazily load below-the-fold sections to reduce JS parsed before LCP
+const VibeStartOtherInfo = React.lazy(() => import("@client/components/home/OtherInfo"));
+const HomeOtherCTA = React.lazy(() => import("@client/components/home/OtherCTA"));
+
+// Delay loading the large appIdeas dataset until after initial render to improve LCP
+type AppIdea = typeof import("@shared/appIdeas").default[number];
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -26,9 +29,9 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Home() {
   const [idea, setIdea] = useState("");
-  // Selected platform key (matches entries in availablePlatforms)
-  const [target, setTarget] = useState<AvailablePlatformKey>(appIdeas[0].platform);
-  const [activeKeys, setActiveKeys] = useState<string[]>(appIdeas[0].integrations);
+  const [target, setTarget] = useState<AvailablePlatformKey>("web");
+  const [activeKeys, setActiveKeys] = useState<string[]>([]);
+  const [appIdeas, setAppIdeas] = useState<AppIdea[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
 
@@ -87,8 +90,10 @@ export default function Home() {
   useEffect(() => {
     if (idea.trim().length === 0) {
       const entry = carouselIdeas[placeholderIndex];
-      setActiveKeys(entry.integrations);
-      setTarget(entry.platform);
+      if (entry) {
+        setActiveKeys(entry.integrations);
+        setTarget(entry.platform);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [placeholderIndex]);
@@ -254,6 +259,18 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [idea, runAiGeneration]);
 
+  // Load appIdeas lazily after first render to keep initial JS bundle small
+  useEffect(() => {
+    import("@shared/appIdeas").then((mod) => {
+      setAppIdeas(mod.default as unknown as AppIdea[]);
+      // If no user input yet, seed initial platform/key state from first idea
+      if (mod.default.length > 0 && idea.trim().length === 0) {
+        setTarget(mod.default[0].platform as AvailablePlatformKey);
+        setActiveKeys(mod.default[0].integrations);
+      }
+    });
+  }, []);
+
   return (
     <>
       <main className="min-h-screen bg-black text-white overflow-hidden">
@@ -314,10 +331,14 @@ export default function Home() {
 
 
             {/* Other info sections consolidated */}
-            <VibeStartOtherInfo realProjects={realProjects} />
+            <Suspense fallback={<div>Loading...</div>}>
+              <VibeStartOtherInfo realProjects={realProjects} />
+            </Suspense>
 
             {/* Final CTA */}
-            <HomeOtherCTA buildLink={buildLink} onClick={() => posthog.capture("home_get_building_click")} />
+            <Suspense fallback={<div>Loading...</div>}>
+              <HomeOtherCTA buildLink={buildLink} onClick={() => posthog.capture("home_get_building_click")} />
+            </Suspense>
 
           </div>
         </section>

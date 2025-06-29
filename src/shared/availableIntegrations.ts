@@ -15,6 +15,7 @@ import {
   File,
   Image,
 } from "lucide-react";
+import { FaChalkboard } from "react-icons/fa6";
 
 import { FaDiscord } from "react-icons/fa";
 import { SiSolana } from "react-icons/si";
@@ -118,6 +119,7 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
   { key: "email", label: "Email", icon: Mail, status: "soon" },
   { key: "sms", label: "SMS", icon: MessageCircle, status: "soon" },
   { key: "files", label: "Files", icon: File, status: "soon" },
+  { key: "whiteboard", label: "Whiteboard", icon: FaChalkboard, status: "soon" },
 ] as const;
 
 export type AvailableIntegrationKey = typeof availableIntegrations[number]["key"];
