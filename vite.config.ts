@@ -24,4 +24,11 @@ export default defineConfig({
       interval: 1000,
     },
   },
+  resolve: {
+    alias: {
+      "@client": "/src/client",
+      "@server": "/src/server",
+      "@shared": "/src/shared",
+    },
+  },
 });
