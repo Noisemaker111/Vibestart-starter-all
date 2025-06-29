@@ -2,7 +2,7 @@ import { createUploadthing, type FileRouter } from "uploadthing/remix";
 import { createRouteHandler } from "uploadthing/remix";
 import { db } from "@server/db";
 import { uploadsTable } from "@server/db/schema";
-import { verify, generateSignedToken } from "@server/utils/anonToken";
+import { verify, generateSignedToken } from "@server/utils/visitorToken";
 
 const f = createUploadthing();
 

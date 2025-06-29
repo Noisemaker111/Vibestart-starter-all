@@ -8,525 +8,505 @@ export interface AppIdea {
 
 export const appIdeas: AppIdea[] = [
   {
-    "idea": "A website for tracking personal finance, categorizing expenses, and setting budgets.",
-    "platform": "web",
-    "integrations": ["analytics", "billing", "database", "notifications"]
+  "idea":"Collaborative whiteboard for remote brainstorming with live annotations",
+  "platform":"web",
+  "integrations":["analytics","database","notifications","realtime","uploads"]
   },
   {
-    "idea": "An online platform for discovering and reviewing local restaurants, complete with user-submitted photos and ratings.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "google", "maps", "uploads"]
+  "idea":"Personal finance dashboard tracking expenses with customizable charts",
+  "platform":"web",
+  "integrations":["analytics","api","database","notifications"]
   },
   {
-    "idea": "A collaborative web application where users can brainstorm and organize ideas using a virtual whiteboard.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "notifications", "realtime"]
+  "idea":"Online book club platform with discussion forums and reading schedules",
+  "platform":"web",
+  "integrations":["database","email","notifications","realtime"]
   },
   {
-    "idea": "An e-commerce site specializing in unique, handcrafted artisan goods.",
-    "platform": "web",
-    "integrations": ["analytics", "billing", "database", "uploads"]
+  "idea":"Recipe sharing community with ingredient-based search filters",
+  "platform":"web",
+  "integrations":["database","notifications","uploads"]
   },
   {
-    "idea": "A community forum focused on niche hobbies, allowing users to share tips, projects, and connect with like-minded individuals.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "discord", "notifications", "realtime"]
+  "idea":"Virtual event platform offering ticketing and attendee networking",
+  "platform":"web",
+  "integrations":["api","billing","email","notifications"]
   },
   {
-    "idea": "A web tool that uses AI to summarize long articles or documents into concise bullet points.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "uploads"]
+  "idea":"Eco-friendly product marketplace with carbon footprint analytics",
+  "platform":"web",
+  "integrations":["analytics","api","billing","google"]
   },
   {
-    "idea": "A platform for managing small sports leagues, including scheduling, team rosters, and score tracking.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications", "realtime"]
+  "idea":"AI-powered code review tool highlighting vulnerabilities and suggestions",
+  "platform":"web",
+  "integrations":["api","github","llm","notifications"]
   },
   {
-    "idea": "An online marketplace for renting out tools and equipment between neighbors.",
-    "platform": "web",
-    "integrations": ["analytics", "billing", "database", "notifications", "uploads"]
+  "idea":"Customizable portfolio site builder with drag-and-drop templates",
+  "platform":"web",
+  "integrations":["api","database","files","uploads"]
   },
   {
-    "idea": "A developer portfolio builder that integrates directly with GitHub to showcase projects.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "github", "notifications", "uploads"]
+  "idea":"Online tutoring platform matching students with certified educators",
+  "platform":"web",
+  "integrations":["database","email","notifications","realtime","sms"]
   },
   {
-    "idea": "A personal journaling website with AI prompts to help users reflect and generate entries.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
+  "idea":"Language exchange network pairing learners for real-time practice",
+  "platform":"web",
+  "integrations":["database","notifications","realtime","sms"]
   },
   {
-    "idea": "A recipe sharing platform where users can upload their own recipes and discover new ones based on ingredients or dietary preferences.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "notifications", "uploads"]
+  "idea":"Virtual coworking space with Pomodoro timers and focus rooms",
+  "platform":"web",
+  "integrations":["api","notifications","realtime"]
   },
   {
-    "idea": "A language exchange website offering real-time text and voice chat with AI translation assistance.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "realtime"]
+  "idea":"Real-time collaborative spreadsheet for budgeting and data analysis",
+  "platform":"web",
+  "integrations":["api","database","notifications","realtime"]
   },
   {
-    "idea": "An online booking system for local service providers, such as barbers, therapists, or dog walkers.",
-    "platform": "web",
-    "integrations": ["analytics", "billing", "database", "notifications", "uploads"]
+  "idea":"Subscription box management tool tracking deliveries and preferences",
+  "platform":"web",
+  "integrations":["api","billing","database","notifications"]
   },
   {
-    "idea": "A virtual book club platform with discussion forums, reading schedules, and AI-generated summaries.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
+  "idea":"Interactive map for local hiking trails with user reviews",
+  "platform":"web",
+  "integrations":["database","maps","notifications"]
   },
   {
-    "idea": "A task management and habit tracker website with customizable goals and progress visualizations.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications", "realtime", "uploads"]
+  "idea":"Digital art gallery showcasing NFT collections and artist profiles",
+  "platform":"web",
+  "integrations":["database","solana","uploads"]
   },
   {
-    "idea": "A creative writing assistant that uses AI to suggest plot points, character names, and stylistic improvements.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
+  "idea":"Smart grocery list app that suggests items based on recipes",
+  "platform":"mobile-app",
+  "integrations":["analytics","database","notifications","uploads"]
   },
   {
-    "idea": "A platform for managing small rental properties, including tenant communication, rent collection, and maintenance requests.",
-    "platform": "web",
-    "integrations": ["analytics", "billing", "database", "notifications", "uploads"]
+  "idea":"Habit tracker with streak rewards and community leaderboards",
+  "platform":"mobile-app",
+  "integrations":["api","database","notifications","realtime"]
   },
   {
-    "idea": "A hiking trail discovery website with user-submitted reviews, photos, and interactive maps.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "google", "maps"]
+  "idea":"Offline language learning app with spaced repetition flashcards",
+  "platform":"mobile-app",
+  "integrations":["analytics","database","notifications"]
   },
   {
-    "idea": "An online platform for crowdfunding personal projects or creative endeavors.",
-    "platform": "web",
-    "integrations": ["analytics", "billing", "database", "notifications", "uploads"]
+  "idea":"Fitness coaching app offering custom workout and meal plans",
+  "platform":"mobile-app",
+  "integrations":["billing","database","llm","notifications"]
   },
   {
-    "idea": "A live streaming platform for independent musicians to perform and interact with their audience.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "realtime"]
+  "idea":"Travel itinerary planner with real-time flight updates",
+  "platform":"mobile-app",
+  "integrations":["api","maps","notifications","realtime"]
   },
   {
-    "idea": "A secure online document sharing and collaboration tool with version control.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications", "realtime", "uploads"]
+  "idea":"Augmented reality home design preview with furniture overlays",
+  "platform":"mobile-app",
+  "integrations":["api","database","llm-image-gen","uploads"]
   },
   {
-    "idea": "A personalized news aggregator that curates articles based on user interests using AI.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "notifications", "realtime"]
+  "idea":"Mobile payment wallet enabling peer-to-peer cryptocurrency transfers",
+  "platform":"mobile-app",
+  "integrations":["api","billing","solana"]
   },
   {
-    "idea": "A platform for organizing and managing virtual study groups, with shared notes and video conferencing.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications", "realtime", "uploads"]
+  "idea":"Sleep tracking app analyzing patterns and offering wellness tips",
+  "platform":"mobile-app",
+  "integrations":["analytics","database","notifications"]
   },
   {
-    "idea": "An AI-powered cover letter and resume generator tailored to specific job descriptions.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
+  "idea":"Voice recording app transcribing audio with keyword search",
+  "platform":"mobile-app",
+  "integrations":["api","database","files","notifications"]
   },
   {
-    "idea": "A subscription management website to track all your recurring payments and trial periods.",
-    "platform": "web",
-    "integrations": ["analytics", "billing", "database", "notifications"]
+  "idea":"Event discovery app with personalized recommendations and ticket purchases",
+  "platform":"mobile-app",
+  "integrations":["api","billing","database","notifications"]
   },
   {
-    "idea": "A code snippet manager and sharing platform for developers.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "github", "uploads"]
+  "idea":"Mental health journaling app with mood analytics and reminders",
+  "platform":"mobile-app",
+  "integrations":["analytics","database","notifications"]
   },
   {
-    "idea": "A personalized fitness and workout planner with AI-generated routines.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
+  "idea":"Language dictionary app offering pronunciation audio and offline mode",
+  "platform":"mobile-app",
+  "integrations":["api","database","files","notifications"]
   },
   {
-    "idea": "An online ticketing system for small events or local attractions.",
-    "platform": "web",
-    "integrations": ["analytics", "billing", "database", "notifications"]
+  "idea":"Shopping assistant scanning barcodes for price comparisons",
+  "platform":"mobile-app",
+  "integrations":["api","database","notifications"]
   },
   {
-    "idea": "A virtual pet simulation game with real-time interactions.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "realtime", "uploads"]
+  "idea":"Parking finder app showing available spots in real time",
+  "platform":"mobile-app",
+  "integrations":["api","maps","notifications","realtime"]
   },
   {
-    "idea": "A career guidance platform that uses AI to recommend career paths and learning resources based on skills.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "notifications"]
+  "idea":"Pet care reminder app scheduling vaccinations and feeding times",
+  "platform":"mobile-app",
+  "integrations":["database","notifications","sms"]
   },
   {
-    "idea": "A platform for selling and buying digital art and NFTs, integrating with a blockchain.",
-    "platform": "web",
-    "integrations": ["analytics", "billing", "database", "solana", "uploads"]
+  "idea":"Cross-platform markdown editor with live preview and export options",
+  "platform":"desktop",
+  "integrations":["database","files","notifications"]
   },
   {
-    "idea": "An AI-powered chatbot for customer support that learns from past interactions.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "notifications", "realtime"]
+  "idea":"Video editing tool offering AI-generated transitions and effects",
+  "platform":"desktop",
+  "integrations":["api","files","llm-image-gen","notifications"]
   },
   {
-    "idea": "A collaborative storytelling website where users can contribute to ongoing narratives.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications", "realtime"]
+  "idea":"Time tracking app with project billing and analytics dashboard",
+  "platform":"desktop",
+  "integrations":["analytics","billing","database"]
   },
   {
-    "idea": "A product review aggregation site for electronics, featuring user ratings and expert analyses.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications"]
+  "idea":"Desktop email client with unified inbox and smart filtering",
+  "platform":"desktop",
+  "integrations":["database","email","notifications"]
   },
   {
-    "idea": "An online ideation tool that helps teams generate new business ideas using AI prompts and frameworks.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "notifications"]
+  "idea":"Password manager with browser autofill and secure vault sync",
+  "platform":"desktop",
+  "integrations":["database","google","notifications","uploads"]
   },
   {
-    "idea": "A website for creating custom greeting cards and invitations with AI-generated text options.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "uploads"]
+  "idea":"Music production DAW with collaborative cloud project sharing",
+  "platform":"desktop",
+  "integrations":["database","files","notifications","realtime","uploads"]
   },
   {
-    "idea": "A peer-to-peer tutoring platform with integrated video calls and scheduling.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications", "realtime", "uploads"]
+  "idea":"2D animation studio software with onion skin and timeline editor",
+  "platform":"desktop",
+  "integrations":["database","files","notifications"]
   },
   {
-    "idea": "An AI-powered diet and meal planning website based on user health goals and dietary restrictions.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
+  "idea":"Virtual machine manager for lightweight development environments",
+  "platform":"desktop",
+  "integrations":["api","database","notifications"]
   },
   {
-    "idea": "A platform for generating creative prompts for artists, writers, and designers using AI.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
+  "idea":"Screen capture tool with annotation and instant sharing options",
+  "platform":"desktop",
+  "integrations":["api","files","notifications","uploads"]
   },
   {
-    "idea": "A real-time public transport tracker with estimated arrival times and route maps.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "google", "maps", "notifications"]
+  "idea":"Mind mapping app with real-time collaboration and export templates",
+  "platform":"desktop",
+  "integrations":["api","database","notifications","realtime"]
   },
   {
-    "idea": "An AI-driven personal shopping assistant that suggests products based on user style and preferences.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "notifications"]
+  "idea":"Casual puzzle adventure blending physics and story-driven levels",
+  "platform":"mobile-game",
+  "integrations":["analytics","billing","notifications","realtime"]
   },
   {
-    "idea": "A platform for selling digital courses and workshops with integrated payment processing.",
-    "platform": "web",
-    "integrations": ["analytics", "billing", "database", "uploads"]
+  "idea":"Idle farming game with unlockable recipes and marketplace trading",
+  "platform":"mobile-game",
+  "integrations":["analytics","billing","database","notifications"]
   },
   {
-    "idea": "A personalized travel itinerary planner that uses AI to suggest attractions, restaurants, and routes.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
+  "idea":"AR treasure hunt game using GPS and user-generated clues",
+  "platform":"mobile-game",
+  "integrations":["maps","notifications","realtime"]
   },
   {
-    "idea": "A virtual escape room game playable in real-time with friends.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "realtime", "uploads"]
+  "idea":"Multiplayer trivia challenge with social sharing and leaderboards",
+  "platform":"mobile-game",
+  "integrations":["discord","notifications","realtime"]
   },
   {
-    "idea": "An AI-powered academic research assistant that helps find relevant papers and summarize key findings.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "notifications"]
+  "idea":"Rhythm game syncing to user playlists and visualizers",
+  "platform":"mobile-game",
+  "integrations":["api","notifications","realtime"]
   },
   {
-    "idea": "A website for generating unique business names and slogans using AI.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "uploads"]
+  "idea":"Strategy simulation game with AI opponents and scenario editor",
+  "platform":"mobile-game",
+  "integrations":["files","llm","notifications"]
   },
   {
-    "idea": "A live polling and Q&A platform for virtual events and presentations.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications", "realtime"]
+  "idea":"Virtual pet game with health tracking and mini-games",
+  "platform":"mobile-game",
+  "integrations":["analytics","database","notifications"]
   },
   {
-    "idea": "An AI-powered platform for generating personalized workout music playlists.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "notifications"]
+  "idea":"Open-world exploration RPG with dynamic weather system",
+  "platform":"desktop-game",
+  "integrations":["analytics","api","notifications"]
   },
   {
-    "idea": "A web application for creating and managing fantasy sports leagues.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "notifications"]
+  "idea":"Co-op dungeon crawler featuring procedural level generation",
+  "platform":"desktop-game",
+  "integrations":["analytics","notifications","realtime"]
   },
   {
-    "idea": "A collaborative photo album and sharing website with geographic tagging.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "google", "maps", "uploads"]
+  "idea":"Simulation city builder with economic and environmental modeling",
+  "platform":"desktop-game",
+  "integrations":["analytics","database","notifications"]
   },
   {
-    "idea": "An AI-driven platform for generating social media content and post ideas.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "notifications", "realtime"]
+  "idea":"First-person shooter with VR support and customizable loadouts",
+  "platform":"desktop-game",
+  "integrations":["api","files","notifications"]
   },
   {
-    "idea": "A version control system for non-code assets, like design files or documents, with GitHub integration.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "github", "uploads"]
+  "idea":"Puzzle-platformer combining time manipulation and physics puzzles",
+  "platform":"desktop-game",
+  "integrations":["analytics","notifications","realtime"]
   },
   {
-    "idea": "A real-time whiteboard for remote teams to sketch and collaborate on ideas.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications", "realtime"]
+  "idea":"Retro-style shooter with online leaderboards and achievements",
+  "platform":"desktop-game",
+  "integrations":["analytics","api","notifications","realtime"]
   },
   {
-    "idea": "A simple invoice generator and tracker for freelancers.",
-    "platform": "web",
-    "integrations": ["analytics", "billing", "database", "notifications"]
+  "idea":"Educational history game with interactive timelines and quizzes",
+  "platform":"desktop-game",
+  "integrations":["database","notifications","realtime"]
   },
   {
-    "idea": "An AI-powered smart home dashboard for managing connected devices.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
+  "idea":"Server moderation bot auto-moderating bad language and spam",
+  "platform":"discord",
+  "integrations":["api","database","discord"]
   },
   {
-    "idea": "A web platform for generating personalized bedtime stories for children using AI.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "notifications"]
+  "idea":"Music playback bot streaming from multiple audio platforms",
+  "platform":"discord",
+  "integrations":["api","discord","realtime"]
   },
   {
-    "idea": "An online platform for creating custom surveys and polls with data visualization.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "uploads"]
+  "idea":"Study group bot scheduling sessions and sharing resources",
+  "platform":"discord",
+  "integrations":["database","discord","notifications"]
   },
   {
-    "idea": "A real-time incident management dashboard for IT teams.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications", "realtime"]
+  "idea":"Gaming stats bot tracking player performance and leaderboards",
+  "platform":"discord",
+  "integrations":["analytics","api","database","discord"]
   },
   {
-    "idea": "An AI-powered tool for generating creative marketing copy for advertisements and campaigns.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "notifications"]
+  "idea":"Language practice bot offering daily vocabulary quizzes",
+  "platform":"discord",
+  "integrations":["database","discord","notifications"]
   },
   {
-    "idea": "A platform for online portfolio building for creatives, allowing image and video uploads.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications", "realtime", "uploads"]
+  "idea":"Poll creation bot collecting votes and generating results charts",
+  "platform":"discord",
+  "integrations":["analytics","database","discord"]
   },
   {
-    "idea": "An AI-driven sentiment analysis tool for social media posts.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
+  "idea":"Reminder bot DMing scheduled alerts and recurring notifications",
+  "platform":"discord",
+  "integrations":["database","discord","notifications"]
   },
   {
-    "idea": "A collaborative music playlist creation and sharing website.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "realtime", "uploads"]
+  "idea":"Trivia quiz bot with themed question packs and scoreboards",
+  "platform":"discord",
+  "integrations":["database","discord","notifications","realtime"]
   },
   {
-    "idea": "An AI-powered tool for generating personalized study guides and flashcards.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "notifications"]
+  "idea":"NFT showcase bot displaying new drops and artist info",
+  "platform":"discord",
+  "integrations":["api","discord","notifications"]
   },
   {
-    "idea": "A web-based tool for converting various file formats with drag-and-drop functionality.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "realtime", "uploads"]
+  "idea":"Weather update bot posting hourly forecasts to designated channels",
+  "platform":"discord",
+  "integrations":["api","discord","notifications","realtime"]
   },
   {
-    "idea": "An AI-powered tool for summarizing legal documents and contracts.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
+  "idea":"Daily news summary bot delivering headlines based on interests",
+  "platform":"telegram",
+  "integrations":["api","database","notifications"]
   },
   {
-    "idea": "A platform for creating custom quizzes and tests, with image upload capabilities.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "uploads"]
+  "idea":"Expense tracker bot logging purchases and sending weekly summaries",
+  "platform":"telegram",
+  "integrations":["database","email","notifications"]
   },
   {
-    "idea": "A volunteer matching platform connecting individuals with local causes, including background checks and time tracking.",
-    "platform": "web",
-    "integrations": ["analytics", "billing", "database", "notifications", "uploads"]
+  "idea":"Language translation bot replying with multiple language options",
+  "platform":"telegram",
+  "integrations":["api","database","notifications"]
   },
   {
-    "idea": "A website for tracking local weather conditions and receiving severe weather alerts.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "google", "maps", "notifications"]
+  "idea":"Workout coach bot sending daily exercise routines and tips",
+  "platform":"telegram",
+  "integrations":["database","notifications","sms"]
   },
   {
-    "idea": "A community-driven platform for sharing and discovering open-source AI models and datasets.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "discord", "llm", "realtime"]
+  "idea":"Stock alert bot notifying price changes and market news",
+  "platform":"telegram",
+  "integrations":["api","notifications","realtime"]
   },
   {
-    "idea": "An online platform for designing custom t-shirts and merchandise.",
-    "platform": "web",
-    "integrations": ["analytics", "billing", "database", "uploads"]
+  "idea":"Password generator extension creating secure credentials with one click",
+  "platform":"extension",
+  "integrations":["api","database","notifications"]
   },
   {
-    "idea": "A web-based IDE for collaborative coding, integrating with GitHub.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "github", "notifications", "uploads"]
+  "idea":"Shopping assistant extension comparing prices across e-commerce sites",
+  "platform":"extension",
+  "integrations":["api","notifications","realtime"]
   },
   {
-    "idea": "An AI-powered content calendar and scheduling tool for social media managers.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
+  "idea":"Read-it-later extension syncing articles across devices",
+  "platform":"extension",
+  "integrations":["api","database","uploads"]
   },
   {
-    "idea": "A real-time stock market tracking and portfolio management website.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "notifications", "realtime"]
+  "idea":"Grammar checker extension offering context-aware writing suggestions",
+  "platform":"extension",
+  "integrations":["api","llm","notifications"]
   },
   {
-    "idea": "An AI-driven platform for generating personalized gift recommendations.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
+  "idea":"Dark mode scheduler extension adapting themes based on time",
+  "platform":"extension",
+  "integrations":["api","database","notifications"]
   },
   {
-    "idea": "A website for hosting virtual hackathons with team collaboration features.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "realtime", "uploads"]
+  "idea":"Live share plugin for VSCode with voice chat integration",
+  "platform":"vscode",
+  "integrations":["api","notifications","realtime"]
   },
   {
-    "idea": "An AI-powered tool for generating unique character backstories for role-playing games.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
+  "idea":"Code snippet manager extension with searchable templates database",
+  "platform":"vscode",
+  "integrations":["api","database","notifications"]
   },
   {
-    "idea": "A real-time project management tool with Kanban boards and Gantt charts.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications", "realtime"]
+  "idea":"AI code assistant suggesting completions and refactoring tips",
+  "platform":"vscode",
+  "integrations":["api","llm","notifications"]
   },
   {
-    "idea": "A platform for finding and booking local sports facilities, like tennis courts or soccer fields.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "google", "maps", "uploads"]
+  "idea":"Task runner extension visualizing build pipelines and logs",
+  "platform":"vscode",
+  "integrations":["api","files","notifications"]
   },
   {
-    "idea": "An AI-powered platform for generating personalized workout routines based on equipment available.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "notifications"]
+  "idea":"Dark theme generator previewing color schemes in real time",
+  "platform":"vscode",
+  "integrations":["api","notifications","realtime"]
   },
   {
-    "idea": "A real-time collaborative document editor for remote teams.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications", "realtime"]
+  "idea":"Docker integration extension for managing containers from editor",
+  "platform":"vscode",
+  "integrations":["api","files","notifications"]
   },
   {
-    "idea": "A web tool for creating interactive quizzes and surveys with analytics.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "uploads"]
+  "idea":"Git conflict resolver extension automating merge suggestions",
+  "platform":"vscode",
+  "integrations":["api","github","notifications"]
   },
   {
-    "idea": "A real-time multiplayer online board game platform.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications", "realtime"]
+  "idea":"Terminal emulator integrated into VSCode with customizable themes",
+  "platform":"vscode",
+  "integrations":["api","files","notifications"]
   },
   {
-    "idea": "An AI-powered tool for generating personalized email subject lines and content.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
+  "idea":"CLI tool for batch image compression and format conversion",
+  "platform":"cli",
+  "integrations":["api","files","notifications","uploads"]
   },
   {
-    "idea": "An AI-driven platform for generating unique blog post ideas and outlines.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
+  "idea":"Command-line password strength tester with breach database check",
+  "platform":"cli",
+  "integrations":["api","database","notifications"]
   },
   {
-    "idea": "A real-time chat application for customer support on e-commerce sites.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications", "realtime"]
+  "idea":"CLI for deploying static sites to multiple cloud providers",
+  "platform":"cli",
+  "integrations":["api","billing","notifications"]
   },
   {
-    "idea": "An AI-powered tool for generating creative story ideas for screenwriters.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
+  "idea":"Terminal-based task manager with Pomodoro and analytics reporting",
+  "platform":"cli",
+  "integrations":["analytics","database","notifications"]
   },
   {
-    "idea": "A website for tracking local events and concerts, with integrated mapping and ticketing options.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "google", "maps", "notifications"]
+  "idea":"CLI tool for monitoring server performance and sending alerts",
+  "platform":"cli",
+  "integrations":["analytics","api","notifications","realtime"]
   },
   {
-    "idea": "An AI-driven platform for generating personalized study plans for students.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "notifications", "realtime"]
+  "idea":"File synchronization CLI supporting FTP, S3, and local backups",
+  "platform":"cli",
+  "integrations":["api","files","notifications","uploads"]
   },
   {
-    "idea": "A collaborative platform for creating and managing shared grocery lists in real-time.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications", "realtime", "uploads"]
+  "idea":"Automated database migration CLI with rollback and logging",
+  "platform":"cli",
+  "integrations":["database","files","notifications"]
   },
   {
-    "idea": "An AI-powered tool for generating unique Dungeons & Dragons campaign ideas.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
+  "idea":"CLI chat client connecting to popular messaging platforms",
+  "platform":"cli",
+  "integrations":["api","notifications","realtime"]
   },
   {
-    "idea": "A web-based platform for organizing and tracking open-source contributions, with GitHub integration.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "github", "uploads"]
+  "idea":"Fitness watch face displaying heart rate and step goals",
+  "platform":"watch",
+  "integrations":["api","notifications","realtime"]
   },
   {
-    "idea": "An AI-powered tool for proofreading and suggesting grammatical improvements for writing.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "notifications"]
+  "idea":"Medication reminder watch app sending dosage alerts",
+  "platform":"watch",
+  "integrations":["database","notifications","sms"]
   },
   {
-    "idea": "A website for managing personal book collections and sharing reading progress with friends.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications", "realtime", "uploads"]
+  "idea":"Sleep cycle watch face tracking movements and sleep quality",
+  "platform":"watch",
+  "integrations":["analytics","database","notifications"]
   },
   {
-    "idea": "A platform for selling custom-made digital assets for game developers.",
-    "platform": "web",
-    "integrations": ["analytics", "billing", "database", "uploads"]
+  "idea":"Calendar watch app showing upcoming events with quick RSVP",
+  "platform":"watch",
+  "integrations":["api","email","notifications","realtime"]
   },
   {
-    "idea": "An AI-powered tool for generating personalized lesson plans for educators.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
+  "idea":"Voice memo watch app recording quick audio notes",
+  "platform":"watch",
+  "integrations":["files","notifications","uploads"]
   },
   {
-    "idea": "A real-time collaborative code editor for interviewing developers.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications", "realtime"]
+  "idea":"AR furniture placement app mapping 3D models in real spaces",
+  "platform":"arvr",
+  "integrations":["api","database","llm-image-gen","uploads"]
   },
   {
-    "idea": "An AI-powered platform for generating personalized exercise routines based on available equipment and fitness levels.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "notifications"]
+  "idea":"VR meditation experience with guided sessions and ambient visuals",
+  "platform":"arvr",
+  "integrations":["llm","llm-image-gen","notifications"]
   },
   {
-    "idea": "A web tool for creating animated explainer videos using AI-generated scripts and visuals.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm", "uploads"]
+  "idea":"AR navigation app overlaying directions onto live camera feed",
+  "platform":"arvr",
+  "integrations":["maps","notifications","realtime"]
   },
   {
-    "idea": "A real-time stock price tracker with customizable alerts.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications", "realtime"]
+  "idea":"VR training simulator for industrial equipment operation safety",
+  "platform":"arvr",
+  "integrations":["analytics","llm","notifications"]
   },
   {
-    "idea": "An AI-powered tool for generating unique podcast episode ideas and outlines.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
-  },
-  {
-    "idea": "An AI-driven platform for generating personalized travel packing lists based on destination and weather.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
-  },
-  {
-    "idea": "A real-time whiteboard for online tutoring sessions.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "notifications", "realtime"]
-  },
-  {
-    "idea": "An AI-powered tool for generating creative prompts for game developers.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "llm"]
-  },
-  {
-    "idea": "A website for discovering local art galleries and exhibitions, with interactive maps and event listings.",
-    "platform": "web",
-    "integrations": ["analytics", "database", "google", "maps", "notifications"]
+  "idea":"AR language translator overlaying subtitles in real time",
+  "platform":"arvr",
+  "integrations":["api","llm","realtime"]
   }
-]
+  ]
 
 export default appIdeas;

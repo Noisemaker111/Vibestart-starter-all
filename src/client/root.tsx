@@ -11,7 +11,7 @@ import appStylesHref from "@shared/app.css?url";
 import { AuthProvider } from "@client/context/AuthContext";
 import { OSProvider } from "@client/context/OsContext";
 import { Header } from "@client/components/Header";
-import { PostHogProvider } from "posthog-js/react";
+import PosthogWrapper from "@client/components/PosthogWrapper";
 
 export const links: Route.LinksFunction = () => [
   { rel: "stylesheet", href: appStylesHref },
@@ -25,6 +25,7 @@ export const links: Route.LinksFunction = () => [
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
+  { rel: "preload", href: appStylesHref, as: "style" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -37,30 +38,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body className="bg-gray-50 dark:bg-gray-900">
-        {isPostHogConfigured ? (
-          <PostHogProvider
-            apiKey={POSTHOG_KEY}
-            options={{
-              api_host: POSTHOG_HOST || undefined,
-              capture_exceptions: true,
-              debug: import.meta.env.DEV,
-            }}
-          >
-            <AuthProvider>
-              <OSProvider>
-                <Header />
-                {children}
-              </OSProvider>
-            </AuthProvider>
-          </PostHogProvider>
-        ) : (
+        <PosthogWrapper apiKey={POSTHOG_KEY} host={POSTHOG_HOST}>
           <AuthProvider>
             <OSProvider>
               <Header />
               {children}
             </OSProvider>
           </AuthProvider>
-        )}
+        </PosthogWrapper>
         <ScrollRestoration />
         <Scripts />
       </body>

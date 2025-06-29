@@ -1,0 +1,1 @@
+export const HOME_PLACEHOLDER_ROTATE_MS = 4000 as const; 

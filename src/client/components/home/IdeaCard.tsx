@@ -1,6 +1,7 @@
 import React from "react";
 import IntegrationChips from "@client/components/IntegrationChips";
 import type { AvailablePlatform } from "@shared/availablePlatforms";
+import PlatformChip from "@client/components/PlatformChip";
 
 interface Props {
   idea: string;
@@ -32,14 +33,7 @@ export default function HomeIdeaCard({
           </label>
           <div className="flex items-center gap-2">
             {selectedPlatform && (
-              <div className="relative">
-                <span className="px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg flex items-center gap-1">
-                  {selectedPlatform.icon && (
-                    <selectedPlatform.icon className="inline-block w-4 h-4" />
-                  )}
-                  {selectedPlatform.label}
-                </span>
-              </div>
+              <PlatformChip platform={selectedPlatform} className="text-xs sm:text-sm" />
             )}
           </div>
         </div>

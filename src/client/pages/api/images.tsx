@@ -1,7 +1,7 @@
 import { db } from "@server/db";
 import { uploadsTable } from "@server/db/schema";
 import { desc, eq } from "drizzle-orm";
-import { verify, generateSignedToken } from "@server/utils/anonToken";
+import { verify, generateSignedToken } from "@server/utils/visitorToken";
 
 export async function loader({ request }: { request: Request }) {
   const cookieName = "anon_token";

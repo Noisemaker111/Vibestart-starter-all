@@ -1,6 +1,6 @@
 import { db } from "@server/db";
 import { animalsTable } from "@server/db/schema";
-import { verify, generateSignedToken } from "@server/utils/anonToken";
+import { verify, generateSignedToken } from "@server/utils/visitorToken";
 import { eq } from "drizzle-orm";
 
 export const animalsRouteHandler = {

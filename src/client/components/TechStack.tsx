@@ -3,6 +3,8 @@ import {
   Code2,
   Server,
   Plus,
+  Smartphone,
+  Monitor,
 } from "lucide-react";
 import {
   availablePlatforms,
@@ -63,6 +65,86 @@ function useMediaQuery(query: string): boolean {
   return matches;
 }
 
+// -----------------------------------------------------------------------------
+// Helper that returns the core technology categories for a given platform.
+// Only the web/mobile/desktop platforms are fully supported for now – other
+// platforms will fall back to a generic "Coming Soon" placeholder so that the
+// UI updates when selecting them but without misleading users.
+// -----------------------------------------------------------------------------
+function getCoreCategories(platform: AvailablePlatformKey): Category[] {
+  switch (platform) {
+    case "web":
+      return [
+        {
+          key: "frontend",
+          title: "Front-end & UI",
+          icon: <Code2 className="w-5 h-5" />,
+          color: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+          technologies: ["React 19", "Tailwind CSS 4", "React Router 7"],
+        },
+        {
+          key: "backend",
+          title: "Backend & API",
+          icon: <Server className="w-5 h-5" />,
+          color: "bg-green-500/20 text-green-400 border-green-500/30",
+          technologies: ["Node.js 18", "Vite 6"],
+        },
+      ];
+
+    case "mobile-app":
+      return [
+        {
+          key: "frontend-mobile",
+          title: "Front-end & UI",
+          icon: <Smartphone className="w-5 h-5" />,
+          color: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+          technologies: ["React Native", "Expo", "Tamagui"],
+        },
+        {
+          key: "backend-mobile",
+          title: "Backend & API",
+          icon: <Server className="w-5 h-5" />,
+          color: "bg-green-500/20 text-green-400 border-green-500/30",
+          technologies: ["Node.js 18", "tRPC"],
+        },
+      ];
+
+    case "desktop":
+      return [
+        {
+          key: "frontend-desktop",
+          title: "Front-end & UI",
+          icon: <Monitor className="w-5 h-5" />,
+          color: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+          technologies: ["Electron", "React 19", "Tailwind CSS 4"],
+        },
+        {
+          key: "backend-desktop",
+          title: "Backend & API",
+          icon: <Server className="w-5 h-5" />,
+          color: "bg-green-500/20 text-green-400 border-green-500/30",
+          technologies: ["Node.js 18", "Vite 6"],
+        },
+      ];
+
+    default:
+      return [
+        {
+          key: "coming-soon",
+          title: "Platform Support",
+          icon: <Code2 className="w-5 h-5" />,
+          color: "bg-gray-500/20 text-gray-400 border-gray-500/30",
+          technologies: ["Coming soon"],
+          status: "soon",
+        },
+      ];
+  }
+}
+
+// -----------------------------------------------------------------------------
+// END helper
+// -----------------------------------------------------------------------------
+
 export default function TechStack({ platformKey = "web" }: Props) {
   const [selectedPlatform, setSelectedPlatform] = useState<AvailablePlatformKey>(
     platformKey
@@ -71,19 +153,47 @@ export default function TechStack({ platformKey = "web" }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   /**
-   * Map of platform->integration keys. For now every platform includes all
-   * integrations – tailor as required later.
+   * Per-platform integration lists. Anything not explicitly listed will fall
+   * back to the full default set so that experimental platforms still show all
+   * available integrations until we curate them.
    */
-  const defaultIntegrationKeys = availableIntegrations.map((i) => i.key);
-  const platformIntegrationMap: Record<
+  const defaultIntegrationKeys = availableIntegrations.map(
+    (i) => i.key as AvailableIntegrationKey
+  );
+
+  const platformIntegrationMap: Partial<Record<
     AvailablePlatformKey,
     AvailableIntegrationKey[]
-  > = {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    ...(availablePlatforms.reduce((acc, p) => {
-      acc[p.key as AvailablePlatformKey] = defaultIntegrationKeys;
-      return acc;
-    }, {} as Record<AvailablePlatformKey, AvailableIntegrationKey[]>)),
+  >> = {
+    web: [
+      "database",
+      "uploads",
+      "solana",
+      "google",
+      "github",
+      "discord",
+      "llm",
+      "analytics",
+      "api",
+    ],
+    "mobile-app": [
+      "database",
+      "uploads",
+      "google",
+      "discord",
+      "llm",
+      "analytics",
+      "api",
+    ],
+    desktop: [
+      "database",
+      "uploads",
+      "github",
+      "discord",
+      "llm",
+      "analytics",
+      "api",
+    ],
   };
 
   // Provider lists for each integration (displayed under card title)
@@ -100,22 +210,7 @@ export default function TechStack({ platformKey = "web" }: Props) {
   };
 
   /* -------------------------- Build card definitions -------------------------- */
-  const staticCategories = [
-    {
-      key: "frontend",
-      title: "Front-end & UI",
-      icon: <Code2 className="w-5 h-5" />,
-      color: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-      technologies: ["React 19", "Tailwind CSS 4", "React Router 7"],
-    },
-    {
-      key: "backend",
-      title: "Backend & API",
-      icon: <Server className="w-5 h-5" />,
-      color: "bg-green-500/20 text-green-400 border-green-500/30",
-      technologies: ["Node.js 18", "Vite 6"],
-    },
-  ];
+  const staticCategories = getCoreCategories(selectedPlatform);
 
   const integrationsForPlatform =
     platformIntegrationMap[selectedPlatform] ?? defaultIntegrationKeys;
@@ -142,9 +237,15 @@ export default function TechStack({ platformKey = "web" }: Props) {
     };
   });
 
+  // Hide future integrations (status === "soon") by default to keep the UI
+  // focused on what is ready to use today. This can be revisited later once
+  // more integrations graduate to "available".
   const techCategories: Category[] = [
     ...staticCategories,
-    ...integrationCategories.filter((c): c is Category => Boolean(c)),
+    ...integrationCategories.filter((c): c is Category => {
+      if (!c) return false;
+      return c.status !== "soon";
+    }),
   ];
 
   /* ---------------------------------- Render --------------------------------- */
@@ -194,7 +295,7 @@ export default function TechStack({ platformKey = "web" }: Props) {
                     isSelected
                       ? "bg-purple-600 text-white border-purple-600"
                       : "bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700"
-                  }`}
+                  } ${platform.status === "soon" ? "opacity-70 blur-[1px]" : ""}`}
                 >
                   {Icon && <Icon className="w-4 h-4" />} <span>{platform.label}</span>
                   {platform.status === "soon" && (
@@ -236,7 +337,7 @@ export default function TechStack({ platformKey = "web" }: Props) {
                               isSelected
                                 ? "bg-purple-600 text-white border-purple-600"
                                 : "bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700"
-                            }`}
+                            } ${platform.status === "soon" ? "opacity-70 blur-[1px]" : ""}`}
                           >
                             {Icon && <Icon className="w-4 h-4" />} {platform.label}
                             {platform.status === "soon" && (

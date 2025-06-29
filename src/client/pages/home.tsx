@@ -15,6 +15,7 @@ import { usePostHog } from "posthog-js/react";
 import React from "react";
 import { consumeLocalToken } from "@client/utils/rateLimit";
 import Badge from "@client/components/Badge";
+import { HOME_PLACEHOLDER_ROTATE_MS } from "@shared/constants";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -63,7 +64,7 @@ export default function Home() {
   // Replace old arrays with shared list
   const carouselIdeas = appIdeas; // AppIdea[]
 
-  // State to rotate placeholder suggestions every 4 seconds
+  // State to rotate placeholder suggestions at a configurable interval
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   useEffect(() => {
     const timer = setInterval(() => {
@@ -76,7 +77,7 @@ export default function Home() {
         }
         return next;
       });
-    }, 4000);
+    }, HOME_PLACEHOLDER_ROTATE_MS);
     return () => clearInterval(timer);
   }, [carouselIdeas.length]);
 
