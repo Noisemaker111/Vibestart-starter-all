@@ -57,27 +57,29 @@ export function Header() {
           
           {/* OS Selector Slider & User Actions */}
           <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center">
-              <div className="relative bg-gray-800 rounded-full px-1 py-1 flex items-center gap-1">
-                {(
-                  [
-                    { id: "windows", icon: FaWindows },
-                    { id: "mac", icon: FaApple },
-                    { id: "linux", icon: FaLinux },
-                  ] as const
-                ).map(({ id, icon: Icon }) => (
-                  <button
-                    key={id}
-                    onClick={() => setOs(id)}
-                    className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${
-                      os === id ? "bg-purple-600 text-white" : "text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                  </button>
-                ))}
+            {location.pathname.startsWith("/docs") && (
+              <div className="hidden md:flex items-center">
+                <div className="relative bg-gray-800 rounded-full px-1 py-1 flex items-center gap-1">
+                  {(
+                    [
+                      { id: "windows", icon: FaWindows },
+                      { id: "mac", icon: FaApple },
+                      { id: "linux", icon: FaLinux },
+                    ] as const
+                  ).map(({ id, icon: Icon }) => (
+                    <button
+                      key={id}
+                      onClick={() => setOs(id)}
+                      className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${
+                        os === id ? "bg-purple-600 text-white" : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* User Actions */}
             <div className="flex items-center gap-4">

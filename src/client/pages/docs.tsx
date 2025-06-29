@@ -4,8 +4,9 @@ import type { Route } from "./+types/docs";
 import CursorProjectRule from "@client/components/CursorProjectRule";
 // import type { AvailablePlatform as Platform } from "@shared/availablePlatforms";
 import { availablePlatforms } from "@shared/availablePlatforms";
+import { availableIntegrations } from "@shared/availableIntegrations";
 import { useOs } from "@client/context/OsContext";
-import IntegrationChips from "@client/components/IntegrationChips";
+import BuildIdeaTab from "@client/components/BuildIdeaTab";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Cursor auxiliary data (project rule & memories)
@@ -175,7 +176,6 @@ export default function Docs() {
     { id: "authentication", title: "Authentication" },
     { id: "file-uploads", title: "File Uploads" },
     { id: "deployment", title: "Deployment" },
-    { id: "error", title: "Troubleshooting" },
     { id: "analytics", title: "Analytics" },
     { id: "roadmap", title: "Roadmap" },
   ] as const;
@@ -215,6 +215,26 @@ For each response, create distinct agent sections headed by a logical domain tit
     );
   };
 
+  // Order platforms: available first, then soon; alphabetical within group
+  const displayPlatforms = React.useMemo(() => {
+    return [...availablePlatforms].sort((a, b) => {
+      const statusRank = (s?: string) => (s === "available" ? 0 : 1);
+      const diff = statusRank(a.status) - statusRank(b.status);
+      if (diff !== 0) return diff;
+      return a.label.localeCompare(b.label);
+    });
+  }, []);
+
+  // Integration sorting
+  const displayIntegrations = React.useMemo(() => {
+    return [...availableIntegrations].sort((a, b) => {
+      const statusRank = (s?: string) => (s === 'soon' ? 0 : 1); // soon first
+      const diff = statusRank(a.status) - statusRank(b.status);
+      if (diff !== 0) return diff;
+      return a.label.localeCompare(b.label);
+    });
+  }, []);
+
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -249,7 +269,8 @@ For each response, create distinct agent sections headed by a logical domain tit
                       ref={platformMenuRef}
                       className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10 max-h-72 overflow-y-auto scrollbar-none"
                     >
-                      {availablePlatforms.map((p, idx) => {
+                      {displayPlatforms.map((p) => {
+                        const idx = availablePlatforms.findIndex((x) => x.key === p.key);
                         const Icon = p.icon;
                         return (
                           <button
@@ -264,7 +285,7 @@ For each response, create distinct agent sections headed by a logical domain tit
                           >
                             {Icon ? <Icon className="w-4 h-4" /> : null}
                             <span>{p.label}</span>
-                            {p.key !== "web" && (
+                            {p.status === "soon" && (
                               <span className="ml-auto text-[10px] uppercase font-semibold bg-yellow-900/40 text-yellow-300 px-1.5 py-0.5 rounded-md">soon</span>
                             )}
                           </button>
@@ -304,7 +325,7 @@ For each response, create distinct agent sections headed by a logical domain tit
                       : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 >
-                  <span className="text-sm flex-1">Cursor Integration</span>
+                  <span className="text-sm flex-1">Cursor</span>
                   <svg
                     className={`w-3 h-3 transition-transform ${cursorOpen ? 'rotate-90' : ''}`}
                     fill="currentColor"
@@ -317,7 +338,7 @@ For each response, create distinct agent sections headed by a logical domain tit
                 {cursorOpen && (
                   <div className="pl-4 space-y-2">
                     {leafSections
-                      .filter((s) => (['cursor-rules','project-rules','memories'] as string[]).includes(s.id))
+                      .filter((s: any) => (['cursor-rules','project-rules','memories'] as string[]).includes(s.id))
                       .map((section) => (
                         <button
                           key={section.id}
@@ -346,7 +367,7 @@ For each response, create distinct agent sections headed by a logical domain tit
                       : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 >
-                  <span className="text-sm flex-1">Tech Stack</span>
+                  <span className="text-sm flex-1">Integrations</span>
                   <svg
                     className={`w-3 h-3 transition-transform ${techOpen ? 'rotate-90' : ''}`}
                     fill="currentColor"
@@ -358,43 +379,32 @@ For each response, create distinct agent sections headed by a logical domain tit
 
                 {techOpen && (
                   <div className="pl-4 space-y-2">
-                    {leafSections
-                      .filter((s) =>
-                        [
-                          'database',
-                          'authentication',
-                          'file-uploads',
-                          'deployment',
-                          'analytics',
-                        ].includes(s.id)
-                      )
-                      .map((section) => (
-                        <button
-                          key={section.id}
-                          onClick={() => setActiveSection(section.id)}
-                          className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
-                            activeSection === section.id
-                              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
+                    {displayIntegrations.map((intg: any) => (
+                      <button
+                        key={intg.key}
+                        onClick={() => {
+                          if (intg.status !== 'soon') setActiveSection(intg.key);
+                        }}
+                        className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
+                          activeSection === intg.key
+                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
+                            : intg.status === 'soon'
+                              ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
                               : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-                          }`}
-                        >
-                          <span className="text-sm">{section.title}</span>
-                        </button>
-                      ))}
+                        }`}
+                        disabled={intg.status === 'soon'}
+                      >
+                        {intg.icon ? <intg.icon className="w-4 h-4" /> : null}
+                        <span className="text-sm flex-1">{intg.label}</span>
+                        {intg.status === 'soon' && (
+                          <span className="ml-auto text-[10px] uppercase font-semibold bg-yellow-900/40 text-yellow-300 px-1.5 py-0.5 rounded-md">soon</span>
+                        )}
+                      </button>
+                    ))}
                   </div>
                 )}
 
-                {/* Troubleshooting top-level nav (moved below Tech Stack) */}
-                <button
-                  onClick={() => setActiveSection("error")}
-                  className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
-                    activeSection === "error"
-                      ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-medium'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <span className="text-sm">Troubleshooting</span>
-                </button>
+                {/* Troubleshooting nav removed as per new requirements */}
               </nav>
             </div>
           </aside>
@@ -1184,23 +1194,11 @@ export async function action({ request }: Route.ActionArgs) {
               )}
 
               {activeSection === "build-idea" && (
-                <div className="prose prose-gray dark:prose-invert max-w-none">
-                  <h1 className="text-3xl font-bold mb-6">Build Idea</h1>
-                  <div className="flex flex-col sm:flex-row sm:items-start gap-4 mb-8">
-                    {ideaParam && (
-                      <div className="flex-1 bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
-                        <h2 className="text-lg font-semibold mb-2">Idea</h2>
-                        <p className="text-sm whitespace-pre-wrap break-words">{ideaParam}</p>
-                      </div>
-                    )}
-                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg min-w-[150px] text-center self-stretch">
-                      <h2 className="text-lg font-semibold mb-2">Platform</h2>
-                      <p className="text-sm capitalize">{availablePlatforms[targetIdx].label}</p>
-                    </div>
-                  </div>
-                  <IntegrationChips className="mb-6" activeKeys={integrationKeysFromParam} />
-                  <p className="text-gray-600 dark:text-gray-400">More content coming soon...</p>
-                </div>
+                <BuildIdeaTab
+                  idea={ideaParam}
+                  platformLabel={availablePlatforms[targetIdx].label}
+                  integrationKeys={integrationKeysFromParam}
+                />
               )}
 
               {activeSection === "project-rules" && (

@@ -16,23 +16,23 @@ export interface AvailablePlatform {
   label: string;
   /** Optional icon component for UI usage */
   icon?: ComponentType<{ className?: string }>;
+  /** Availability status (e.g., available, soon) */
+  status?: "available" | "soon";
 }
 
 export const availablePlatforms: readonly AvailablePlatform[] = [
-  { key: "web", label: "Web", icon: Globe },
-  { key: "mobile-app", label: "Mobile App", icon: Smartphone },
-  { key: "mobile-game", label: "Mobile Game", icon: Gamepad2 },
-  { key: "desktop", label: "Desktop", icon: Monitor },
-  { key: "desktop-game", label: "Desktop Game", icon: Gamepad2 },
-  { key: "app", label: "App", icon: Smartphone },
-  { key: "game", label: "Game", icon: Gamepad2 },
-  { key: "discord", label: "Discord Bot", icon: FaDiscord },
-  { key: "telegram", label: "Telegram Bot", icon: FaTelegramPlane },
-  { key: "extension", label: "Browser Extension", icon: Plug },
-  { key: "vscode", label: "VS Code Extension", icon: FaCode },
-  { key: "cli", label: "CLI", icon: Terminal },
-  { key: "watch", label: "Watch", icon: WatchIcon },
-  { key: "arvr", label: "AR/VR", icon: Box },
+  { key: "web", label: "Web", icon: Globe, status: "available" },
+  { key: "mobile-app", label: "Mobile App", icon: Smartphone, status: "available" },
+  { key: "mobile-game", label: "Mobile Game", icon: Gamepad2, status: "soon" },
+  { key: "desktop", label: "Desktop App", icon: Monitor, status: "available" },
+  { key: "desktop-game", label: "Desktop Game", icon: Gamepad2, status: "soon" },
+  { key: "discord", label: "Discord Bot", icon: FaDiscord, status: "soon" },
+  { key: "telegram", label: "Telegram Bot", icon: FaTelegramPlane, status: "soon" },
+  { key: "extension", label: "Browser Extension", icon: Plug, status: "soon" },
+  { key: "vscode", label: "VS Code Extension", icon: FaCode, status: "soon" },
+  { key: "cli", label: "CLI", icon: Terminal, status: "soon" },
+  { key: "watch", label: "Watch", icon: WatchIcon, status: "soon" },
+  { key: "arvr", label: "AR/VR", icon: Box, status: "soon" },
 ] as const;
 
 export type AvailablePlatformKey = typeof availablePlatforms[number]["key"];

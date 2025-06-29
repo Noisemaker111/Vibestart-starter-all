@@ -6,11 +6,13 @@ const integrations = availableIntegrations;
 interface IntegrationChipsProps {
   /** Additional Tailwind classes */
   className?: string;
-  /** Keys of integrations that should be considered active. When omitted, all are active. */
+  /** Keys of integrations that should be considered active. */
   activeKeys?: string[];
+  /** When true (default), an empty/undefined activeKeys renders all integrations. */
+  showAllIfEmpty?: boolean;
 }
 
-export default function IntegrationChips({ className, activeKeys }: IntegrationChipsProps) {
+export default function IntegrationChips({ className, activeKeys, showAllIfEmpty = true }: IntegrationChipsProps) {
   /*
    * Determine which keys to render. Behaviour:
    * • undefined  → show ALL integrations (default landing state)
@@ -18,7 +20,9 @@ export default function IntegrationChips({ className, activeKeys }: IntegrationC
    * • ["foo"]   → attempt to render matching chip, else fallback chip with raw key
    */
   const keysToDisplay: string[] = (() => {
-    if (!activeKeys || activeKeys.length === 0) return integrations.map((i) => i.key);
+    if ((!activeKeys || activeKeys.length === 0)) {
+      return showAllIfEmpty ? integrations.map((i) => i.key) : [];
+    }
     return Array.from(new Set(activeKeys)); // de-duplicate while preserving order
   })();
 

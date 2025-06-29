@@ -82,24 +82,6 @@ preliminarySteps:
 ---
 ## Custom Future Task
 
-```md
-slug: prefill-build-idea-from-home
-summary: Navigate to Build Idea page with user selections preloaded
-
-description: |
-  When a user selects desired integrations and a platform on the Home page and clicks "Get Building", they should be redirected to the Build Idea page/tab. The destination page must have its header (or equivalent top section) pre-populated with the integrations and platform that were chosen, ensuring continuity of context for the user.
-
-preliminarySteps:
-  1. Review current selection state handling in `src/client/pages/home.tsx` and supporting components.
-  2. Choose and implement a state transfer method (e.g., React Router navigation state, URL query parameters, or shared context) to carry the selected integrations and platform.
-  3. Update the "Get Building" button to navigate to the Build Idea route with the selections embedded.
-  4. On the Build Idea page, render the received selections at the top of the interface.
-```
-
----
-> _End of tasks hub_
-
-
 
 
 

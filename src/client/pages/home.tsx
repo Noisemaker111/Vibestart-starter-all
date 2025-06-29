@@ -12,6 +12,7 @@ import type { AvailableIntegration } from "@shared/availableIntegrations";
 import { usePostHog } from "posthog-js/react";
 import React from "react";
 import { consumeLocalToken } from "@client/utils/rateLimit";
+import { availablePlatforms } from "@shared/availablePlatforms";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -189,13 +190,9 @@ export default function Home() {
   }, [runAiGeneration]);
 
   /* Helper to determine if a target option should be disabled based on OS */
-  function isTargetDisabled(t: Target, currentOs: "windows" | "mac" | "linux") {
-    // Currently only web target is available universally; others marked soon
-    if (t !== "web") {
-      return true;
-    }
-    // Feature roadmap: allow others later
-    return false;
+  function isTargetDisabled(t: Target, _currentOs: "windows" | "mac" | "linux") {
+    const platform = availablePlatforms.find((p) => p.key === t);
+    return platform?.status === "soon";
   }
 
   function handleIdeaKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -346,7 +343,7 @@ export default function Home() {
               {/* CTAs */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
                 <Link
-                  to={`/docs?section=build-idea&platform=${encodeURIComponent(target)}&integrations=${encodeURIComponent(activeKeys.join(","))}`}
+                  to={`/docs?section=build-idea&platform=${encodeURIComponent(target)}&integrations=${encodeURIComponent(activeKeys.join(","))}${idea.trim() ? `&idea=${encodeURIComponent(idea.trim())}` : ""}`}
                   onClick={() => posthog.capture("home_get_building_click")}
                   className="inline-flex items-center justify-center px-8 py-4 font-bold text-black bg-white rounded-xl hover:bg-gray-100 transition-all duration-200"
                 >
@@ -355,7 +352,7 @@ export default function Home() {
 
                 {/* Docs button – minimal styling so only text is visible */}
                 <Link
-                  to="/docs"
+                  to={`/docs?section=build-idea&platform=${encodeURIComponent(target)}&integrations=${encodeURIComponent(activeKeys.join(","))}${idea.trim() ? `&idea=${encodeURIComponent(idea.trim())}` : ""}`}
                   onClick={() => posthog.capture("home_docs_click")}
                   className="inline-flex items-center justify-center px-8 py-4 font-semibold text-purple-500 drop-shadow-sm hover:text-purple-400 transition-colors duration-200"
                 >
@@ -496,7 +493,7 @@ export default function Home() {
                     Every day you spend learning is a day someone else is building your idea.
                   </p>
                   <Link
-                    to={`/docs?section=build-idea&platform=${encodeURIComponent(target)}&integrations=${encodeURIComponent(activeKeys.join(","))}`}
+                    to={`/docs?section=build-idea&platform=${encodeURIComponent(target)}&integrations=${encodeURIComponent(activeKeys.join(","))}${idea.trim() ? `&idea=${encodeURIComponent(idea.trim())}` : ""}`}
                     className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
                   >
                     Get Building

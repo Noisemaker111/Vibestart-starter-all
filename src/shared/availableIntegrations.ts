@@ -12,6 +12,9 @@ import {
   BarChart3,
   MapPin,
   Search as SearchIcon,
+  Plug,
+  Mail,
+  File,
 } from "lucide-react";
 
 import { FaDiscord } from "react-icons/fa";
@@ -21,21 +24,28 @@ export interface AvailableIntegration {
   label: string;
   /** Optional icon component for UI usage */
   icon?: ComponentType<{ className?: string }>;
+  /** Availability status */
+  status?: "available" | "soon";
 }
 
 export const availableIntegrations: readonly AvailableIntegration[] = [
-  { key: "database", label: "Database", icon: Database },
-  { key: "solana", label: "Solana Sign In", icon: Fingerprint },
-  { key: "google", label: "Google Sign In", icon: LogIn },
-  { key: "github", label: "GitHub Sign In", icon: Shield },
-  { key: "discord", label: "Discord Sign In", icon: FaDiscord },  
-  { key: "llm", label: "LLM Chatbox", icon: Brain },
-  { key: "uploads", label: "Uploads", icon: Upload },
-  { key: "billing", label: "Billing", icon: CreditCard },
-  { key: "realtime", label: "Realtime Messaging", icon: MessageCircle },
-  { key: "notifications", label: "Notifications", icon: Bell },
-  { key: "analytics", label: "Analytics", icon: BarChart3 },
-  { key: "maps", label: "Maps", icon: MapPin }
+  { key: "database", label: "Database", icon: Database, status: "available" },
+  { key: "solana", label: "Solana Sign In", icon: Fingerprint, status: "soon" },
+  { key: "google", label: "Google Sign In", icon: LogIn, status: "available" },
+  { key: "github", label: "GitHub Sign In", icon: Shield, status: "available" },
+  { key: "discord", label: "Discord Sign In", icon: FaDiscord, status: "soon" },  
+  { key: "llm", label: "LLM Chatbox", icon: Brain, status: "available" },
+  { key: "uploads", label: "Uploads", icon: Upload, status: "available" },
+  { key: "billing", label: "Billing", icon: CreditCard, status: "soon" },
+  { key: "realtime", label: "Realtime Messaging", icon: MessageCircle, status: "soon" },
+  { key: "notifications", label: "Notifications", icon: Bell, status: "soon" },
+  { key: "analytics", label: "Analytics", icon: BarChart3, status: "soon" },
+  { key: "maps", label: "Maps", icon: MapPin, status: "soon" },
+  { key: "payments", label: "Payments", icon: CreditCard, status: "soon" },
+  { key: "email", label: "Email", icon: Mail, status: "soon" },
+  { key: "sms", label: "SMS", icon: MessageCircle, status: "soon" },
+  { key: "files", label: "Files", icon: File, status: "soon" },
+  { key: "api", label: "External API", icon: Plug, status: "available" },
 ] as const;
 
 export type AvailableIntegrationKey = typeof availableIntegrations[number]["key"];
