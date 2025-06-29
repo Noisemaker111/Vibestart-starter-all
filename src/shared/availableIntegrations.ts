@@ -1,7 +1,6 @@
 import type { ComponentType } from "react";
 import {
   Database,
-  Fingerprint,
   LogIn,
   Shield,
   Brain,

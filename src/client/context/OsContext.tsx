@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 // Types
 export type OSType = "windows" | "mac" | "linux";
 
-interface OSContextValue {
+interface OsContextValue {
   os: OSType;
   setOs: (os: OSType) => void;
 }
@@ -18,7 +18,7 @@ function detectDefaultOS(): OSType {
   return "windows";
 }
 
-const OSContext = createContext<OSContextValue | undefined>(undefined);
+const OsContext = createContext<OsContextValue | undefined>(undefined);
 
 export function OSProvider({ children }: { children: React.ReactNode }) {
   const [os, setOs] = useState<OSType>(() => detectDefaultOS());
@@ -40,13 +40,13 @@ export function OSProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, []);
 
-  const value = useMemo<OSContextValue>(() => ({ os, setOs }), [os]);
+  const value = useMemo<OsContextValue>(() => ({ os, setOs }), [os]);
 
-  return <OSContext.Provider value={value}>{children}</OSContext.Provider>;
+  return <OsContext.Provider value={value}>{children}</OsContext.Provider>;
 }
 
-export function useOs(): OSContextValue {
-  const ctx = useContext(OSContext);
+export function useOs(): OsContextValue {
+  const ctx = useContext(OsContext);
   if (!ctx) throw new Error("useOs() must be used within an OSProvider");
   return ctx;
 } 
