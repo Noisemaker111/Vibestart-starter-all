@@ -400,7 +400,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
         const createCmd = `npx create vibestart ${flags.join(" ")}`;
 
         return (
-          <ol className="list-decimal list-inside space-y-8 text-sm">
+          <ol className="list-decimal space-y-8 text-sm not-prose">
             {/* Step 1 removed – developer tooling already covered in Pre-Requisites */}
 
             {/* New Step 1 – generate Cursor rules */}

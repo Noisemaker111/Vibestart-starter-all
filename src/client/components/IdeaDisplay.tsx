@@ -88,13 +88,17 @@ export default function IdeaDisplay({
 
         {/* Top bar: label (editable mode) and optional platform chip share the same line */}
         {(editable || platform) && (
-          <div className="relative z-10 flex items-center justify-between mb-4 w-full px-2">
+          <div
+            className={`relative z-10 flex items-center mb-4 w-full px-2 ${
+              editable && onClear ? "justify-between" : "justify-end"
+            }`}
+          >
             {editable && onClear && (
               <button
                 type="button"
                 onClick={onClear}
                 className="text-xs font-semibold px-2 py-1 bg-red-600 hover:bg-red-500 text-white rounded-md shadow"
-              >b
+              >
                 Clear
               </button>
             )}
