@@ -53,6 +53,19 @@ export function Header() {
                 );
               })}
             </nav>
+
+            {/* Mobile Docs Link */}
+            <Link
+              to="/docs"
+              onClick={() => posthog.capture('nav_docs_click')}
+              className={`md:hidden text-sm font-semibold transition-colors ${
+                location.pathname === '/docs'
+                  ? 'text-purple-500 drop-shadow-sm'
+                  : 'text-purple-400 hover:text-purple-300 drop-shadow-sm'
+              }`}
+            >
+              Docs
+            </Link>
           </div>
           
           {/* OS Selector Slider & User Actions */}
