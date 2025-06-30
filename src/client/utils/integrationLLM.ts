@@ -2,6 +2,7 @@ import type { AvailableIntegration } from "@shared/availableIntegrations";
 import { buildPlatformIntegrationPrompt } from "./platformIntegrationPrompt";
 import { availableIntegrations } from "@shared/availableIntegrations";
 import { z } from "zod";
+import { DEFAULT_LLM_MODEL } from "@shared/constants";
 
 export interface SpecificationResponse {
   platform?: string;
@@ -13,34 +14,113 @@ export interface SpecificationResponse {
   rawContent?: string;
 }
 
-export const DEFAULT_MODEL = "google/gemini-2.0-flash-001" as const;
+export interface ImageInput {
+  url?: string;
+  base64?: string;
+  type: "url" | "base64";
+}
 
-export const processIdea = async (
+export const DEFAULT_MODEL = DEFAULT_LLM_MODEL;
+
+export async function processIdea(
   idea: string,
-  model: string = DEFAULT_MODEL
-): Promise<SpecificationResponse> => {
+  images?: ImageInput[],
+  model?: string
+): Promise<SpecificationResponse>;
+export async function processIdea(
+  idea: string,
+  model?: string
+): Promise<SpecificationResponse>;
+export async function processIdea(
+  idea: string,
+  images: ImageInput[],
+  model: string,
+  generation: "structured" | "text"
+): Promise<SpecificationResponse>;
+
+export async function processIdea(
+  idea: string,
+  second?: ImageInput[] | string,
+  third?: string | "structured" | "text",
+  fourth?: "structured" | "text"
+): Promise<SpecificationResponse> {
+  let images: ImageInput[] | undefined;
+  let model: string | undefined;
+  let generation: "structured" | "text" = "structured";
+
+  if (Array.isArray(second)) {
+    images = second;
+    if (typeof third === "string" && (third === "structured" || third === "text")) {
+      generation = third;
+      model = fourth as string | undefined;
+    } else {
+      model = third as string | undefined;
+      generation = (fourth as any) ?? "structured";
+    }
+  } else if (typeof second === "string") {
+    if (second === "structured" || second === "text") {
+      generation = second;
+      model = third as string | undefined;
+    } else {
+      model = second;
+      if (typeof third === "string" && (third === "structured" || third === "text")) {
+        generation = third;
+      }
+    }
+  }
+
+  if (!model) {
+    console.warn("processIdea: model not specified, falling back to default – provide model explicitly for clarity");
+    model = DEFAULT_MODEL;
+  }
+
   const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || import.meta.env.VITE_OPENROUTER_KEY;
 
-  if (import.meta.env.DEV) console.debug("[processIdea] idea", idea);
+  if (import.meta.env.DEV) console.debug("[processIdea] idea", idea, "images", images?.length);
 
   if (!apiKey) {
     console.warn("OpenRouter API key missing – skipping AI integration selection");
     return { integrations: [], error: "OpenRouter API key missing" };
   }
 
+  // Build user content – first text, then any images provided
+  const userContent: Array<
+    | { type: "text"; text: string }
+    | { type: "image_url"; image_url: { url: string } }
+  > = [
+    {
+      type: "text",
+      text: `Analyze this idea and return the required integrations: ${idea}`,
+    },
+  ];
+
+  if (images && images.length > 0) {
+    for (const img of images) {
+      let imgUrl: string | undefined;
+      if (img.type === "base64" && img.base64) {
+        // Default to jpeg – could be extended to detect mime
+        imgUrl = `data:image/jpeg;base64,${img.base64}`;
+      } else if (img.type === "url" && img.url) {
+        imgUrl = img.url;
+      }
+      if (imgUrl) {
+        userContent.push({ type: "image_url", image_url: { url: imgUrl } });
+      }
+    }
+  }
+
   const bodyObj = {
     model,
     temperature: 0.1,
-    // Encourage the model to respond with structured JSON only
-    response_format: { type: "json_object" as const },
+    ...(generation === "structured" ? { response_format: { type: "json_object" as const } } : {}),
     messages: [
       {
         role: "system",
-        content: buildPlatformIntegrationPrompt(idea),
+        content: generation === "structured" ? buildPlatformIntegrationPrompt(idea) : "You are a helpful assistant.",
       },
       {
         role: "user",
-        content: `Analyze this idea and return the required integrations: ${idea}`,
+        content: userContent,
       },
     ],
   } as const;
@@ -79,6 +159,11 @@ export const processIdea = async (
   const rawContent: string = (data?.choices?.[0]?.message?.content ?? "").trim();
 
   if (import.meta.env.DEV) console.debug("[processIdea] raw content", rawContent);
+
+  if (generation !== "structured") {
+    // For non-structured requests, we don't parse JSON; just return raw content
+    return { integrations: [], rawContent } as unknown as SpecificationResponse;
+  }
 
   try {
     let jsonText = rawContent;
@@ -127,10 +212,161 @@ export const processIdea = async (
       rawContent,
     };
   }
-};
+}
 
 function mapKeysToIntegrations(keys: string[]): AvailableIntegration[] {
   return keys
     .map((key) => availableIntegrations.find((i) => i.key === key))
     .filter((i): i is AvailableIntegration => Boolean(i));
+}
+
+// ----------------------------------------
+// Helper utilities for external callers
+// ----------------------------------------
+
+export const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const result = reader.result as string;
+      const base64 = result.split(",")[1];
+      resolve(base64);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
+
+export const isValidImageUrl = (url: string): boolean => {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const isSupportedImageType = (file: File): boolean => {
+  const supported = ["image/png", "image/jpeg", "image/webp"];
+  return supported.includes(file.type);
+};
+
+// Quick helper to generate images; returns array of URLs if any detected in raw content.
+export async function generateImages(
+  prompt: string,
+  model: string,
+  options: { n?: number; size?: string; quality?: "low" | "medium" | "high"; format?: "png" | "jpeg" | "webp"; background?: "transparent" | "opaque" | "auto" } = {}
+): Promise<{ raw: string; urls: string[]; error?: string }> {
+  // Detect if this should go via OpenAI direct (handled server-side)
+  const openAiModels = ["gpt-image-1", "dall-e", "openai/"]; // simple heuristic
+  const isOpenAI = openAiModels.some((m) => model.includes(m));
+
+  if (isOpenAI) {
+    try {
+      const response = await fetch("/api/image-generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt, model, ...options }),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        return { raw: text, urls: [], error: `OpenAI image error ${response.status}` };
+      }
+
+      const data = await response.json();
+      return {
+        raw: typeof data.raw === "string" ? data.raw : JSON.stringify(data.raw),
+        urls: data.urls ?? [],
+        error: data.error,
+      };
+    } catch (err: any) {
+      const message = err?.message || "OpenAI image generation failed";
+      return { raw: "", urls: [], error: message };
+    }
+  }
+
+  // Fallback to OpenRouter for other models (existing behaviour)
+  const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || import.meta.env.VITE_OPENROUTER_KEY;
+
+  if (!apiKey) {
+    return { raw: "", urls: [], error: "OpenRouter API key missing" };
+  }
+
+  const { n = 1, size = "1024x1024" } = options;
+
+  try {
+    const body = {
+      model,
+      prompt,
+      n,
+      size,
+    } as const;
+
+    const response = await fetch("https://openrouter.ai/api/v1/images/generations", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": import.meta.env.VITE_SITE_URL || window.location.origin,
+        "X-Title": "JonStack",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      let details: unknown = null;
+      try {
+        details = await response.clone().json();
+      } catch {
+        // ignore json parse errors
+      }
+      const msg = `OpenRouter image error ${response.status}` + (details ? ` – ${JSON.stringify(details)}` : "");
+      // Fallback: attempt via chat/completions endpoint (models like Gemini can generate images this way)
+      try {
+        const chatRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": import.meta.env.VITE_SITE_URL || window.location.origin,
+            "X-Title": "JonStack",
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: "user", content: prompt },
+            ],
+          }),
+        });
+
+        const chatRaw = await chatRes.text();
+        const urlRegex = /(https?:\/\/[^\s"']+\.(?:png|jpg|jpeg|webp))/gi;
+        const fallbackUrls = Array.from(new Set(chatRaw.match(urlRegex) || []));
+        return { raw: chatRaw, urls: fallbackUrls, error: chatRes.ok ? undefined : msg };
+      } catch {
+        return { raw: msg, urls: [], error: msg };
+      }
+    }
+
+    const data = await response.json();
+
+    const urls: string[] = Array.isArray(data?.data)
+      ? data.data
+          .map((d: any) => {
+            if (typeof d?.url === "string") return d.url;
+            if (typeof d?.b64_json === "string") return `data:image/png;base64,${d.b64_json}`;
+            return undefined;
+          })
+          .filter((u: any): u is string => typeof u === "string")
+      : [];
+
+    return { raw: JSON.stringify(data), urls };
+  } catch (err: any) {
+    const message = err?.message || "Image generation failed";
+    console.error("[generateImages]", message, err);
+    return { raw: "", urls: [], error: message };
+  }
 } 

@@ -24,6 +24,8 @@ interface IdeaDisplayProps {
   onRemove?: (key: string) => void;
   /** Handler when user clicks the + chip */
   onAdd?: () => void;
+  /** Handler to clear the idea (shows a Clear button in editable mode) */
+  onClear?: () => void;
   /** Optional extra Tailwind classes */
   className?: string;
 }
@@ -42,22 +44,21 @@ export default function IdeaDisplay({
   loading = false,
   onRemove,
   onAdd,
+  onClear,
   className = "",
 }: IdeaDisplayProps) {
   // Determine if we're in editable mode – simply when onIdeaChange is provided
   const editable = typeof onIdeaChange === "function";
 
+  const containerBase = "rounded-xl overflow-hidden";
+  const wrapperClass = editable
+    ? "bg-white/90 dark:bg-gray-800/70 backdrop-blur-md border border-gray-300 dark:border-gray-700 shadow-lg p-6"
+    : "relative bg-gradient-to-br from-gray-900 via-gray-900/80 to-gray-800/70 backdrop-blur-md border border-gray-700/60 pt-10 px-10 md:pt-14 md:px-14 shadow-lg";
+
   return (
     <div className={`relative w-full max-w-4xl mx-auto p-4 not-prose ${className}`.trim()}>
       {/* Container styles differ between editable vs display modes */}
-      <div
-        className={[
-          "rounded-xl overflow-hidden",
-          editable
-            ? "bg-gray-900/80 border border-gray-700/60 p-6"
-            : "relative bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 pt-8 px-8 md:pt-12 md:px-12",
-        ].join(" ")}
-      >
+      <div className={[containerBase, wrapperClass].join(" ")}>
         {/* Decorative gradients only in display mode */}
         {!editable && (
           <div className="absolute inset-0 pointer-events-none rounded-xl">
@@ -87,20 +88,22 @@ export default function IdeaDisplay({
 
         {/* Top bar: label (editable mode) and optional platform chip share the same line */}
         {(editable || platform) && (
-          <div
-            className={`relative z-10 flex items-center mb-4 w-full px-2 ${
-              editable ? "justify-between" : "justify-end"
-            }`}
-          >
-            {editable && (
-              <label className="text-left text-gray-400 text-sm">Enter your idea</label>
+          <div className="relative z-10 flex items-center justify-between mb-4 w-full px-2">
+            {editable && onClear && (
+              <button
+                type="button"
+                onClick={onClear}
+                className="text-xs font-semibold px-2 py-1 bg-red-600 hover:bg-red-500 text-white rounded-md shadow"
+              >b
+                Clear
+              </button>
             )}
-            {platform && <PlatformChip platform={platform} />}
+            {platform && <PlatformChip platform={platform} className="shrink-0" />}
           </div>
         )}
 
         {/* Main content */}
-        <div className={`relative z-10 flex flex-col items-center justify-center gap-8 w-full`}>
+        <div className={`relative z-10 flex flex-col items-center justify-center gap-2 w-full`}>
           {/* Idea text or editable textarea */}
           <div className="text-center max-w-2xl px-4 w-full">
             {editable ? (
@@ -110,7 +113,7 @@ export default function IdeaDisplay({
                 onKeyDown={onIdeaKeyDown}
                 placeholder={placeholder}
                 rows={3}
-                className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-all duration-300 resize-none"
+                className="w-full px-4 py-3 bg-white/80 dark:bg-gray-900/60 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition resize-none backdrop-blur-sm"
               />
             ) : (
               <p className="text-lg md:text-xl lg:text-2xl text-gray-100 leading-relaxed font-medium whitespace-pre-wrap break-words capitalize">
@@ -120,7 +123,7 @@ export default function IdeaDisplay({
           </div>
 
           {/* Integration chips */}
-          <div className="flex justify-center w-full">
+          <div className="flex justify-center w-full mt-4">
             <IntegrationChips
               activeKeys={activeIntegrations}
               showAllIfEmpty={false}

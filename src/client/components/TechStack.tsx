@@ -205,6 +205,7 @@ export default function TechStack({ platformKey = "web" }: Props) {
     github: ["Supabase Auth"],
     discord: ["Supabase Auth"],
     llm: ["OpenRouter"],
+    "llm-image-gen": ["OpenRouter"],
     analytics: ["PostHog"],
     api: ["Vercel Edge Functions"],
   };

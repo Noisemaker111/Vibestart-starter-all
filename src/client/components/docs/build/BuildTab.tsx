@@ -4,20 +4,21 @@ import { availableIntegrations } from "@shared/availableIntegrations";
 import { availablePlatforms } from "@shared/availablePlatforms";
 import { useOs } from "@client/context/OsContext";
 import { processIdea } from "@client/utils/integrationLLM";
+import { DEFAULT_MODEL } from "@client/utils/integrationLLM";
 
 // Test components for individual integrations
-import DocsTestAuth from "@client/components/docs/test/TestAuth";
-import DocsTestDatabase from "@client/components/docs/test/TestDatabase";
-import DocsTestUploads from "@client/components/docs/test/TestUploads";
-import DocsTestLLM from "@client/components/docs/test/TestLLM";
-import DocsTestBilling from "@client/components/docs/test/TestBilling";
-import DocsTestMaps from "@client/components/docs/test/TestMaps";
-import DocsTestRealtimeMessages from "@client/components/docs/test/TestRealtimeMessages";
-import DocsTestNotifications from "@client/components/docs/test/TestNotifications";
-import DocsTestEmail from "@client/components/docs/test/TestEmail";
-import DocsTestSms from "@client/components/docs/test/TestSms";
-import DocsTestFiles from "@client/components/docs/test/TestFiles";
-import DocsTestWhiteboard from "@client/components/docs/test/TestWhiteboard";
+import DocsTestAuth from "@client/components/docs/test-integrations/TestAuth";
+import DocsTestDatabase from "@client/components/docs/test-integrations/TestDatabase";
+import DocsTestUploads from "@client/components/docs/test-integrations/TestUploads";
+import DocsTestLLM from "@client/components/docs/test-integrations/TestLLM";
+import DocsTestBilling from "@client/components/docs/test-integrations/TestBilling";
+import DocsTestMaps from "@client/components/docs/test-integrations/TestMaps";
+import DocsTestRealtimeMessages from "@client/components/docs/test-integrations/TestRealtimeMessages";
+import DocsTestNotifications from "@client/components/docs/test-integrations/TestNotifications";
+import DocsTestEmail from "@client/components/docs/test-integrations/TestEmail";
+import DocsTestSms from "@client/components/docs/test-integrations/TestSms";
+import DocsTestFiles from "@client/components/docs/test-integrations/TestFiles";
+import DocsTestWhiteboard from "@client/components/docs/test-integrations/TestWhiteboard";
 import CursorUserRulesSection from "@client/components/docs/CursorDocs/CursorUserRules";
 import { cursorMemories } from "@shared/cursorMemories";
 
@@ -72,7 +73,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
       lastAiCallRef.current = Date.now();
       setAiLoading(true);
       try {
-        const result = await processIdea(ideaString);
+        const result = await processIdea(ideaString, [], DEFAULT_MODEL, "structured");
         setKeys(result.integrations.map((i: any) => i.key));
         // Ignore error handling for now; could expose toast later
       } catch (err) {
@@ -172,13 +173,12 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
 
   // Map integration keys to test components for verification section
   const integrationComponentMap: Record<string, React.FC | undefined> = {
-    google: DocsTestAuth,
-    github: DocsTestAuth,
-    discord: DocsTestAuth,
-    solana: DocsTestAuth,
+    auth: DocsTestAuth,
     database: DocsTestDatabase,
     uploads: DocsTestUploads,
-    llm: DocsTestLLM,
+    llm: undefined,
+    "llm-json": undefined,
+    "llm-image": undefined,
     billing: DocsTestBilling,
     maps: DocsTestMaps,
     realtime: DocsTestRealtimeMessages,
@@ -192,6 +192,15 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
   const testComponents = Array.from(new Set(keys))
     .map((k) => integrationComponentMap[k])
     .filter(Boolean) as React.FC[];
+
+  // After testComponents definition
+  const llmModes: ("text" | "structured" | "image")[] = [];
+  if (keys.includes("llm")) llmModes.push("text");
+  if (keys.includes("llm-json")) llmModes.push("structured");
+  if (keys.includes("llm-image")) llmModes.push("image");
+  if (llmModes.length > 0) {
+    testComponents.push(() => <DocsTestLLM allowedModes={llmModes} mode={llmModes[0]} />);
+  }
 
   // Dynamic prerequisites & env vars based on selected integrations
   const prerequisiteSet = React.useMemo(() => {
@@ -284,16 +293,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
 
   return (
     <div className={`prose prose-gray dark:prose-invert max-w-none ${className ?? ""}`.trim()}>
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold">Build Your Idea</h1>
-        <button
-          type="button"
-          onClick={handleNewIdea}
-          className="inline-flex items-center gap-2 rounded-md text-sm font-medium bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 py-1.5 shadow hover:opacity-90 transition"
-        >
-          New Idea
-        </button>
-      </div>
+      <h1 className="text-3xl font-bold mb-6">Build Your Idea</h1>
 
       {/* Idea block + dropdown anchor */}
       <div className="relative mb-8" ref={menuRef}>
@@ -307,6 +307,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
           loading={aiLoading}
           onRemove={handleRemove}
           onAdd={() => setMenuOpen((o) => !o)}
+          onClear={handleNewIdea}
         />
         {menuOpen && (
           <div className="absolute z-10 mt-2 w-56 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-2 max-h-64 overflow-y-auto">
@@ -474,6 +475,10 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
                     VITE_PUBLIC_POSTHOG_HOST: {
                       link: "https://posthog.com",
                       desc: "Usually https://app.posthog.com unless self-hosted",
+                    },
+                    OPENAI_API_KEY: {
+                      link: "https://platform.openai.com/account/api-keys",
+                      desc: "OpenAI Dashboard → User → API Keys",
                     },
                   };
 

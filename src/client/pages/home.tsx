@@ -6,6 +6,7 @@ import VersionTag from "@client/components/home/VersionTag";
 import VibeStartMainInfo from "@client/components/home/MainInfo";
 import HomeIdeaCard from "@client/components/home/IdeaCard";
 import { processIdea } from "@client/utils/integrationLLM";
+import { DEFAULT_MODEL } from "@client/utils/integrationLLM";
 import type { AvailableIntegration } from "@shared/availableIntegrations";
 import type { AvailablePlatformKey } from "@shared/availablePlatforms";
 import { consumeLocalToken } from "@client/utils/rateLimit";
@@ -126,7 +127,7 @@ export default function Home() {
       lastAiCallRef.current = Date.now();
       setAiLoading(true);
       try {
-        const result = await processIdea(ideaString);
+        const result = await processIdea(ideaString, [], DEFAULT_MODEL, "structured");
         setActiveKeys(result.integrations.map((i: AvailableIntegration) => i.key));
 
         // Automatically update selected platform if the AI suggests one and it's valid

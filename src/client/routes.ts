@@ -6,4 +6,6 @@ export default [
   route("api/uploadthing", "./pages/api/uploadthing.tsx"),
   route("api/animals", "./pages/api/animals.tsx"),
   route("api/images", "./pages/api/images.tsx"),
+  route("api/chat", "./pages/api/chat.tsx"),
+  route("api/image-generate", "./pages/api/image-generate.tsx"),
 ] satisfies RouteConfig; 

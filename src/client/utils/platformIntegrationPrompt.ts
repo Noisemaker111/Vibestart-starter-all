@@ -2,8 +2,6 @@ import { availableIntegrationKeys } from "@shared/availableIntegrations";
 import { availablePlatformKeys } from "@shared/availablePlatforms";
 
 export function buildPlatformIntegrationPrompt(userIdea: string): string {
-
-
   return `
 You are a deterministic JSON generator. Your only job is to read the user's idea and return **one raw JSON object** with **exactly two keys**:
 

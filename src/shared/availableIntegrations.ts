@@ -1,7 +1,6 @@
 import type { ComponentType } from "react";
 import {
   Database,
-  LogIn,
   Shield,
   Brain,
   Upload,
@@ -13,12 +12,8 @@ import {
   Plug,
   Mail,
   File,
-  Image,
 } from "lucide-react";
 import { FaChalkboard } from "react-icons/fa6";
-
-import { FaDiscord } from "react-icons/fa";
-import { SiSolana } from "react-icons/si";
 
 export interface AvailableIntegration {
   key: string;
@@ -52,53 +47,38 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
     envVars: ["UPLOADTHING_TOKEN"],
   },
   {
-    key: "solana",
-    label: "Solana Sign In",
-    icon: SiSolana,
-    status: "available",
-    prerequisites: ["Create a Supabase account – https://supabase.com/docs/guides/getting-started"],
-    envVars: ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY"],
-    cliFlag: "solanasignin",
-  },
-  {
-    key: "google",
-    label: "Google Sign In",
-    icon: LogIn,
-    status: "available",
-    prerequisites: ["Create a Supabase account – https://supabase.com/docs/guides/getting-started"],
-    envVars: ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY"],
-  },
-  {
-    key: "github",
-    label: "GitHub Sign In",
+    key: "auth",
+    label: "Authentication",
     icon: Shield,
     status: "available",
-    prerequisites: ["Create a Supabase account – https://supabase.com/docs/guides/getting-started"],
-    envVars: ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY"],
-  },
-  {
-    key: "discord",
-    label: "Discord Sign In",
-    icon: FaDiscord,
-    status: "available",
-    prerequisites: ["Create a Supabase account – https://supabase.com/docs/guides/getting-started"],
+    prerequisites: [
+      "Create a Supabase account – https://supabase.com/docs/guides/getting-started",
+    ],
     envVars: ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY"],
   },
   {
     key: "llm",
-    label: "LLM Chatbox",
+    label: "LLM Text",
     icon: Brain,
     status: "available",
     prerequisites: ["Create an OpenRouter account (min. $5 credit) – https://openrouter.ai"],
     envVars: ["VITE_OPENROUTER_API_KEY"],
   },
   {
-    key: "llm-image-gen",
-    label: "LLM Image Generation",
-    icon: Image,
+    key: "llm-json",
+    label: "LLM JSON",
+    icon: Brain,
     status: "available",
     prerequisites: ["Create an OpenRouter account (min. $5 credit) – https://openrouter.ai"],
     envVars: ["VITE_OPENROUTER_API_KEY"],
+  },
+  {
+    key: "llm-image",
+    label: "LLM Image",
+    icon: Brain,
+    status: "available",
+    prerequisites: ["Create an OpenRouter account (min. $5 credit) – https://openrouter.ai"],
+    envVars: ["VITE_OPENROUTER_API_KEY", "OPENAI_API_KEY"],
   },
   {
     key: "analytics",
