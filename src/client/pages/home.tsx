@@ -320,7 +320,7 @@ export default function Home() {
                   onClick={() => posthog.capture("home_get_building_click")}
                   className="inline-flex items-center justify-center px-8 py-4 font-bold text-black bg-white rounded-xl hover:bg-gray-100 transition-all duration-200"
                 >
-                  Get Building
+                  Start Building
                 </Link>
 
                 {/* Docs button – minimal styling so only text is visible */}

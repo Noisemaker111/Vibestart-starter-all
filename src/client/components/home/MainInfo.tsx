@@ -3,12 +3,12 @@ import React from "react";
 export default function VibeStartMainInfo() {
   return (
     <>
-      <h1 className="text-6xl lg:text-8xl font-black mb-6 leading-tight">
+      <h1 className="text-5xl lg:text-7xl font-black mb-6 leading-tight">
         <span className="bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
           Vibe-Ready Tech Stack
         </span>
         <br />
-        <span className="text-3xl lg:text-5xl text-gray-400 font-light">
+        <span className="text-2xl lg:text-4xl text-gray-400 font-light">
           Start your idea in minutes.
         </span>
       </h1>

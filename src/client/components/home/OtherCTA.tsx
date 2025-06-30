@@ -18,7 +18,7 @@ export default function HomeOtherCTA({ buildLink, onClick }: Props) {
             onClick={onClick}
             className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
           >
-            Get Building
+            Start Building
           </Link>
         </div>
       </div>
