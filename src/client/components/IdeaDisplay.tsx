@@ -89,7 +89,7 @@ export default function IdeaDisplay({
         {/* Top bar: label (editable mode) and optional platform chip share the same line */}
         {(editable || platform) && (
           <div
-            className={`relative z-10 flex items-center mb-4 w-full px-2 ${
+            className={`relative z-10 flex items-center mb-4 w-full ${
               editable && onClear ? "justify-between" : "justify-end"
             }`}
           >
