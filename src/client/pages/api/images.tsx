@@ -2,6 +2,7 @@ import { db } from "@server/db";
 import { uploadsTable } from "@server/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { verify, generateSignedToken } from "@server/utils/visitorToken";
+import { utapi } from "@server/uploadthing";
 
 export async function loader({ request }: { request: Request }) {
   const cookieName = "anon_token";
@@ -42,6 +43,19 @@ export async function action({ request }: { request: Request }) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
     }
 
+    // Fetch file keys for this visitor
+    const rows = await db.select({ key: uploadsTable.key }).from(uploadsTable).where(eq(uploadsTable.owner_token, token));
+
+    // Delete files from UploadThing (ignore errors – UI deletion still proceeds)
+    if (rows.length > 0) {
+      try {
+        await utapi.deleteFiles(rows.map((r) => r.key));
+      } catch (err) {
+        console.error("[images] Failed to delete UploadThing files", err);
+      }
+    }
+
+    // Remove DB rows
     await db.delete(uploadsTable).where(eq(uploadsTable.owner_token, token));
     return new Response(JSON.stringify({ success: true }));
   }

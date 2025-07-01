@@ -11,7 +11,7 @@ import appStylesHref from "@shared/app.css?url";
 import { AuthProvider } from "@client/context/AuthContext";
 import { OSProvider } from "@client/context/OsContext";
 import { Header } from "@client/components/Header";
-import PosthogWrapper from "@client/components/PosthogWrapper";
+import PosthogWrapper from "@client/components/integrations/analytics/PosthogWrapper";
 
 export const links: Route.LinksFunction = () => [
   { rel: "stylesheet", href: appStylesHref },

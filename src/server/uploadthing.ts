@@ -3,19 +3,23 @@ import { createRouteHandler } from "uploadthing/remix";
 import { db } from "@server/db";
 import { uploadsTable } from "@server/db/schema";
 import { verify, generateSignedToken } from "@server/utils/visitorToken";
+import { UTApi } from "uploadthing/server";
 
 const f = createUploadthing();
+
+// Shared UploadThing API instance for admin actions (deleteFiles, etc.)
+export const utapi = new UTApi();
 
 export const uploadRouter = {
   imageUploader: f({
     image: { maxFileSize: "4MB", maxFileCount: 1 },
   })
-    .middleware(async ({ req }) => {
+    .middleware(async ({ event }) => {
       const cookieName = "anon_token";
-      const cookieHeader = req.headers.get("cookie") ?? "";
+      const cookieHeader = event.request.headers.get("cookie") ?? "";
       const incomingCookie = cookieHeader
         .split(/;\s*/)
-        .find((c) => c.startsWith(`${cookieName}=`))?.split("=")[1];
+        .find((c: string) => c.startsWith(`${cookieName}=`))?.split("=")[1];
 
       let token = verify(incomingCookie) ?? null;
       if (!token) {

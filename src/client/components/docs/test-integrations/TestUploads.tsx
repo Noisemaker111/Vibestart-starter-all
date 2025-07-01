@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { SquareUploadButton } from "@client/components/uploads/SquareUploadButton";
+import { UploadButton } from "@client/utils/uploadthing";
+import { useClearTests } from "@client/utils/testIntegrationEvents";
+import { TestCard } from "@client/components/docs/test-integrations/TestCard";
 
 // Local status indicator util
 function StatusIcon({ status }: { status: "idle" | "ok" | "error" }) {
@@ -13,6 +15,21 @@ export default function DocsTestUploads() {
   const [uploadedImages, setUploadedImages] = useState<{ id: number; url: string }[]>([]);
   const [uploadthingApiStatus, setUploadthingApiStatus] = useState<"idle" | "ok" | "error">("idle");
   const [apiError, setApiError] = useState<string | null>(null);
+
+  // Listen for global clear
+  useClearTests(() => {
+    setUploadResult(null);
+    setUploadedImages([]);
+    setUploadthingApiStatus("idle");
+    setApiError(null);
+
+    fetch("/api/images", { method: "DELETE" })
+      .then(() => {
+        // after deletion, recheck health
+        checkUploadthingApi();
+      })
+      .catch(() => {});
+  });
 
   async function fetchImages() {
     if (!import.meta.env.DEV) return;
@@ -58,33 +75,47 @@ export default function DocsTestUploads() {
   }, [uploadResult]);
 
   return (
-    <details className="mb-10 bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
-      <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-lg bg-green-50 dark:bg-green-900/20 flex items-center gap-2">
-        <span>File Upload Test</span>
-        <StatusIcon status={uploadResult ? "ok" : uploadthingApiStatus} />
-      </summary>
-      <div className="p-6">
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <SquareUploadButton onUploadComplete={(res: any) => setUploadResult(res)} />
+    <TestCard
+      headerClassName="bg-green-50 dark:bg-green-900/20"
+      title={
+        <div className="flex items-center gap-3 flex-wrap">
+          <span>File Upload Test</span>
+          {(() => {
+            const hasUploaded =
+              (uploadResult && Array.isArray(uploadResult) && uploadResult.length > 0) ||
+              uploadedImages.length > 0;
+            const iconStatus: "idle" | "ok" | "error" = hasUploaded
+              ? "ok"
+              : uploadthingApiStatus === "error"
+              ? "error"
+              : "idle";
+            return <StatusIcon status={iconStatus} />;
+          })()}
+          {/* Inline upload button */}
+          <UploadButton
+            endpoint="imageUploader"
+            onClientUploadComplete={(res) => setUploadResult(res)}
+            appearance={{
+              button() {
+                return "btn-primary px-3 py-1 text-sm";
+              },
+            }}
+            content={{ button: () => "Upload Photo" }}
+          />
         </div>
+      }
+    >
+      {apiError && (
+        <p className="text-sm text-red-600 dark:text-red-400 mt-4 break-all">Error: {apiError}</p>
+      )}
 
-        {apiError && (
-          <p className="text-sm text-red-600 dark:text-red-400 mt-4 break-all">Error: {apiError}</p>
-        )}
-
-        {uploadedImages.length > 0 && (
-          <div className="mt-6 grid grid-cols-3 sm:grid-cols-4 gap-4">
-            {uploadedImages.map((img) => (
-              <img
-                key={img.id}
-                src={img.url}
-                alt="Uploaded"
-                className="w-24 h-24 object-cover rounded-lg"
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </details>
+      {uploadedImages.length > 0 && (
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+          {uploadedImages.map((img) => (
+            <img key={img.id} src={img.url} alt="Uploaded" className="w-24 h-24 object-cover rounded-lg" />
+          ))}
+        </div>
+      )}
+    </TestCard>
   );
 }

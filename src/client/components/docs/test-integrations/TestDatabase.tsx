@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useClearTests } from "@client/utils/testIntegrationEvents";
+import { TestCard } from "@client/components/docs/test-integrations/TestCard";
 
 // Local util to show coloured status tick / cross / warn
 function StatusIcon({ status }: { status: "idle" | "ok" | "error" }) {
@@ -7,6 +9,8 @@ function StatusIcon({ status }: { status: "idle" | "ok" | "error" }) {
   return <span className="text-yellow-500 ml-2">⚠</span>;
 }
 
+const ANIMALS = ["Cat","Dog","Fox","Dolphin","Elephant","Lion","Tiger","Panda","Rabbit","Koala"];
+
 /**
  * DocsTestDatabase verifies that the `animals` table exists and that the
  * REST endpoints wired up in `/api/animals` work correctly for the current
@@ -14,7 +18,7 @@ function StatusIcon({ status }: { status: "idle" | "ok" | "error" }) {
  * page.
  */
 export default function DocsTestDatabase() {
-  const [animalInput, setAnimalInput] = useState("");
+  const [animalInput, setAnimalInput] = useState(ANIMALS[0]);
   const [animals, setAnimals] = useState<string[]>([]);
   const [animalError, setAnimalError] = useState<string | null>(null);
   const [animalsStatus, setAnimalsStatus] = useState<"idle" | "ok" | "error">("idle");
@@ -54,7 +58,7 @@ export default function DocsTestDatabase() {
         const errorPayload = await res.json().catch(() => ({}));
         throw new Error(errorPayload?.error || `HTTP ${res.status}`);
       }
-      setAnimalInput("");
+      setAnimalInput(ANIMALS[0]);
       setAnimalsStatus("ok"); // mark DB test as successful on insert
       await refreshAnimals();
     } catch (err: any) {
@@ -71,13 +75,42 @@ export default function DocsTestDatabase() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Listen for global clear command
+  useClearTests(() => {
+    // Reset local UI state
+    setAnimalInput(ANIMALS[0]);
+    setAnimals([]);
+    setAnimalError(null);
+    setAnimalsStatus("idle");
+    setAnimalsApiStatus("idle");
+
+    // Delete rows on server then refresh list
+    fetch("/api/animals", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: "{}" })
+      .then(() => refreshAnimals())
+      .catch(() => {});
+  });
+
   return (
-    <details className="mb-10 bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
-      <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-lg bg-blue-50 dark:bg-blue-900/20">
-        Database Test
-        <StatusIcon status={animalsStatus} />
-      </summary>
-      <div className="p-6 space-y-4">
+    <TestCard
+      headerClassName="bg-blue-50 dark:bg-blue-900/20"
+      title={
+        <div className="flex items-center gap-3 flex-wrap">
+          <span>Database Test</span>
+          <StatusIcon status={animalsStatus} />
+          <select
+            value={animalInput}
+            onChange={(e) => setAnimalInput(e.target.value)}
+            className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm"
+          >
+            {ANIMALS.map((a) => (
+              <option key={a}>{a}</option>
+            ))}
+          </select>
+          <button onClick={() => addAnimal(animalInput)} className="btn-primary px-3 py-1 text-sm">Send</button>
+        </div>
+      }
+    >
+      <div className="space-y-4">
         <p className="text-sm text-gray-600 dark:text-gray-400">
           Ensure your Supabase project has a table named <code>animals</code> with
           a <code>name</code> <em>text</em> column. Add animals individually or
@@ -117,6 +150,6 @@ export default function DocsTestDatabase() {
           )}
         </div>
       </div>
-    </details>
+    </TestCard>
   );
 }

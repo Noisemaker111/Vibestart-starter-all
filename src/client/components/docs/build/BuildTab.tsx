@@ -21,6 +21,9 @@ import DocsTestFiles from "@client/components/docs/test-integrations/TestFiles";
 import DocsTestWhiteboard from "@client/components/docs/test-integrations/TestWhiteboard";
 import CursorUserRulesSection from "@client/components/docs/CursorDocs/CursorUserRules";
 import { cursorMemories } from "@shared/cursorMemories";
+import DocsTestAnalytics from "@client/components/docs/test-integrations/TestAnalytics";
+import DocsTestApi from "@client/components/docs/test-integrations/TestApi";
+import DocsTestBotDetection from "@client/components/docs/test-integrations/TestBotDetection";
 
 interface BuildTabProps {
   idea?: string;
@@ -187,6 +190,9 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
     sms: DocsTestSms,
     files: DocsTestFiles,
     whiteboard: DocsTestWhiteboard,
+    analytics: DocsTestAnalytics,
+    api: DocsTestApi,
+    "bot-detection": DocsTestBotDetection,
   };
 
   const testComponents = Array.from(new Set(keys))
@@ -516,6 +522,33 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
               <li>
                 <h3 className="text-xl font-semibold mb-2">Check Your Integrations</h3>
                 <p className="mb-2">Expand each widget to run a real API call (insert a row, upload a file, etc.). If everything succeeds you're ready for Git!</p>
+                {/* Global clear button */}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    // Global clear logic – sign out, wipe tables, then dispatch event
+                    try {
+                      const { supabase } = await import("@shared/supabase");
+                      await supabase.auth.signOut().catch(() => {});
+                    } catch {}
+
+                    try {
+                      await fetch("/api/animals", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: "{}" });
+                    } catch {}
+
+                    try {
+                      await fetch("/api/images", { method: "DELETE" });
+                    } catch {}
+
+                    // Dispatch event to notify all widgets to reset UI state
+                    const { dispatchClearTests } = await import("@client/utils/testIntegrationEvents");
+                    dispatchClearTests();
+                  }}
+                  className="mb-6 px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600"
+                >
+                  Clear All Tests
+                </button>
+
                 {testComponents.map((Comp, idx) => (
                   <Comp key={idx} />
                 ))}

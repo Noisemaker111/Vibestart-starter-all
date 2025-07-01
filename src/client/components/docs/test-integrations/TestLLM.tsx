@@ -1,4 +1,7 @@
 import ChatBox from "@client/components/LLM/ChatBox";
+import { useState } from "react";
+import { useClearTests } from "@client/utils/testIntegrationEvents";
+import { TestCard } from "@client/components/docs/test-integrations/TestCard";
 
 interface Props {
   mode?: "text" | "structured" | "image";
@@ -14,18 +17,21 @@ export default function DocsTestLLM({ mode = "text", allowedModes }: Props) {
         ? ["structured"]
         : ["image"];
 
+  // Key to force ChatBox remount on clear
+  const [widgetKey, setWidgetKey] = useState(0);
+
+  useClearTests(() => {
+    // Simple remount to reset internal state
+    setWidgetKey((k) => k + 1);
+  });
+
   return (
-    <details
-      className="mb-10 bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden"
-      open
+    <TestCard
+      headerClassName="bg-indigo-50 dark:bg-indigo-900/20"
+      title={<span>LLM Chat</span>}
     >
-      <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center gap-2">
-        <span>LLM Chat</span>
-      </summary>
-      <div className="p-6">
-        <ChatBox defaultMode={mode} allowedModes={allowed as any} />
-      </div>
-    </details>
+      <ChatBox key={widgetKey} defaultMode={mode} allowedModes={allowed as any} />
+    </TestCard>
   );
 }
 
