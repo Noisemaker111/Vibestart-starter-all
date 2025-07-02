@@ -9,7 +9,6 @@ import { DEFAULT_MODEL } from "@client/utils/integrationLLM";
 import type { AvailableIntegration } from "@shared/availableIntegrations";
 import type { AvailablePlatformKey } from "@shared/availablePlatforms";
 import { consumeLocalToken } from "@client/utils/rateLimit";
-import Badge from "@client/components/Badge";
 import { HOME_PLACEHOLDER_ROTATE_MS } from "@shared/constants";
 import { usePostHog } from "posthog-js/react";
 
@@ -289,14 +288,6 @@ export default function Home() {
 
             {/* Interactive Idea Input */}
             <div className="max-w-3xl mx-auto">
-              {/* VibeStart CLI command badge */}
-              <div
-                className="relative flex items-center gap-2 px-4 py-2 mb-6 mx-auto rounded-md bg-gray-950/90 border border-gray-700 text-gray-100 text-sm sm:text-base whitespace-nowrap shadow-sm opacity-90 w-max"
-                aria-label="vibestartcommand coming soon"
-              >
-                <code className="select-none font-mono">npx create-vibestart</code>
-                <Badge label="soon" />
-              </div>
               <HomeIdeaCard
                 idea={idea}
                 placeholder={currentPlaceholder}

@@ -9,7 +9,7 @@ import {
 import type { Route } from "./+types/root";
 import appStylesHref from "@shared/app.css?url";
 import { AuthProvider } from "@client/context/AuthContext";
-import { OSProvider } from "@client/context/OsContext";
+import { EnvironmentProvider } from "@client/context/EnvironmentContext";
 import { Header } from "@client/components/Header";
 import PosthogWrapper from "@client/components/integrations/analytics/PosthogWrapper";
 
@@ -40,10 +40,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <body className="bg-gray-50 dark:bg-gray-900">
         <PosthogWrapper apiKey={POSTHOG_KEY} host={POSTHOG_HOST}>
           <AuthProvider>
-            <OSProvider>
+            <EnvironmentProvider>
               <Header />
               {children}
-            </OSProvider>
+            </EnvironmentProvider>
           </AuthProvider>
         </PosthogWrapper>
         <ScrollRestoration />

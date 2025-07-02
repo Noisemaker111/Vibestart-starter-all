@@ -9,26 +9,13 @@ interface ModelSelectorProps {
 }
 
 const ALL_MODELS: { id: string; label: string }[] = [
-  { id: DEFAULT_LLM_MODEL, label: DEFAULT_LLM_MODEL },
-  { id: "openai/gpt-4o-mini", label: "gpt-4o-mini" },
-  { id: "google/gemini-pro-1.5", label: "gemini-pro-1.5" },
-  { id: "google/gemini-1.5-pro", label: "gemini-1.5-pro" },
-  { id: "google/gemini-2.0-flash-001", label: "gemini-2-flash" },
+  { id: DEFAULT_LLM_MODEL, label: "google/gemma-3n-e4b-it" },
   { id: "dall-e-3", label: "dall-e-3" },
-  { id: "dall-e-2", label: "dall-e-2" },
-  { id: "stability-ai/stable-diffusion-xl", label: "sdxl" },
-  { id: "gpt-image-1", label: "gpt-image-1" },
 ];
 
-const IMAGE_MODELS = [
-  { id: "dall-e-3", label: "dall-e-3" },
-  { id: "dall-e-2", label: "dall-e-2" },
-  { id: "gpt-image-1", label: "gpt-image-1" },
-];
+const IMAGE_MODELS = ALL_MODELS.filter((m) => m.id === "dall-e-3");
 
-const IMAGE_MODEL_IDS = ["dall-e-3", "dall-e-2", "gpt-image-1", "stability-ai/stable-diffusion-xl"] as const;
-
-const TEXT_MODELS = ALL_MODELS.filter((m) => !IMAGE_MODEL_IDS.includes(m.id as any));
+const TEXT_MODELS = ALL_MODELS.filter((m) => m.id !== "dall-e-3");
 
 export default function ModelSelector({ value, onChange, className, mode }: ModelSelectorProps) {
   const selected = value ?? DEFAULT_LLM_MODEL;

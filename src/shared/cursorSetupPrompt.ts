@@ -12,7 +12,7 @@ export function buildCursorSetupPrompt({
   setupCommands,
   memories = cursorMemories,
 }: CursorSetupPromptOptions): string {
-  const memoryCommands = memories.map((m) => `/Create Memory\n${m}`).join("\n\n");
+  const memoryCommands = `/Create Memory\n${memories.join("\n\n")}`;
 
   return `${memoryCommands}\n\n/Generate Cursor Rules\n\n<project-structure.mdc>\n${projectStructureMdc}\n\n<tech-stack.mdc>\n${techStackMdc}\n\n/Setup Project\n${setupCommands}`;
 } 

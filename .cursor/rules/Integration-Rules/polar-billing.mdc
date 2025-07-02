@@ -1,0 +1,140 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+Based on the documentation I found, here are the answers to your Polar integration essentials:
+
+SDK & Auth
+Yes, there is an official TypeScript/Node SDK:
+
+Install with: pnpm add @polar-sh/sdk
+Basic usage:
+import { Polar } from '@polar-sh/sdk'
+
+const polar = new Polar({
+  accessToken: process.env['POLAR_ACCESS_TOKEN'] ?? '',
+})
+
+Environment variables required:
+
+POLAR_ACCESS_TOKEN - Your organization access token (required for both test and prod)
+For sandbox: Set server: 'sandbox' in SDK config
+For production: Omit server parameter or set server: 'production'
+Environments & Keys
+Sandbox vs Live mode:
+
+Polar uses a dedicated sandbox environment at sandbox.polar.sh instead of test mode
+Sandbox API base URL: https://sandbox-api.polar.sh
+Production API base URL: https://api.polar.sh
+You need separate access tokens for sandbox and production environments
+Create tokens in your organization settings in each environment
+Key restrictions:
+The documentation doesn't specify domain restrictions for API keys, but you can create organization access tokens from your organization settings.
+
+Checkout Flow
+Best practice for React-SSR (Vite) apps:
+The documentation shows embedded checkout as the recommended approach for React apps:
+
+import { PolarEmbedCheckout } from '@polar-sh/checkout/embed'
+import { useEffect } from 'react'
+
+const PurchaseLink = () => {
+  useEffect(() => {
+    PolarEmbedCheckout.init()
+  }, [])
+
+  return (
+    <a
+      href="__CHECKOUT_LINK__"
+      data-polar-checkout
+      data-polar-checkout-theme="light"
+    >
+      Purchase
+    </a>
+  )
+}
+
+Sample snippet for one-off payment link:
+
+import { Polar } from "@polar-sh/sdk";
+
+const polar = new Polar({
+  accessToken: process.env["POLAR_ACCESS_TOKEN"] ?? "",
+});
+
+const checkout = await polar.checkouts.create({
+  products: ["productId"], // Your "X image credits" product ID
+  success_url: "https://your-site.com/success"
+});
+
+console.log(checkout.url) // Redirect user here
+
+Webhooks
+Events to listen for payment success and refunds:
+
+order.paid - When an order is fully processed and paid
+order.created - When an order is created (may be pending initially)
+order.refunded - When an order is refunded
+refund.created - When a refund is created
+refund.updated - When a refund is updated
+Node 18 signature verification example:
+
+import express, { Request, Response } from 'express'
+import { validateEvent, WebhookVerificationError } from '@polar-sh/sdk/webhooks'
+
+const app = express()
+
+app.post(
+  '/webhook',
+  express.raw({ type: 'application/json' }),
+  (req: Request, res: Response) => {
+    try {
+      const event = validateEvent(
+        req.body,
+        req.headers,
+        process.env['POLAR_WEBHOOK_SECRET'] ?? '',
+      )
+
+      // Process the event
+
+      res.status(202).send('')
+    } catch (error) {
+      if (error instanceof WebhookVerificationError) {
+        res.status(403).send('')
+      }
+      throw error
+    }
+  },
+)
+
+Testing
+Test card numbers:
+Yes, Polar provides Stripe test card numbers in sandbox:
+
+4242 4242 4242 4242 (with future expiration date and random CVC)
+Test webhooks from dashboard:
+The documentation shows a delivery overview page where you can "trigger redelivery in case of failure", suggesting webhook testing capabilities.
+
+Database Mapping
+Link Supabase user ID to Polar customer:
+Use the external_customer_id field when creating checkout sessions:
+
+const checkout = await polar.checkouts.create({
+  products: ["productId"],
+  external_customer_id: "your_supabase_user_id", // Your user ID
+  success_url: "https://your-site.com/success"
+});
+
+Minimal schema fields to store:
+Based on the webhook payloads, consider storing:
+
+polar_customer_id - Polar's internal customer ID
+external_customer_id - Your Supabase user ID
+order_id - For tracking orders
+subscription_id - For recurring payments
+amount - Payment amount
+status - Payment status (pending, paid, refunded)
+created_at - Timestamp
+metadata - Any additional data you passed
+The documentation suggests using the customer.state_changed webhook as a single source of truth for customer state, which includes active subscriptions and granted benefits.

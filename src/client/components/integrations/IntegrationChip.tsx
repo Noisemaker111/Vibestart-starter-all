@@ -132,7 +132,7 @@ export default function IntegrationChips({ className, activeKeys, showAllIfEmpty
           >
             <div className="absolute inset-0 rounded-full bg-white/10 pointer-events-none" />
 
-            <Plus className="w-5 h-5 text-white" />
+            <Plus className="w-6 h-6 text-white" />
             <span className="ml-2 text-base font-medium">Add Integrations</span>
           </button>
         )}
@@ -169,7 +169,7 @@ export default function IntegrationChips({ className, activeKeys, showAllIfEmpty
         >
           <div className="absolute inset-0 rounded-full bg-white/10 pointer-events-none" />
 
-          <Plus className="w-5 h-5 text-white" />
+          <Plus className="w-6 h-6 text-white" />
           <span className="ml-2 text-base font-medium">Add Integrations</span>
         </button>
       )}

@@ -6,10 +6,9 @@ import CursorUserRulesSection from "@client/components/CursorUserRules";
 import MemoriesSection from "@client/components/CursorMemories";
 import { availablePlatforms } from "@shared/availablePlatforms";
 import { availableIntegrations } from "@shared/availableIntegrations";
-import { useOs } from "@client/context/OsContext";
+import { useEnvironment } from "@client/context/EnvironmentContext";
 import BuildTab from "@client/components/docs/BuildTab";
 import PlatformChip from "@client/components/PlatformChip";
-import CliDocsContent from "@client/components/docs/CliTab";
 import SideBar from "@client/components/SideBar";
 
 export function meta({}: Route.MetaArgs) {
@@ -55,7 +54,7 @@ export default function Docs() {
   const target = availablePlatforms[targetIdx].key as Target;
 
   // Global OS
-  const { os } = useOs();
+  const { env } = useEnvironment();
 
   // Platform dropdown state
   const [platformOpen, setPlatformOpen] = useState(false);
@@ -77,7 +76,7 @@ export default function Docs() {
   }, [platformOpen]);
 
   const megaPrompt = ideaParam
-    ? `alter the current template to help create this idea, understand the current codebase and make changes and alter the connections, tables, functions, namings all to my project's idea. target platform=${target}. dev os=${os}. create a github repo called "${projectParam}". then <user_idea_start>${ideaParam}<user_idea_end>`
+    ? `alter the current template to help create this idea, understand the current codebase and make changes and alter the connections, tables, functions, namings all to my project's idea. target platform=${target}. environment=${env}. create a github repo called "${projectParam}". then <user_idea_start>${ideaParam}<user_idea_end>`
     : "";
 
   const [megaCopySuccess, setMegaCopySuccess] = useState(false);
@@ -100,7 +99,6 @@ export default function Docs() {
   const leafSections: readonly DocsSection[] = [
     { id: "build-idea", title: "Build Idea" },
     { id: "cursor", title: "Cursor" },
-    { id: "cli", title: "CLI", soon: true },
     { id: "platforms", title: "Platforms" },
     { id: "database", title: "Database" },
     { id: "authentication", title: "Authentication" },
@@ -315,8 +313,6 @@ function MyComponent() {
                   }}
                 />
               )}
-
-              {activeSection === "cli" && <CliDocsContent />}
             </div>
           </div>
         </div>

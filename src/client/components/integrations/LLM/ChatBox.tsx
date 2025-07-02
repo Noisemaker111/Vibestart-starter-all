@@ -6,15 +6,14 @@ import { generateImages } from "@client/utils/integrationLLM";
 import { Paperclip, Send as SendIcon } from "lucide-react";
 
 export interface ChatBoxProps {
-  defaultMode?: "text" | "structured" | "image";
-  allowedModes?: ("text" | "structured" | "image")[];
+  className?: string;
 }
 
-export default function ChatBox({ defaultMode = "text", allowedModes = ["text", "structured", "image"] }: ChatBoxProps) {
+export default function ChatBox({ className }: ChatBoxProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<FileList | undefined>();
   const [model, setModel] = useState<string>(DEFAULT_LLM_MODEL);
-  const [mode, setMode] = useState<"text" | "structured" | "image">(defaultMode);
+  const [mode, setMode] = useState<"text" | "structured" | "image">("text");
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [rawImageOutput, setRawImageOutput] = useState<string>("");
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
@@ -32,28 +31,42 @@ export default function ChatBox({ defaultMode = "text", allowedModes = ["text", 
     api: "/api/chat",
   }) as any;
 
-  const handleModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newMode = e.target.value as "text" | "structured" | "image";
-    if (!allowedModes.includes(newMode)) return;
-    setMode(newMode);
-    if (newMode !== "image" && ["dall-e-3", "dall-e-2", "gpt-image-1", "stability-ai/stable-diffusion-xl"].includes(model)) {
-      setModel(DEFAULT_LLM_MODEL);
+  // Auto-detection helper: decide mode based on prompt & attachments
+  const detectMode = (prompt: string, attachedFiles?: FileList | undefined): "text" | "structured" | "image" => {
+    // If user attached files, treat as image request
+    if (attachedFiles && attachedFiles.length > 0) return "image";
+
+    const lower = prompt.toLowerCase();
+
+    // Heuristic: if prompt asks for JSON specifically
+    if (/\bjson\b/.test(lower) && /\b(return|output|respond)\b/.test(lower)) {
+      return "structured";
     }
-    if (newMode === "image" && !["dall-e-3", "dall-e-2", "gpt-image-1"].includes(model)) {
-      setModel("dall-e-3");
+
+    // Heuristic: keywords indicating an image creation request
+    if (/(generate|create|draw|produce|make).*\b(image|picture|photo|art|illustration)\b/.test(lower) || /\b(image|picture|photo|illustration) of /.test(lower)) {
+      return "image";
     }
+
+    return "text";
   };
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (mode === "image") {
+    // Decide mode dynamically
+    const detectedMode = detectMode(input, files);
+    setMode(detectedMode);
+
+    if (detectedMode === "image") {
+      const chosenModel = "dall-e-3";
+      if (model !== chosenModel) setModel(chosenModel);
       if (!input.trim()) return;
       setIsGeneratingImage(true);
       setImageUrls([]);
       setRevisedPrompt(null);
       setRawImageOutput("");
       try {
-        const res = await generateImages(input.trim(), model);
+        const res = await generateImages(input.trim(), chosenModel);
         setImageUrls(res.urls);
         // Attempt to parse JSON to get revised_prompt
         let rev: string | null = null;
@@ -76,8 +89,19 @@ export default function ChatBox({ defaultMode = "text", allowedModes = ["text", 
       return;
     }
 
+    // Reset image-related UI state
+    setImageUrls([]);
+    setIsGeneratingImage(false);
+
+    const chosenModel = model === "dall-e-3" ? DEFAULT_LLM_MODEL : model;
+    if (model !== chosenModel) setModel(chosenModel);
+
+    if (!input.trim()) return;
+
+    const structured = detectedMode === "structured";
+
     handleSubmit(event as any, {
-      body: { model, structured: mode === "structured" },
+      body: { model: chosenModel, structured },
       ...(files ? { experimental_attachments: files } : {}),
     });
     // reset file input
@@ -93,7 +117,7 @@ export default function ChatBox({ defaultMode = "text", allowedModes = ["text", 
     (mode === "image" && (isGeneratingImage || imageUrls.length > 0 || rawImageOutput || error));
 
   return (
-    <div className="flex flex-col w-full max-w-3xl mx-auto border rounded-lg bg-white dark:bg-gray-900 shadow">
+    <div className={`flex flex-col w-full max-w-3xl mx-auto border rounded-lg bg-white dark:bg-gray-900 shadow ${className ?? ""}`.trim()}>
       {/* Controls */}
       <div className="p-4 flex flex-col gap-3 border-b dark:border-gray-700">
         {/* Row 1 – model + mode selectors */}
@@ -104,17 +128,7 @@ export default function ChatBox({ defaultMode = "text", allowedModes = ["text", 
             mode={mode}
             className="w-40"
           />
-          {allowedModes.length > 1 && (
-            <select
-              value={mode}
-              onChange={handleModeChange}
-              className="w-28 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              {allowedModes.includes("text") && <option value="text">Text</option>}
-              {allowedModes.includes("image") && <option value="image">Image</option>}
-              {allowedModes.includes("structured") && <option value="structured">JSON</option>}
-            </select>
-          )}
+          {/* Mode selector removed – mode is auto-detected */}
           {isSending && (
             <button
               type="button"

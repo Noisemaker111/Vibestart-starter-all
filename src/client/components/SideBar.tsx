@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import IntegrationChips from "@client/components/integrations/IntegrationChip";
 import PlatformChip from "@client/components/PlatformChip";
 import { availablePlatforms } from "@shared/availablePlatforms";
 import { availableIntegrations } from "@shared/availableIntegrations";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import ChipDropdownMenu from "@client/components/ChipDropdownMenu";
 
 interface SideBarProps {
   targetIdx: number;
@@ -24,35 +24,13 @@ export default function SideBar({
   integrationKeys,
   setIntegrationKeys,
 }: SideBarProps) {
-  // Platform dropdown
-  const [platformOpen, setPlatformOpen] = useState(false);
-  const platformMenuRef = useRef<HTMLDivElement | null>(null);
+  // Platform dropdown state using reusable menu
   const [platformAnchor, setPlatformAnchor] = useState<{ x: number; y: number } | null>(null);
+  const [platformMenuVisible, setPlatformMenuVisible] = useState(false);
 
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (platformOpen && !platformMenuRef.current?.contains(e.target as Node)) {
-        setPlatformOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [platformOpen]);
-
-  // Integration popup state (lifted for simplicity)
-  const [intgMenuOpen, setIntgMenuOpen] = useState(false);
-  const [intgMenuAnchor, setIntgMenuAnchor] = useState<{ x: number; y: number } | null>(null);
-  const intgMenuRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (intgMenuOpen && intgMenuRef.current && !intgMenuRef.current.contains(e.target as Node)) {
-        setIntgMenuOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [intgMenuOpen]);
+  // Integration dropdown state using reusable menu
+  const [intgAnchor, setIntgAnchor] = useState<{ x: number; y: number } | null>(null);
+  const [intgMenuVisible, setIntgMenuVisible] = useState(false);
 
   const allIntegrations = availableIntegrations;
 
@@ -96,41 +74,34 @@ export default function SideBar({
             onClick={(e) => {
               const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
               setPlatformAnchor({ x: rect.left, y: rect.bottom });
-              setPlatformOpen((o) => !o);
+              setPlatformMenuVisible((v) => !v);
             }}
           />
-          {/* Dropdown */}
-          {platformOpen && platformAnchor && (
-            <div
-              ref={platformMenuRef}
-              className="fixed w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 max-h-72 overflow-y-auto"
-              style={{ left: platformAnchor.x, top: platformAnchor.y + 8 }}
-            >
-              {availablePlatforms.map((p) => {
-                const idx = availablePlatforms.findIndex((x) => x.key === p.key);
-                const Icon = p.icon;
-                return (
-                  <button
-                    key={p.key}
-                    onClick={() => {
-                      setTargetIdx(idx);
-                      setPlatformOpen(false);
-                    }}
-                    className={`relative flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${idx === targetIdx ? "bg-gray-100 dark:bg-gray-800/50" : ""}`}
-                  >
-                    {Icon ? <Icon className="w-4 h-4" /> : null}
-                    <span>{p.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+
+          {/* Platform selection menu */}
+          {platformMenuVisible && platformAnchor && (
+            <ChipDropdownMenu
+              anchor={platformAnchor}
+              items={availablePlatforms.map((p) => ({
+                key: p.key,
+                label: p.label,
+                Icon: p.icon,
+                selected: p.key === availablePlatforms[targetIdx].key,
+              }))}
+              singleSelect
+              onToggle={(key) => {
+                const idx = availablePlatforms.findIndex((p) => p.key === key);
+                if (idx !== -1) setTargetIdx(idx);
+              }}
+              onClose={() => setPlatformMenuVisible(false)}
+            />
           )}
         </div>
 
         {/* Docs nav */}
         <nav className="space-y-2">
           {leafSections
-            .filter((s) => ["build-idea", "cursor", "cli"].includes(s.id))
+            .filter((s) => ["build-idea", "cursor"].includes(s.id))
             .map((section) => (
               <button
                 key={section.id}
@@ -155,12 +126,12 @@ export default function SideBar({
             chunkRows={false}
             onAdd={(e) => {
               const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-              setIntgMenuAnchor({ x: rect.left + rect.width / 2, y: rect.bottom });
-              setIntgMenuOpen((o) => !o);
+              setIntgAnchor({ x: rect.left + rect.width / 2, y: rect.bottom });
+              setIntgMenuVisible((v) => !v);
             }}
           />
 
-          {/* Selected */}
+          {/* Selected integrations list */}
           <div className="mt-3">
             <IntegrationChips
               activeKeys={integrationKeys}
@@ -172,55 +143,30 @@ export default function SideBar({
           </div>
         </div>
 
-        {/* Integration selection menu */}
-        {intgMenuOpen && intgMenuAnchor && (
-          <div
-            ref={intgMenuRef}
-            className="fixed z-50 w-56 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-2 max-h-64 overflow-y-auto"
-            style={{ left: intgMenuAnchor.x, top: intgMenuAnchor.y + 8 }}
-          >
-            {unselectedList.map((intg) => {
-              const Icon = intg.icon;
-              return (
-                <div
-                  key={intg.key}
-                  className="group w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
-                >
-                  {Icon && <Icon className="w-4 h-4" />}
-                  <span className="flex-1 text-left text-gray-700 dark:text-gray-200">{intg.label}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleAddIntegration(intg.key)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700"
-                  >
-                    +
-                  </button>
-                </div>
-              );
-            })}
-
-            {selectedList.length > 0 && <div className="my-1 border-t border-gray-200 dark:border-gray-700" />}
-
-            {selectedList.map((intg) => {
-              const Icon = intg.icon;
-              return (
-                <div
-                  key={intg.key}
-                  className="group w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
-                >
-                  {Icon && <Icon className="w-4 h-4 text-purple-600 dark:text-purple-400" />}
-                  <span className="flex-1 text-left text-purple-600 dark:text-purple-400 font-medium">{intg.label}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveIntegration(intg.key)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700"
-                  >
-                    ✕
-                  </button>
-                </div>
-              );
-            })}
-          </div>
+        {/* Integrations selection menu */}
+        {intgMenuVisible && intgAnchor && (
+          <ChipDropdownMenu
+            anchor={intgAnchor}
+            onClose={() => setIntgMenuVisible(false)}
+            onToggle={(key, wasSelected) => {
+              if (wasSelected) handleRemoveIntegration(key);
+              else handleAddIntegration(key);
+            }}
+            items={[
+              ...unselectedList.map((intg) => ({
+                key: intg.key,
+                label: intg.label,
+                Icon: intg.icon,
+                selected: false,
+              })),
+              ...selectedList.map((intg) => ({
+                key: intg.key,
+                label: intg.label,
+                Icon: intg.icon,
+                selected: true,
+              })),
+            ]}
+          />
         )}
       </div>
     </aside>

@@ -94,7 +94,17 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
     icon: Plug,
     status: "available"
   },
-  { key: "billing", label: "Billing", icon: CreditCard, status: "soon" },
+  {
+    key: "billing",
+    label: "Billing",
+    icon: CreditCard,
+    status: "available",
+    prerequisites: [
+      "Create a Polar account – https://polar.sh",
+      "Generate an access token – https://app.polar.sh/settings/tokens (or sandbox)"
+    ],
+    envVars: ["POLAR_ACCESS_TOKEN", "POLAR_WEBHOOK_SECRET"],
+  },
   { key: "realtime", label: "Realtime Messaging", icon: MessageCircle, status: "soon" },
   { key: "notifications", label: "Notifications", icon: Bell, status: "soon" },
   { key: "maps", label: "Maps", icon: MapPin, status: "soon" },

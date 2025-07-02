@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { SignInButton } from "@client/components/integrations/auth/SignInButton";
 import { useAuth } from "@client/context/AuthContext";
 import { supabase } from "@shared/supabase";
-import { useClearTests, dispatchClearTests } from "@client/utils/testIntegrationEvents";
+import { useClearTests } from "@client/utils/testIntegrationEvents";
 import { useUploadThing } from "@client/utils/uploadthing";
 import type { UploadResponse } from "@client/utils/uploadthing";
 import ChatBox from "@client/components/integrations/LLM/ChatBox";
@@ -24,7 +24,7 @@ function TestCard({ title, children, className = "" }: TestCardProps) {
   return (
     <div
       className={
-        `mb-10 bg-white dark:bg-gray-800 rounded-xl border border-gray-300 dark:border-gray-700 overflow-hidden ${className}`.trim()
+        `mb-10 w-full max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-xl border border-gray-300 dark:border-gray-700 overflow-hidden ${className}`.trim()
       }
     >
       <div className="p-6 space-y-4">
@@ -350,7 +350,8 @@ function UploadsTest() {
 function LLMTest() {
   const [widgetKey, setWidgetKey] = useState(0);
   useClearTests(() => setWidgetKey((k) => k + 1));
-  return <ChatBox key={widgetKey} defaultMode="text" allowedModes={["text"]} />;
+  // ChatBox now auto-detects whether the prompt should generate text, JSON or an image
+  return <ChatBox key={widgetKey} />;
 }
 
 // -------------------------- Analytics Test --------------------------------
@@ -395,6 +396,98 @@ function AnalyticsTest() {
       )}
       {status === "error" && (
         <p className="text-sm text-red-600 dark:text-red-400">Failed to send event. Is PostHog initialised?</p>
+      )}
+    </TestCard>
+  );
+}
+
+// -------------------------- Billing (Polar) Test ------------------------
+function BillingTest() {
+  const [status, setStatus] = useState<"idle" | "ok" | "error" | "pending">("idle");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [products, setProducts] = useState<any[]>([]);
+
+  useClearTests(() => {
+    setStatus("idle");
+    setErrorMsg(null);
+    setProducts([]);
+  });
+
+  async function pingPolar() {
+    try {
+      setStatus("pending");
+      const res = await fetch("/api/polar?mode=ping");
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data?.ok) {
+        setStatus("ok");
+      } else {
+        setStatus("error");
+        setErrorMsg(data?.error || `HTTP ${res.status}`);
+      }
+    } catch (err: any) {
+      setStatus("error");
+      setErrorMsg(err?.message || String(err));
+    }
+  }
+
+  async function fetchProducts() {
+    try {
+      setStatus("pending");
+      const res = await fetch("/api/polar?mode=products");
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && Array.isArray(data?.products)) {
+        setProducts(data.products);
+        setStatus("ok");
+      } else {
+        setStatus("error");
+        setErrorMsg(data?.error || `HTTP ${res.status}`);
+      }
+    } catch (err: any) {
+      setStatus("error");
+      setErrorMsg(err?.message || String(err));
+    }
+  }
+
+  return (
+    <TestCard
+      title={
+        <div className="flex items-center gap-3 flex-wrap">
+          <span>Billing (Polar)</span>
+          <StatusIcon status={status === "pending" ? "pending" : status === "ok" ? "ok" : status === "error" ? "error" : "idle"} />
+          <button
+            onClick={pingPolar}
+            className="btn-primary px-3 py-1 text-sm"
+            disabled={status === "pending"}
+          >
+            Ping API
+          </button>
+          <button
+            onClick={fetchProducts}
+            className="btn-secondary px-3 py-1 text-sm"
+            disabled={status === "pending"}
+          >
+            List Products
+          </button>
+        </div>
+      }
+    >
+      {status === "error" && (
+        <p className="text-sm text-red-600 dark:text-red-400 break-all">{errorMsg}</p>
+      )}
+      {status === "ok" && products.length === 0 && (
+        <p className="text-sm text-green-600 dark:text-green-400">Polar API reachable!</p>
+      )}
+      {products.length > 0 && (
+        <ul className="mt-2 space-y-1">
+          {products.slice(0,5).map((p:any)=> (
+            <li key={p.id} className="text-xs text-gray-700 dark:text-gray-300">
+              {p.name} – {p.id}
+            </li>
+          ))}
+          {products.length > 5 && (
+            <li className="text-xs text-gray-500">and {products.length - 5} more…</li>
+          )}
+        </ul>
       )}
     </TestCard>
   );
@@ -487,25 +580,18 @@ function PlaceholderDetails({ title }: { title: string }) {
 
 export default function TestIntegrations() {
   return (
-    <div className="space-y-10">
-      {/* Global actions */}
-      <div className="flex justify-end">
-        <button onClick={dispatchClearTests} className="btn-primary px-3 py-1 text-sm">
-          Clear All Tests
-        </button>
-      </div>
-
+    <div className="space-y-10 text-base w-full max-w-3xl mx-auto">
       {/* Core tests with real functionality */}
       <AuthTest />
       <DatabaseTest />
       <UploadsTest />
       <LLMTest />
       <AnalyticsTest />
+      <BillingTest />
       <BotDetectionTest />
 
       {/* Placeholder tests */}
       <PlaceholderDetails title="External API" />
-      <PlaceholderDetails title="Billing" />
       <PlaceholderDetails title="Email" />
       <PlaceholderDetails title="Files" />
       <PlaceholderDetails title="Maps / Address Autocomplete" />

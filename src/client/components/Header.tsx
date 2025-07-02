@@ -1,16 +1,16 @@
 import { Link, useLocation } from "react-router";
 import { useAuth } from "@client/context/AuthContext";
 import { usePostHog } from "posthog-js/react";
-import { useOs } from "@client/context/OsContext";
-import { FaWindows, FaApple, FaLinux } from "react-icons/fa";
+import { useEnvironment } from "@client/context/EnvironmentContext";
+import type { EnvironmentType } from "@client/context/EnvironmentContext";
 
 export function Header() {
   const location = useLocation();
   const { session } = useAuth();
   const posthog = usePostHog();
 
-  // Global OS state
-  const { os, setOs } = useOs();
+  // Global environment state
+  const { env, setEnv } = useEnvironment();
 
   const navItems = [
     { href: "/docs", label: "Docs" },
@@ -68,26 +68,28 @@ export function Header() {
             </Link>
           </div>
           
-          {/* OS Selector Slider & User Actions */}
+          {/* Environment Selector Slider & User Actions */}
           <div className="flex items-center gap-4">
             {location.pathname.startsWith("/docs") && (
               <div className="hidden md:flex items-center">
-                <div className="relative bg-gray-800 rounded-full px-1 py-1 flex items-center gap-1">
-                  {(
+                <div className="relative bg-gray-800 rounded-full px-2 py-0 flex items-center gap-1">
+                  {( 
                     [
-                      { id: "windows", icon: FaWindows },
-                      { id: "mac", icon: FaApple },
-                      { id: "linux", icon: FaLinux },
+                      { id: "cursor", img: "https://ub2fn6mfq7.ufs.sh/f/qmic4Bwp6v0GW45AxaZLpdOz8koXPIARmrajUTxi1QZNyGtJ", alt: "Cursor" },
+                      { id: "claude", img: "https://ub2fn6mfq7.ufs.sh/f/qmic4Bwp6v0GlKr861UNz2yIcw3vhuo5DpsJA90BxQVOgmLS", alt: "Claude" },
+                      { id: "gemini", img: "https://ub2fn6mfq7.ufs.sh/f/qmic4Bwp6v0GUTTfzTL38gaiXL7ce2OnjumGwIv4d9KlCS1H", alt: "Gemini" },
                     ] as const
-                  ).map(({ id, icon: Icon }) => (
+                  ).map(({ id, img, alt }) => (
                     <button
                       key={id}
-                      onClick={() => setOs(id)}
-                      className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${
-                        os === id ? "bg-purple-600 text-white" : "text-gray-400 hover:text-white"
+                      onClick={() => setEnv(id as EnvironmentType)}
+                      className={`p-0 flex items-center justify-center rounded-full transition-all duration-200 ${
+                        env === id
+                          ? "bg-gradient-to-br from-purple-600 to-indigo-600 shadow-lg ring-2 ring-purple-400/60 scale-105"
+                          : "hover:bg-gray-700 hover:scale-105"
                       }`}
                     >
-                      <Icon className="w-4 h-4" />
+                      <img src={img} alt={alt} className="w-12 h-12 object-contain" />
                     </button>
                   ))}
                 </div>

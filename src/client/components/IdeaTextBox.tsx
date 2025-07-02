@@ -30,13 +30,13 @@ export default function IdeaTextBox({
 
       {/* Main liquid glass container */}
       <div
-        className="relative backdrop-blur-xl bg-gradient-to-br from-white/10 via-white/5 to-white/10 rounded-[2.5rem] border border-white/20 shadow-[0_12px_60px_rgba(147,51,234,0.25),inset_0_1px_0_rgba(255,255,255,0.15)] hover:shadow-[0_16px_72px_rgba(147,51,234,0.35)] transition-all duration-700 ease-out overflow-hidden ring-1 ring-purple-300/30"
+        className="relative backdrop-blur-xl bg-gradient-to-br from-white/10 via-white/5 to-white/10 rounded-2xl border-2 border-purple-500/60 shadow-[0_12px_60px_rgba(147,51,234,0.25),inset_0_1px_0_rgba(255,255,255,0.15)] hover:shadow-[0_16px_72px_rgba(147,51,234,0.35)] transition-all duration-700 ease-out overflow-hidden ring-1 ring-purple-400/40"
       >
         {/* Liquid flow effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent rounded-[2.5rem] translate-y-full group-hover:translate-y-[-100%] transition-transform duration-[1500ms] ease-in-out pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent rounded-2xl translate-y-full group-hover:translate-y-[-100%] transition-transform duration-[1500ms] ease-in-out pointer-events-none" />
 
         {/* Ripple effect – single layer for subtlety */}
-        <div className="absolute inset-4 rounded-[2rem] border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        <div className="absolute inset-4 rounded-2xl border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
         {/* Input field */}
         <textarea
@@ -44,7 +44,7 @@ export default function IdeaTextBox({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={onKeyDown}
-          className="relative w-full h-36 px-8 py-6 bg-transparent rounded-[2.5rem] border-0 outline-none resize-none text-gray-800 placeholder-gray-600/80 dark:text-gray-100 dark:placeholder-gray-400 text-lg leading-relaxed font-medium selection:bg-purple-200/30 z-10 backdrop-blur-sm"
+          className="relative w-full h-36 px-8 py-6 bg-transparent rounded-xl border-0 outline-none resize-none text-gray-800 placeholder-gray-600/80 dark:text-gray-100 dark:placeholder-gray-400 text-lg leading-relaxed font-medium selection:bg-purple-200/30 z-10 backdrop-blur-sm"
         />
 
         {/* Liquid droplet highlights */}

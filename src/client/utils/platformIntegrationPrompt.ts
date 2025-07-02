@@ -21,6 +21,8 @@ If you're unsure about an integration, **include it**. Always deduplicate and al
 
 When in doubt, be generous: it is better to return **more** integrations than risk omitting a relevant one. Aim for a comprehensive yet accurate list – including at least 3–5 integrations for typical SaaS ideas. Bot detection is a relevant integration for almost all projects.
 
+If the user's idea involves generating images, pictures, photos, or any kind of visual AI output, you **must** include the llm-image integration in the list.
+
 ### Example_Output:
 
 {

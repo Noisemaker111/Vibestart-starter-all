@@ -1,7 +1,7 @@
 import React, { type FC } from "react";
 import { availableIntegrations } from "@shared/availableIntegrations";
 import { availablePlatforms } from "@shared/availablePlatforms";
-import { useOs } from "@client/context/OsContext";
+import { useEnvironment } from "@client/context/EnvironmentContext";
 import { processIdea } from "@client/utils/integrationLLM";
 import { DEFAULT_MODEL } from "@client/utils/integrationLLM";
 import IdeaTextBox from "@client/components/IdeaTextBox";
@@ -37,8 +37,8 @@ interface IntegrationDetail {
 }
 
 const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onIntegrationKeysChange, onPlatformChange, className }) => {
-  const { os } = useOs();
-  const modKey = os === "mac" ? "Cmd" : "Ctrl";
+  const { env } = useEnvironment();
+  const modKey = env === "cursor" ? "Cmd" : "Ctrl";
   const [keys, setKeys] = React.useState<string[]>(() => {
     if (integrationKeys && integrationKeys.length > 0) return integrationKeys;
     try {
@@ -100,7 +100,14 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
       setAiLoading(true);
       try {
         const result = await processIdea(ideaString, [], DEFAULT_MODEL, "structured");
-        updateKeys(result.integrations.map((i: any) => i.key));
+
+        // Only update integration keys when this component manages its own state.
+        // If the parent supplies integrationKeys (controlled mode) we assume
+        // the user is manually curating selections and should not be
+        // overridden by AI suggestions.
+        if (!integrationKeys || integrationKeys.length === 0) {
+          updateKeys(result.integrations.map((i: any) => i.key));
+        }
         if (result.platform && typeof result.platform === 'string') {
           onPlatformChange?.(availablePlatforms.find(p=>p.key===result.platform)?.label || result.platform);
         }
@@ -120,7 +127,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
         setTimeout(() => runAiGeneration(nextIdea), delay);
       }
     },
-    [updateKeys, onPlatformChange]
+    [updateKeys, onPlatformChange, integrationKeys]
   );
 
   // Debounced trigger – 800 ms after typing stops
@@ -287,12 +294,13 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
             const detailsMap: Record<string, string> = {
               "Node.js 18+": "JavaScript runtime that powers your backend.",
               "Git 2.5+": "Version-control system to track and share your code.",
-              "Cursor IDE": "AI-powered code editor that writes code with you, not for you.",
+              "Cursor IDE": "$20/month AI-powered code editor that writes code with you, not for you.",
               "Create a Supabase account": "Hosted Postgres database & user authentication.",
               "Create an UploadThing account": "Simple file upload service for images, documents and more.",
+              "Create a Vercel account": "Host your website and API endpoints.",
+              "Create an OpenAI account": "AI-powered image generation (requires at least $5 credit).",
               "Create an OpenRouter account": "Gateway to multiple LLMs (requires at least $5 credit).",
               "Create a PostHog account": "Product analytics with event tracking & feature flags.",
-              "Install VibeStart CLI": "Scaffold a new VibeStart project in seconds.",
             };
 
             const description =
@@ -325,8 +333,6 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
       {/* Idea input block + dropdown anchor */}
       <div className="relative mb-8">
         <div className="relative w-full max-w-4xl mx-auto p-4 not-prose">
-          {/* Idea textbox wrapper (no visible box) */}
-          <div className="relative overflow-visible p-6">
             {/* Idea textarea */}
             <div className="relative z-10 flex flex-col items-center justify-center gap-2 w-full">
               <IdeaTextBox
@@ -337,7 +343,6 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
                 className="w-full max-w-2xl"
               />
             </div>
-          </div>
         </div>
       </div>
 
@@ -359,10 +364,25 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
         const createCmd = `npx create vibestart ${flags.join(" ")}`;
 
         return (
-          <ol className="list-decimal space-y-8 text-sm not-prose">
-            {/* Step 1 removed – developer tooling already covered in Pre-Requisites */}
+          <ol className="list-decimal space-y-8 text-lg not-prose">
+            {/* Step 1 – set user rules */}
+            <li>
+              <h3 className="text-xl font-semibold mb-2">Set User Rules</h3>
+              <p className="mb-4">
+                Open <strong>Cursor → Settings → "User Rules"</strong>, then copy&nbsp;&amp;&nbsp;paste the rules below in full and
+                save. These configure Cursor's behaviour for your project.
+              </p>
+              <div className="relative w-full">
+                {/* Non-scrollable preview container */}
+                <div className="max-h-29 overflow-hidden pr-2">
+                  <CursorUserRulesSection />
+                </div>
+                {/* Fade overlay at bottom */}
+                <div className="pointer-events-none absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-gray-100 dark:from-gray-800 to-transparent rounded-b-lg" />
+              </div>
+            </li>
 
-            {/* New Step 1 – generate Cursor rules */}
+            {/* Step 2 – prompt for rules */}
             <li>
               <h3 className="text-xl font-semibold mb-2">Prompt for VibeStart</h3>
               <p className="mb-4">Click <strong>Copy</strong> then paste into Cursor's chat, and hit Enter to generate the rules.</p>
@@ -380,104 +400,88 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
               </div>
             </li>
 
-            {/* New Step 2 – set user rules */}
-            <li>
-              <h3 className="text-xl font-semibold mb-2">Set User Rules</h3>
-              <p className="mb-4">
-                Open <strong>Cursor → Settings → "User Rules"</strong>, then copy&nbsp;&amp;&nbsp;paste the rules below in full and
-                save. These configure Cursor's behaviour for your project.
-              </p>
-              <div className="relative w-full">
-                {/* Non-scrollable preview container */}
-                <div className="max-h-29 overflow-hidden pr-2">
-                  <CursorUserRulesSection />
-                </div>
-                {/* Fade overlay at bottom */}
-                <div className="pointer-events-none absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-gray-100 dark:from-gray-800 to-transparent rounded-b-lg" />
-              </div>
-            </li>
-
             {/* Step 3 – concise per-integration setup */}
             {integrationDetails.length > 0 && (
               <li>
-                <h3 className="text-xl font-semibold mb-2">Set Up Integration Accounts &amp; .env.local</h3>
-                <ul className="list-disc pl-6 space-y-1 text-sm">
-                  {integrationDetails.map((d) => {
-                    const firstPrereq = d.prerequisites[0];
-                    const [rawLabel, rawLink] = firstPrereq ? firstPrereq.split(" – ") : [d.label, undefined];
-                    const envList = d.envVars.map((v) => `\ ${v}`).join(", ");
-                    return (
-                      <li key={d.key}>
-                        <span>
-                          {rawLink ? (
-                            <a href={rawLink} target="_blank" rel="noopener noreferrer" className="underline text-purple-600 dark:text-purple-400">
-                              {d.label}
-                            </a>
-                          ) : (
-                            d.label
-                          )}
-                        </span>
-                        {envList && (
-                          <span>
-                            : add <code>{envList}</code>
-                          </span>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
+                <h3 className="text-xl font-semibold mb-2">Add Credentials &amp; Env Vars</h3>
+                <p className="text-sm mb-3">Create the necessary accounts for each selected integration, copy the keys they provide, then add them to your <code>.env.local</code> file.</p>
 
-                {/* Combined env.vars snippet */}
-                {envSample && (
-                  <div className="mt-4">
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Open <code>.env.local</code> and paste:</p>
-                    <pre className="bg-gray-900 text-gray-100 p-3 rounded-md overflow-x-auto text-xs"><code>{envSample}</code></pre>
-                  </div>
-                )}
+                {/* Compact per-environment-variable rows */}
+                <ul className="space-y-2">
+                  {(() => {
+                    const map = new Map<string, { label: string; link?: string; vars: Set<string> }>();
+                    integrationDetails.forEach((detail) => {
+                      const firstPre = detail.prerequisites[0] ?? detail.label;
+                      const [rawLbl, rawLink] = firstPre.split(" – ");
+                      const lbl = rawLbl.trim();
+                      const lnk = rawLink?.trim();
+                      const key = lnk || lbl;
+                      if (!map.has(key)) {
+                        map.set(key, { label: lbl, link: lnk, vars: new Set<string>() });
+                      }
+                      const entry = map.get(key)!;
+                      detail.envVars.forEach((v) => entry.vars.add(v));
+                    });
+                    return Array.from(map.values()).map(({ label, link, vars }) => (
+                      <li key={label} className="flex items-start justify-between gap-4 text-sm">
+                        {link ? (
+                          <a
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline text-purple-600 dark:text-purple-400 flex-1"
+                          >
+                            {label}
+                          </a>
+                        ) : (
+                          <span className="flex-1">{label}</span>
+                        )}
+                        <code className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{Array.from(vars).join(", ")}</code>
+                      </li>
+                    ));
+                  })()}
+                </ul>
               </li>
             )}
 
-            {/* Step 4 – start the dev server via Cursor */}
+            {/* Step 4 – run the app */}
             <li>
-              <h3 className="text-xl font-semibold mb-2">Tell Cursor to Run the App</h3>
-              <p className="mb-2">
-                In the chat, type <code>run</code> or <code>start project</code>. The agent will
-                execute <code>{devCmd}</code> automatically. Say <code>stop</code> or
-                <code> close</code> to shut it down.
-              </p>
+              <h3 className="text-xl font-semibold mb-2">Run the App</h3>
+              <p className="mb-2">Tell Cursor to run the app, or execute:</p>
+              <pre className="bg-gray-900 text-gray-100 p-3 rounded-md overflow-x-auto text-xs"><code>{devCmd}</code></pre>
             </li>
 
-            {/* Step 5 – integration tests if any */}
+            {/* Step 5 – integration tests */}
             {hasSelectedIntegrations && (
               <li>
-                <h3 className="text-xl font-semibold mb-2">Check Your Integrations</h3>
-                <p className="mb-2">Expand each widget to run a real API call (insert a row, upload a file, etc.). If everything succeeds you're ready for Git!</p>
-                {/* Global clear button */}
-                <button
-                  type="button"
-                  onClick={async () => {
-                    // Global clear logic – sign out, wipe tables, then dispatch event
-                    try {
-                      const { supabase } = await import("@shared/supabase");
-                      await supabase.auth.signOut().catch(() => {});
-                    } catch {}
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-xl font-semibold">Check Your Integrations</h3>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      // Global clear logic – sign out, wipe tables, then dispatch event
+                      try {
+                        const { supabase } = await import("@shared/supabase");
+                        await supabase.auth.signOut().catch(() => {});
+                      } catch {}
 
-                    try {
-                      await fetch("/api/animals", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: "{}" });
-                    } catch {}
+                      try {
+                        await fetch("/api/animals", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: "{}" });
+                      } catch {}
 
-                    try {
-                      await fetch("/api/images", { method: "DELETE" });
-                    } catch {}
+                      try {
+                        await fetch("/api/images", { method: "DELETE" });
+                      } catch {}
 
-                    // Dispatch event to notify all widgets to reset UI state
-                    const { dispatchClearTests } = await import("@client/utils/testIntegrationEvents");
-                    dispatchClearTests();
-                  }}
-                  className="mb-6 px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600"
-                >
-                  Clear All Tests
-                </button>
+                      // Dispatch event to notify all widgets to reset UI state
+                      const { dispatchClearTests } = await import("@client/utils/testIntegrationEvents");
+                      dispatchClearTests();
+                    }}
+                    className="px-3 py-1 text-sm bg-gray-700 text-white rounded-md hover:bg-gray-600"
+                  >
+                    Clear All Tests
+                  </button>
+                </div>
                 <TestIntegrations />
               </li>
             )}

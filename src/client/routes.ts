@@ -9,4 +9,6 @@ export default [
   route("api/chat", "./pages/api/chat.tsx"),
   route("api/botid", "./pages/api/botid.tsx"),
   route("api/image-generate", "./pages/api/image-generate.tsx"),
+  route("api/polar", "./pages/api/polar.tsx"),
+  route("api/polar/webhook", "./pages/api/polar/webhook.tsx"),
 ] satisfies RouteConfig; 
