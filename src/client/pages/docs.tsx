@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from "react-router";
 import type { Route } from "./+types/docs";
 import CursorProjectRule from "@client/components/CursorProjectRules";
 import CursorUserRulesSection from "@client/components/CursorUserRules";
-import MemoriesSection from "@client/components/CursorMemories";
 import { availablePlatforms } from "@shared/availablePlatforms";
 import { availableIntegrations } from "@shared/availableIntegrations";
 import { useEnvironment } from "@client/context/EnvironmentContext";
@@ -282,8 +281,6 @@ function MyComponent() {
                 </div>
               )}
 
-              {activeSection === "memories" && <MemoriesSection />}
-
               {activeSection === "cursor" && (
                 <div className="prose prose-gray dark:prose-invert max-w-none">
                   <h1 className="text-3xl font-bold mb-6">Cursor Integration</h1>
@@ -295,9 +292,6 @@ function MyComponent() {
 
                   <h2 className="text-2xl font-semibold mt-8 mb-4">Project Rules</h2>
                   <CursorProjectRule />
-
-                  <h2 className="text-2xl font-semibold mt-8 mb-4">Memories</h2>
-                  <MemoriesSection />
                 </div>
               )}
 

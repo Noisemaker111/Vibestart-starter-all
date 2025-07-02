@@ -1,5 +1,5 @@
 import type { AvailableIntegration } from "@shared/availableIntegrations";
-import { buildPlatformIntegrationPrompt } from "./platformIntegrationPrompt";
+import { promptHomeIdeaConverter } from "@shared/promptHomeIdeaConverter";
 import { availableIntegrations } from "@shared/availableIntegrations";
 import { z } from "zod";
 import { DEFAULT_LLM_MODEL } from "@shared/constants";
@@ -116,7 +116,7 @@ export async function processIdea(
     messages: [
       {
         role: "system",
-        content: generation === "structured" ? buildPlatformIntegrationPrompt(idea) : "You are a helpful assistant.",
+        content: generation === "structured" ? promptHomeIdeaConverter(idea) : "You are a helpful assistant.",
       },
       {
         role: "user",

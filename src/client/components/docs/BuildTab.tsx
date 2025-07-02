@@ -9,9 +9,8 @@ import IdeaTextBox from "@client/components/IdeaTextBox";
 // Test components for individual integrations
 import TestIntegrations from "@client/components/integrations/TestIntegrations";
 import CursorUserRulesSection from "@client/components/CursorUserRules";
-import { cursorMemories } from "@shared/cursorMemories";
 
-import { buildCursorSetupPrompt } from "@shared/cursorSetupPrompt";
+import { buildHomeIdeaConverter, promptHomeIdeaConverter } from "@shared/promptHomeIdeaConverter";
 import { supabase } from "@shared/supabase";
 import { dispatchClearTests } from "@client/utils/testIntegrationEvents";
 
@@ -103,10 +102,6 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
       try {
         const result = await processIdea(ideaString, [], DEFAULT_MODEL, "structured");
 
-        // Only update integration keys when this component manages its own state.
-        // If the parent supplies integrationKeys (controlled mode) we assume
-        // the user is manually curating selections and should not be
-        // overridden by AI suggestions.
         if (!integrationKeys || integrationKeys.length === 0) {
           updateKeys(result.integrations.map((i: any) => i.key));
         }
@@ -253,12 +248,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
   const createCmdForPrompt = `npx create vibestart ${flagsForPrompt.join(" ")}`;
   const setupCommands = `${createCmdForPrompt}\ncd my-app\nnpm install\nnpm run dev`;
 
-  const cursorPromptFull = buildCursorSetupPrompt({
-    projectStructureMdc,
-    techStackMdc,
-    setupCommands,
-    memories: cursorMemories,
-  });
+  const cursorPromptFull = buildHomeIdeaConverter(selectedIdea);
 
   // Abbreviated prompt shown in the UI (keeps screen clean)
   const cursorPromptDisplay = (

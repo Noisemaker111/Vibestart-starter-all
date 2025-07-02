@@ -1,16 +1,16 @@
-import { cursorMemories } from "@shared/cursorMemories";
+// cursorMemories removed – default memories list now empty
 
 export interface CursorSetupPromptOptions {
   projectStructureMdc: string;
   techStackMdc: string;
   setupCommands: string;
-  memories: string[];
+  memories?: string[];
 }
-export function buildCursorSetupPrompt({
+export function promptCursorSetup({
   projectStructureMdc,
   techStackMdc,
   setupCommands,
-  memories = cursorMemories,
+  memories = [],
 }: CursorSetupPromptOptions): string {
   const memoryCommands = `/Create Memory\n${memories.join("\n\n")}`;
 
