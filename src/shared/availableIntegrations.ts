@@ -102,16 +102,6 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
   { key: "sms", label: "SMS", icon: MessageCircle, status: "soon" },
   { key: "files", label: "Files", icon: File, status: "soon" },
   { key: "whiteboard", label: "Whiteboard", icon: FaChalkboard, status: "soon" },
-  {
-    key: "bot-detection",
-    label: "Bot Detection (BotID)",
-    icon: Shield,
-    status: "available",
-    prerequisites: [
-      "Enable Vercel BotID in your project dashboard – https://vercel.com/docs/botid",
-    ],
-    envVars: [],
-  },
 ] as const;
 
 export type AvailableIntegrationKey = typeof availableIntegrations[number]["key"];

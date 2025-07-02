@@ -2,9 +2,8 @@ import { Link, useNavigate } from "react-router";
 import React, { useState, useEffect, Suspense } from "react";
 import type { Route } from "./+types/home";
 import { availablePlatforms } from "@shared/availablePlatforms";
-import VersionTag from "@client/components/home/VersionTag";
 import VibeStartMainInfo from "@client/components/home/MainInfo";
-import HomeIdeaCard from "@client/components/home/IdeaCard";
+import HomeIdeaCard from "@client/components/home/HomeIdeaInput";
 import { processIdea } from "@client/utils/integrationLLM";
 import { DEFAULT_MODEL } from "@client/utils/integrationLLM";
 import type { AvailableIntegration } from "@shared/availableIntegrations";
@@ -173,10 +172,10 @@ export default function Home() {
     return () => clearTimeout(handle);
   }, [idea, runAiGeneration]);
 
-  // Centralized idea change handler for the textarea input
-  const handleIdeaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setIdea(e.target.value);
-    const trimmed = e.target.value.trim();
+  // Centralized idea change handler for the idea input
+  const handleIdeaChange = (value: string) => {
+    setIdea(value);
+    const trimmed = value.trim();
 
     // Record the start of a fresh typing session
     if (trimmed.length > 0 && typingStartRef.current === null) {
@@ -193,7 +192,7 @@ export default function Home() {
       typingStartRef.current = null;
     }
 
-    if (!ideaStarted && e.target.value.trim().length > 0) {
+    if (!ideaStarted && value.trim().length > 0) {
       posthog.capture("idea_input_started");
       setIdeaStarted(true);
     }
@@ -279,18 +278,12 @@ export default function Home() {
 
   return (
     <>
-      <main className="min-h-screen bg-black text-white overflow-hidden">
-        {/* Animated Background */}
-        <div className="fixed inset-0 opacity-20">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 via-blue-600/20 to-teal-600/20"></div>
-        </div>
-
+      <main className="min-h-screen bg-gray-50 text-gray-900 overflow-hidden">
         {/* Hero Section - Completely New Design */}
         <section className="relative min-h-screen flex items-center justify-center px-4 pt-8 sm:pt-14 md:pt-14">
           <div className="max-w-6xl mx-auto w-full">
             {/* Consolidated version badge + hero content */}
             <div className="text-center mb-12">
-              <VersionTag />
               <VibeStartMainInfo />
             </div>
 

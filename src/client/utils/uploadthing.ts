@@ -3,6 +3,7 @@
 import {
   generateUploadButton,
   generateUploadDropzone,
+  generateReactHelpers,
 } from "@uploadthing/react";
 import type { UploadRouter } from "@server/uploadthing";
 
@@ -23,5 +24,10 @@ export const UploadButton = generateUploadButton<UploadRouter>({
 });
 
 export const UploadDropzone = generateUploadDropzone<UploadRouter>({
+  url: "/api/uploadthing",
+});
+
+// Helper hook for custom upload components
+export const { useUploadThing } = generateReactHelpers<UploadRouter>({
   url: "/api/uploadthing",
 }); 

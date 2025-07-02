@@ -1,12 +1,13 @@
 import React from "react";
-import IntegrationChips from "@client/components/IntegrationChips";
+import IntegrationChips from "@client/components/integrations/IntegrationChip";
+import IdeaTextBox from "@client/components/IdeaTextBox";
 import type { AvailablePlatform } from "@shared/availablePlatforms";
 import PlatformChip from "@client/components/PlatformChip";
 
 interface Props {
   idea: string;
   placeholder: string;
-  onIdeaChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onIdeaChange: (value: string) => void;
   onIdeaKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   selectedPlatform?: AvailablePlatform;
   activeKeys: string[];
@@ -24,11 +25,11 @@ export default function HomeIdeaCard({
 }: Props) {
   return (
     <div className="relative group">
-      <div className="relative bg-gray-900/90 backdrop-blur-xl rounded-2xl p-8 border border-gray-800">
+      <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl p-8 border border-gray-200 shadow-lg">
         {/* Internal glow overlay */}
         <div className="pointer-events-none absolute -inset-1 -z-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-          <label className="text-lg sm:text-xl font-semibold text-gray-300">
+          <label className="text-lg sm:text-xl font-semibold text-gray-700">
             Give me your idea
           </label>
           <div className="flex items-center gap-2">
@@ -38,18 +39,24 @@ export default function HomeIdeaCard({
           </div>
         </div>
         <div>
-          <textarea
+          <IdeaTextBox
             value={idea}
             onChange={onIdeaChange}
             onKeyDown={onIdeaKeyDown}
             placeholder={placeholder}
-            className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-all duration-300 resize-none"
-            rows={3}
+            className="w-full"
           />
         </div>
 
         {/* Integration list – displays a placeholder chip while analyzing */}
-        <IntegrationChips className="mt-4" activeKeys={activeKeys} showAllIfEmpty={false} loading={loading} />
+        <IntegrationChips
+          className="mt-4"
+          activeKeys={activeKeys}
+          showAllIfEmpty={false}
+          loading={loading}
+          rowPattern={[3,2,3]}
+          chipWidthClass="w-[200px]"
+        />
       </div>
     </div>
   );

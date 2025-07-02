@@ -21,9 +21,9 @@ export interface AvailablePlatform {
 }
 
 export const availablePlatforms: readonly AvailablePlatform[] = [
-  { key: "web", label: "Web", icon: Globe, status: "available" },
+  { key: "website", label: "Website", icon: Globe, status: "available" },
   { key: "mobile-app", label: "Mobile App", icon: Smartphone, status: "available" },
-  { key: "desktop", label: "Desktop App", icon: Monitor, status: "available" },
+  { key: "desktop-app", label: "Desktop App", icon: Monitor, status: "available" },
   { key: "mobile-game", label: "Mobile Game", icon: Gamepad2, status: "soon" },
   { key: "desktop-game", label: "Desktop Game", icon: Gamepad2, status: "soon" },
   { key: "discord", label: "Discord Bot", icon: FaDiscord, status: "soon" },

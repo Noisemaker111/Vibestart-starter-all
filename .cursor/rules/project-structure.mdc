@@ -3,15 +3,19 @@ description:
 globs: 
 alwaysApply: true
 ---
-
 src/ — all source code
 src/client/ — React 19 browser app (SSR)
 src/client/components/ — reusable UI primitives & feature sections
   • Header.tsx — nav bar & theme toggle
-  • IdeaCarousel.tsx — rotating suggestions
   • IntegrationChips.tsx — chips UI summarizing integrations
   • Badge.tsx — generic reusable badge component (replaces SoonBadge)
+  • PlatformChip.tsx — platform tag component
   • TechStack.tsx — production-ready stack overview (was ServicesProvided)
+  • ThemeSwitcher.tsx — theme toggle button
+  • TestIntegrations.tsx — example usage of integrations
+  • CursorMemories.tsx — displays memory list
+  • CursorProjectRules.tsx — displays project rules
+  • CursorUserRules.tsx — displays user rules
   ├─ auth/ — auth-related UI
   │   • CreateOrganizationButton.tsx — org modal (auth-gated)
   │   • LoginModal.tsx — modal wrapper for SignInForm
@@ -20,20 +24,23 @@ src/client/components/ — reusable UI primitives & feature sections
   ├─ uploads/
   │   • SquareUploadButton.tsx — UploadThing button
   ├─ home/ — landing-page focused components
+  │   • HomeIdeaInput.tsx — AI-assisted idea input
   │   • MainInfo.tsx
-  │   • IdeaCard.tsx
   │   • OtherCTA.tsx
   │   • OtherInfo.tsx (embeds TechStack)
   │   • VersionTag.tsx
+  ├─ integrations/
+  │   • analytics/PosthogWrapper.tsx
+  │   • auth/ — authentication components (CreateOrganizationButton, LoginModal, SignInButton, SignInForm)
+  │   • LLM/ — AI chat components (ChatBox, ImagesGrid, ModelSelector, PromptInputs)
+  │   • uploads/SquareUploadButton.tsx
   └─ docs/
-      ├─ cursor/
-      │   • CursorProjectRule.tsx — displays project rules
-      ├─ command/ — blueprint components (TBD)
-      └─ test/ — example usage of integrations
-          • TestAuth.tsx, TestBilling.tsx, TestDatabase.tsx,
-            TestLLM.tsx, TestMaps.tsx, TestOrganisations.tsx,
-            TestRealtimeMessages.tsx, TestUploads.tsx
-          • BuildIdeaTab.tsx — dynamic build guide customised per platform/integrations
+      ├─ BuildTab.tsx — dynamic build guide customised per platform/integrations
+      ├─ cli/
+      │   • CliDocsContent.tsx — CLI docs content
+      └─ integration/
+          • IntegrationsDocsContent.tsx — integrations documentation
+
 src/client/context/ — React context providers
   • AuthContext.tsx — Supabase session provider
   • OsContext.tsx — OS detection helper

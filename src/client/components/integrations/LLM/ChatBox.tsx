@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { useChat } from "ai/react";
-import ModelSelector from "@client/components/LLM/ModelSelector";
+import ModelSelector from "@client/components/integrations/LLM/ModelSelector";
 import { DEFAULT_LLM_MODEL } from "@shared/constants";
 import { generateImages } from "@client/utils/integrationLLM";
 import { Paperclip, Send as SendIcon } from "lucide-react";
@@ -88,56 +88,14 @@ export default function ChatBox({ defaultMode = "text", allowedModes = ["text", 
   // UI helpers
   const isSending = status === "submitted" || status === "streaming";
 
+  const hasOutput =
+    messages.length > 0 ||
+    (mode === "image" && (isGeneratingImage || imageUrls.length > 0 || rawImageOutput || error));
+
   return (
     <div className="flex flex-col w-full max-w-3xl mx-auto border rounded-lg bg-white dark:bg-gray-900 shadow">
-      <div className="flex flex-col gap-4 p-4 overflow-y-auto min-h-[20vh]">
-        {(messages as any[]).map((m: any) => (
-          <div key={m.id} className="flex flex-col gap-1">
-            <div
-              className={`text-sm font-semibold ${
-                m.role === "user" ? "text-indigo-600" : "text-green-600"
-              }`}
-            >
-              {m.role === "user" ? "You" : "AI"}
-            </div>
-            <div className="whitespace-pre-wrap text-sm text-gray-800 dark:text-gray-200">
-              {((m as any).parts ?? []).map((part: any, idx: number) => {
-                if (part.type === "text") return <span key={idx}>{part.text}</span>;
-                if (part.type === "file" && part.mimeType?.startsWith("image/")) {
-                  return (
-                    <img
-                      key={idx}
-                      src={`data:${part.mimeType};base64,${part.data}`}
-                      alt="generated"
-                      className="max-w-full rounded-md border border-gray-300 dark:border-gray-700 my-2"
-                    />
-                  );
-                }
-                return null;
-              })}
-            </div>
-          </div>
-        ))}
-        {mode === "image" && isGeneratingImage && (
-          <div className="text-sm text-gray-500">Generating image… please wait</div>
-        )}
-        {mode === "image" && revisedPrompt && (
-          <div className="text-sm italic text-gray-700 dark:text-gray-300 mb-2">Revised prompt: {revisedPrompt}</div>
-        )}
-        {mode === "image" && imageUrls.length>0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {imageUrls.map((u,idx)=>(<img key={idx} src={u} className="w-full h-40 object-cover rounded"/>))}
-          </div>
-        )}
-        {rawImageOutput && mode==="image" && (
-           <pre className="bg-gray-900 text-gray-100 text-xs p-4 rounded-lg overflow-x-auto">{rawImageOutput}</pre>
-        )}
-        {error && (
-          <div className="text-red-500 text-sm">Something went wrong. <button onClick={() => reload()} className="underline">Retry</button></div>
-        )}
-      </div>
-
-      <div className="border-t dark:border-gray-700 p-4 flex flex-col gap-3">
+      {/* Controls */}
+      <div className="p-4 flex flex-col gap-3 border-b dark:border-gray-700">
         {/* Row 1 – model + mode selectors */}
         <div className="flex gap-3 w-full flex-wrap">
           <ModelSelector
@@ -178,7 +136,7 @@ export default function ChatBox({ defaultMode = "text", allowedModes = ["text", 
         </div>
 
         {/* Row 2 – attachment, input, send */}
-        <form onSubmit={onSubmit} className="flex items-center gap-3 w-full">
+        <form onSubmit={onSubmit} className="flex items-center gap-3 w-full mt-3">
           <input
             id="fileInput"
             type="file"
@@ -212,6 +170,56 @@ export default function ChatBox({ defaultMode = "text", allowedModes = ["text", 
           </button>
         </form>
       </div>
+
+      {/* Transcript / Generated output */}
+      {hasOutput && (
+        <div className="flex flex-col gap-4 p-4">
+          {(messages as any[]).map((m: any) => (
+            <div key={m.id} className="flex flex-col gap-1">
+              <div
+                className={`text-sm font-semibold ${
+                  m.role === "user" ? "text-indigo-600" : "text-green-600"
+                }`}
+              >
+                {m.role === "user" ? "You" : "AI"}
+              </div>
+              <div className="whitespace-pre-wrap text-sm text-gray-800 dark:text-gray-200">
+                {((m as any).parts ?? []).map((part: any, idx: number) => {
+                  if (part.type === "text") return <span key={idx}>{part.text}</span>;
+                  if (part.type === "file" && part.mimeType?.startsWith("image/")) {
+                    return (
+                      <img
+                        key={idx}
+                        src={`data:${part.mimeType};base64,${part.data}`}
+                        alt="generated"
+                        className="max-w-full rounded-md border border-gray-300 dark:border-gray-700 my-2"
+                      />
+                    );
+                  }
+                  return null;
+                })}
+              </div>
+            </div>
+          ))}
+          {mode === "image" && isGeneratingImage && (
+            <div className="text-sm text-gray-500">Generating image… please wait</div>
+          )}
+          {mode === "image" && revisedPrompt && (
+            <div className="text-sm italic text-gray-700 dark:text-gray-300 mb-2">Revised prompt: {revisedPrompt}</div>
+          )}
+          {mode === "image" && imageUrls.length>0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {imageUrls.map((u,idx)=>(<img key={idx} src={u} className="w-full h-40 object-cover rounded"/>))}
+            </div>
+          )}
+          {rawImageOutput && mode==="image" && (
+             <pre className="bg-gray-900 text-gray-100 text-xs p-4 rounded-lg overflow-x-auto">{rawImageOutput}</pre>
+          )}
+          {error && (
+            <div className="text-red-500 text-sm">Something went wrong. <button onClick={() => reload()} className="underline">Retry</button></div>
+          )}
+        </div>
+      )}
     </div>
   );
 } 

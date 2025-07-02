@@ -1,17 +1,16 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import type { Route } from "./+types/docs";
-import CursorProjectRule from "@client/components/docs/CursorDocs/CursorProjectRules";
-import CursorUserRulesSection from "@client/components/docs/CursorDocs/CursorUserRules";
-import MemoriesSection from "@client/components/docs/CursorDocs/CursorMemories";
-// import type { AvailablePlatform as Platform } from "@shared/availablePlatforms";
+import CursorProjectRule from "@client/components/CursorProjectRules";
+import CursorUserRulesSection from "@client/components/CursorUserRules";
+import MemoriesSection from "@client/components/CursorMemories";
 import { availablePlatforms } from "@shared/availablePlatforms";
 import { availableIntegrations } from "@shared/availableIntegrations";
 import { useOs } from "@client/context/OsContext";
-import BuildTab from "@client/components/docs/build/BuildTab";
-import IntegrationsDocsContent from "@client/components/docs/integration/IntegrationsDocsContent";
+import BuildTab from "@client/components/docs/BuildTab";
 import PlatformChip from "@client/components/PlatformChip";
-import CliDocsContent from "@client/components/docs/cli/CliDocsContent";
+import CliDocsContent from "@client/components/docs/CliTab";
+import SideBar from "@client/components/SideBar";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -60,15 +59,14 @@ export default function Docs() {
 
   // Platform dropdown state
   const [platformOpen, setPlatformOpen] = useState(false);
-  const platformBtnRef = useRef<HTMLButtonElement | null>(null);
   const platformMenuRef = useRef<HTMLDivElement | null>(null);
+  const [platformAnchor, setPlatformAnchor] = useState<{ x: number; y: number } | null>(null);
 
-  // Close when clicking outside
+  // Close platform menu when clicking outside
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (
         platformOpen &&
-        !platformBtnRef.current?.contains(e.target as Node) &&
         !platformMenuRef.current?.contains(e.target as Node)
       ) {
         setPlatformOpen(false);
@@ -96,21 +94,12 @@ export default function Docs() {
     sectionParam || "build-idea"
   );
 
-  // Track Platforms & Tech Stack dropdown visibility
-  const [platformsOpen, setPlatformsOpen] = useState(false);
-  const [techOpen, setTechOpen] = useState(false);
-
-  // Dropdown for Cursor integration (User Rules, Project Rules, Memories)
-  const [cursorOpen, setCursorOpen] = useState(false);
-
   // Leaf-level documentation sections (i.e. selectable pages)
   type DocsSection = { id: string; title: string; soon?: boolean };
 
   const leafSections: readonly DocsSection[] = [
-    { id: "cursor-rules", title: "User Rules" },
-    { id: "project-rules", title: "Project Rules" },
-    { id: "memories", title: "Memories" },
     { id: "build-idea", title: "Build Idea" },
+    { id: "cursor", title: "Cursor" },
     { id: "cli", title: "CLI", soon: true },
     { id: "platforms", title: "Platforms" },
     { id: "database", title: "Database" },
@@ -121,13 +110,6 @@ export default function Docs() {
 
   // Preserve original order defined in availablePlatforms.ts
   const platformsToShow = availablePlatforms;
-
-  // Integrations: keep original declaration order, but move "soon" items to the end
-  const displayIntegrations = React.useMemo(() => {
-    const avail = availableIntegrations.filter((i) => i.status !== 'soon');
-    const soon = availableIntegrations.filter((i) => i.status === 'soon');
-    return [...avail, ...soon];
-  }, []);
 
   // ---------------------------------------------------------------------------
   // Keep URL in sync when the user switches sections or platforms so that
@@ -155,244 +137,47 @@ export default function Docs() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetIdx]);
 
+  // -----------------------------
+  // Integration selection state
+  // -----------------------------
+  const initialIntegrationKeys: string[] = React.useMemo(() => {
+    if (integrationKeysFromParam.length > 0) return integrationKeysFromParam;
+    try {
+      const saved = localStorage.getItem("buildIdeaSelectedIntegrations");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [];
+  }, [integrationKeysFromParam]);
+
+  const [integrationKeys, setIntegrationKeys] = useState<string[]>(initialIntegrationKeys);
+
+  // Keep URL param "integrations" in sync with state
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const current = params.get("integrations") ?? "";
+    const newVal = integrationKeys.join(",");
+    if (current !== newVal) {
+      if (newVal) params.set("integrations", newVal);
+      else params.delete("integrations");
+      navigate({ pathname: location.pathname, search: params.toString() }, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [integrationKeys]);
+
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="flex gap-8">
           {/* Sidebar Navigation */}
-          <aside className="hidden lg:block w-64 flex-shrink-0">
-            <div className="sticky top-24 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-              <div className="flex items-center justify-between mb-4 gap-3">
-                <h3 className="font-semibold text-gray-900 dark:text-white">Documentation</h3>
-                <div className="relative hidden">
-                  <button
-                    ref={platformBtnRef}
-                    onClick={() => setPlatformOpen((o) => !o)}
-                    className="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                    title={`Platform: ${availablePlatforms[targetIdx].label}`}
-                  >
-                    {(() => {
-                      const IconComp = availablePlatforms[targetIdx].icon;
-                      if (IconComp) {
-                        return <IconComp className="w-4 h-4 text-gray-700 dark:text-gray-300" />;
-                      }
-                      return (
-                        <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                          {availablePlatforms[targetIdx].label.substring(0, 2).toUpperCase()}
-                        </span>
-                      );
-                    })()}
-                  </button>
-
-                  {platformOpen && (
-                    <div
-                      ref={platformMenuRef}
-                      className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10 max-h-72 overflow-y-auto scrollbar-none"
-                    >
-                      {platformsToShow.map((p) => {
-                        const idx = availablePlatforms.findIndex((x) => x.key === p.key);
-                        const Icon = p.icon;
-                        return (
-                          <button
-                            key={p.key}
-                            onClick={() => {
-                              setTargetIdx(idx);
-                              setPlatformOpen(false);
-                            }}
-                            className={`relative flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                              idx === targetIdx ? "bg-gray-100 dark:bg-gray-700" : ""
-                            }`}
-                          >
-                            {Icon ? <Icon className="w-4 h-4" /> : null}
-                            <span>{p.label}</span>
-                            {p.status === "soon" && (
-                              <span className="ml-auto text-[10px] uppercase font-semibold bg-yellow-900/40 text-yellow-300 px-1.5 py-0.5 rounded-md">soon</span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-              <nav className="space-y-2">
-                {/* Top-level quick start */}
-                {leafSections
-                  .filter((s) => ["build-idea","cli"].includes(s.id))
-                  .map((section) => (
-                    <button
-                      key={section.id}
-                      onClick={() => setActiveSection(section.id)}
-                      className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
-                        activeSection === section.id
-                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
-                          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      <span className="text-sm flex-1">{section.title}</span>
-                      {section.soon && (
-                        <span className="text-[10px] uppercase font-semibold bg-yellow-900/40 text-yellow-300 px-1.5 py-0.5 rounded-md">soon</span>
-                      )}
-                    </button>
-                  ))}
-
-                {/* Cursor Integration (dropdown) */}
-                <button
-                  onClick={() => {
-                    setCursorOpen((o) => !o);
-                    setActiveSection("cursor-rules");
-                  }}
-                  className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
-                    (['cursor-rules','project-rules','memories'] as string[]).includes(activeSection as string)
-                      ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 font-medium'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <span className="text-sm flex-1">Cursor</span>
-                  <svg
-                    className={`w-3 h-3 transition-transform ${cursorOpen ? 'rotate-90' : ''}`}
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M6 6L14 10L6 14V6Z" />
-                  </svg>
-                </button>
-
-                {cursorOpen && (
-                  <div className="pl-4 space-y-2">
-                    {leafSections
-                      .filter((s: any) => (['cursor-rules','project-rules','memories'] as string[]).includes(s.id))
-                      .map((section) => (
-                        <button
-                          key={section.id}
-                          onClick={() => {
-                            if (!section.soon) setActiveSection(section.id);
-                          }}
-                          className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
-                            activeSection === section.id
-                              ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 font-medium'
-                              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-                          } ${section.soon ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          disabled={section.soon}
-                        >
-                          <span className="text-sm">{section.title}</span>
-                        </button>
-                      ))}
-                  </div>
-                )}
-
-                {/* Platforms (dropdown) */}
-                <button
-                  onClick={() => setPlatformsOpen((o) => !o)}
-                  className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
-                    platformsOpen || activeSection === 'platforms'
-                      ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 font-medium'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <span className="text-sm flex-1">Platforms</span>
-                  <svg
-                    className={`w-3 h-3 transition-transform ${platformsOpen ? 'rotate-90' : ''}`}
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M6 6L14 10L6 14V6Z" />
-                  </svg>
-                </button>
-
-                {platformsOpen && (
-                  <div className="pl-4 space-y-2">
-                    {availablePlatforms.map((p) => {
-                      const idx = availablePlatforms.findIndex((x) => x.key === p.key);
-                      const Icon = p.icon;
-                      return (
-                        <button
-                          key={p.key}
-                          onClick={() => {
-                            if (p.status !== 'soon') {
-                              setTargetIdx(idx);
-                              setActiveSection('platforms');
-                            }
-                          }}
-                          className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
-                            activeSection === 'platforms' && idx === targetIdx
-                              ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 font-medium'
-                              : p.status === 'soon'
-                                ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
-                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-                          }`}
-                          disabled={p.status === 'soon'}
-                        >
-                          {Icon ? <Icon className="w-4 h-4" /> : null}
-                          <span className="text-sm flex-1">{p.label}</span>
-                          {p.status === 'soon' && (
-                            <span className="ml-auto text-[10px] uppercase font-semibold bg-yellow-900/40 text-yellow-300 px-1.5 py-0.5 rounded-md">soon</span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Tech Stack (dropdown) */}
-                <button
-                  onClick={() => setTechOpen((o) => !o)}
-                  className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
-                    techOpen || ([...displayIntegrations.map((i:any)=>i.key), 'file-uploads', 'database', 'analytics'].includes(activeSection as string))
-                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <span className="text-sm flex-1">Integrations</span>
-                  <svg
-                    className={`w-3 h-3 transition-transform ${techOpen ? 'rotate-90' : ''}`}
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M6 6L14 10L6 14V6Z" />
-                  </svg>
-                </button>
-
-                {techOpen && (
-                  <div className="pl-4 space-y-2">
-                    {displayIntegrations.map((intg: any) => {
-                      const authProviders = ['solana', 'google', 'github', 'discord'];
-                      const mappedSection = authProviders.includes(intg.key)
-                        ? 'authentication'
-                        : intg.key === 'uploads'
-                          ? 'file-uploads'
-                          : intg.key;
-
-                      return (
-                        <button
-                          key={intg.key}
-                          onClick={() => {
-                            if (intg.status !== 'soon') setActiveSection(mappedSection);
-                          }}
-                          className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all ${
-                            activeSection === mappedSection
-                              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
-                              : intg.status === 'soon'
-                                ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
-                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-                          }`}
-                          disabled={intg.status === 'soon'}
-                        >
-                          {intg.icon ? <intg.icon className="w-4 h-4" /> : null}
-                          <span className="text-sm flex-1">{intg.label}</span>
-                          {intg.status === 'soon' && (
-                            <span className="ml-auto text-[10px] uppercase font-semibold bg-yellow-900/40 text-yellow-300 px-1.5 py-0.5 rounded-md">soon</span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Troubleshooting nav removed as per new requirements */}
-              </nav>
-            </div>
-          </aside>
+          <SideBar
+            targetIdx={targetIdx}
+            setTargetIdx={setTargetIdx}
+            leafSections={leafSections as any}
+            activeSection={activeSection}
+            setActiveSection={setActiveSection}
+            integrationKeys={integrationKeys}
+            setIntegrationKeys={setIntegrationKeys}
+          />
 
           {/* Main Content */}
           <div className="flex-1 min-w-0">
@@ -412,7 +197,7 @@ export default function Docs() {
             </div>
 
             {/* Documentation Content */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 pt-0 border border-gray-100 dark:border-gray-700">
               {activeSection === "authentication" && (
                 <div className="prose prose-gray dark:prose-invert max-w-none">
                   <h1 className="text-3xl font-bold mb-6">Authentication</h1>
@@ -466,11 +251,6 @@ function MyComponent() {
                 </div>
               )}
 
-              {/* Integration-specific documentation */}
-              {(['database', 'file-uploads', 'uploads', 'analytics'] as string[]).includes(activeSection) && (
-                <IntegrationsDocsContent integrationKey={activeSection} />
-              )}
-
               {activeSection === "platforms" && (
                 <div className="prose prose-gray dark:prose-invert max-w-none">
                   <h1 className="text-3xl font-bold mb-6">Target Platforms</h1>
@@ -506,11 +286,33 @@ function MyComponent() {
 
               {activeSection === "memories" && <MemoriesSection />}
 
+              {activeSection === "cursor" && (
+                <div className="prose prose-gray dark:prose-invert max-w-none">
+                  <h1 className="text-3xl font-bold mb-6">Cursor Integration</h1>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    Manage AI settings and rule files that guide Cursor for this project.
+                  </p>
+                  <h2 className="text-2xl font-semibold mt-8 mb-4">User Rules</h2>
+                  <CursorUserRulesSection />
+
+                  <h2 className="text-2xl font-semibold mt-8 mb-4">Project Rules</h2>
+                  <CursorProjectRule />
+
+                  <h2 className="text-2xl font-semibold mt-8 mb-4">Memories</h2>
+                  <MemoriesSection />
+                </div>
+              )}
+
               {activeSection === "build-idea" && (
                 <BuildTab
                   idea={ideaParam}
                   platformLabel={availablePlatforms[targetIdx].label}
-                  integrationKeys={integrationKeysFromParam}
+                  integrationKeys={integrationKeys}
+                  onIntegrationKeysChange={setIntegrationKeys}
+                  onPlatformChange={(label: string) => {
+                    const idx = availablePlatforms.findIndex((p) => p.label === label);
+                    if (idx !== -1) setTargetIdx(idx);
+                  }}
                 />
               )}
 

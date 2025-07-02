@@ -1,6 +1,15 @@
 import { availableIntegrationKeys } from "@shared/availableIntegrations";
 import { availablePlatformKeys } from "@shared/availablePlatforms";
 
+/**
+ * Builds the system prompt instructing an LLM to return a structured JSON object
+ * describing the target platform and required integrations for a user idea.
+ *
+ * The prompt is intentionally deterministic and strictly instructs the model to
+ * return **only** raw JSON – no markdown fences, no comments, no extra keys.
+ *
+ * @param userIdea – Raw text describing the product idea provided by the user.
+ */
 export function buildPlatformIntegrationPrompt(userIdea: string): string {
   return `
 You are a deterministic JSON generator. Your only job is to read the user's idea and return **one raw JSON object** with **exactly two keys**:
@@ -25,7 +34,7 @@ ${availablePlatformKeys.join(", ")}
 ### Available_integrations:
 ${availableIntegrationKeys.join(", ")}
 
-
+Note: The "uploads" integration supports image (photos), PDF, and MP4 video uploads.
 
 ### User_Idea:
 

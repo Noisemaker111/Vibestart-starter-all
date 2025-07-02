@@ -109,7 +109,7 @@ function getCoreCategories(platform: AvailablePlatformKey): Category[] {
         },
       ];
 
-    case "desktop":
+    case "desktop-app":
       return [
         {
           key: "frontend-desktop",
@@ -185,7 +185,7 @@ export default function TechStack({ platformKey = "web" }: Props) {
       "analytics",
       "api",
     ],
-    desktop: [
+    "desktop-app": [
       "database",
       "uploads",
       "github",

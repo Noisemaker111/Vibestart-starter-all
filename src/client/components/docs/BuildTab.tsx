@@ -1,40 +1,43 @@
 import React, { type FC } from "react";
-import IdeaDisplay from "../../IdeaDisplay";
 import { availableIntegrations } from "@shared/availableIntegrations";
 import { availablePlatforms } from "@shared/availablePlatforms";
 import { useOs } from "@client/context/OsContext";
 import { processIdea } from "@client/utils/integrationLLM";
 import { DEFAULT_MODEL } from "@client/utils/integrationLLM";
+import IdeaTextBox from "@client/components/IdeaTextBox";
 
 // Test components for individual integrations
-import DocsTestAuth from "@client/components/docs/test-integrations/TestAuth";
-import DocsTestDatabase from "@client/components/docs/test-integrations/TestDatabase";
-import DocsTestUploads from "@client/components/docs/test-integrations/TestUploads";
-import DocsTestLLM from "@client/components/docs/test-integrations/TestLLM";
-import DocsTestBilling from "@client/components/docs/test-integrations/TestBilling";
-import DocsTestMaps from "@client/components/docs/test-integrations/TestMaps";
-import DocsTestRealtimeMessages from "@client/components/docs/test-integrations/TestRealtimeMessages";
-import DocsTestNotifications from "@client/components/docs/test-integrations/TestNotifications";
-import DocsTestEmail from "@client/components/docs/test-integrations/TestEmail";
-import DocsTestSms from "@client/components/docs/test-integrations/TestSms";
-import DocsTestFiles from "@client/components/docs/test-integrations/TestFiles";
-import DocsTestWhiteboard from "@client/components/docs/test-integrations/TestWhiteboard";
-import CursorUserRulesSection from "@client/components/docs/CursorDocs/CursorUserRules";
+import TestIntegrations from "@client/components/integrations/TestIntegrations";
+import CursorUserRulesSection from "@client/components/CursorUserRules";
 import { cursorMemories } from "@shared/cursorMemories";
-import DocsTestAnalytics from "@client/components/docs/test-integrations/TestAnalytics";
-import DocsTestApi from "@client/components/docs/test-integrations/TestApi";
-import DocsTestBotDetection from "@client/components/docs/test-integrations/TestBotDetection";
+
+import { buildCursorSetupPrompt } from "@shared/cursorSetupPrompt";
 
 interface BuildTabProps {
   idea?: string;
   platformLabel: string;
+  /**
+   * Selected integration keys supplied by parent. When provided the component keeps
+   * its internal state in sync with this array and propagates any changes back
+   * via onIntegrationKeysChange.
+   */
   integrationKeys?: string[];
+  /** Callback invoked whenever the selected integration keys change */
+  onIntegrationKeysChange?: (keys: string[]) => void;
+  /** Callback when AI suggests a new platform label */
+  onPlatformChange?: (label: string) => void;
   className?: string;
 }
 
-const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, className }) => {
+interface IntegrationDetail {
+  key: string;
+  label: string;
+  prerequisites: string[];
+  envVars: string[];
+}
+
+const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onIntegrationKeysChange, onPlatformChange, className }) => {
   const { os } = useOs();
-  const shellName = os === "windows" ? "PowerShell" : "Terminal";
   const modKey = os === "mac" ? "Cmd" : "Ctrl";
   const [keys, setKeys] = React.useState<string[]>(() => {
     if (integrationKeys && integrationKeys.length > 0) return integrationKeys;
@@ -44,8 +47,27 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
     } catch {}
     return [];
   });
-  const [menuOpen, setMenuOpen] = React.useState(false);
-  const menuRef = React.useRef<HTMLDivElement>(null);
+
+  // Keep internal keys in sync with controlled prop
+  React.useEffect(() => {
+    if (integrationKeys && JSON.stringify(integrationKeys) !== JSON.stringify(keys)) {
+      setKeys(integrationKeys);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [integrationKeys]);
+
+  // Helper to update keys & inform parent when needed
+  const updateKeys = React.useCallback(
+    (next: string[]) => {
+      setKeys(next);
+      onIntegrationKeysChange?.(next);
+    },
+    [onIntegrationKeysChange]
+  );
+
+  // --------------------------
+  // Idea textarea local state
+  // --------------------------
   const [selectedIdea, setSelectedIdea] = React.useState<string>(() => {
     if (idea && idea.length > 0) return idea;
     try {
@@ -58,7 +80,8 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
   // --------------------------
   // AI helper state & effects
   // --------------------------
-  const [aiLoading, setAiLoading] = React.useState(false);
+  // Only setter needed to trigger loading indicator in parent components
+  const [, setAiLoading] = React.useState(false);
 
   // Throttled generation mechanism (same as home.tsx)
   const lastAiCallRef = React.useRef(0); // timestamp ms
@@ -77,7 +100,10 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
       setAiLoading(true);
       try {
         const result = await processIdea(ideaString, [], DEFAULT_MODEL, "structured");
-        setKeys(result.integrations.map((i: any) => i.key));
+        updateKeys(result.integrations.map((i: any) => i.key));
+        if (result.platform && typeof result.platform === 'string') {
+          onPlatformChange?.(availablePlatforms.find(p=>p.key===result.platform)?.label || result.platform);
+        }
         // Ignore error handling for now; could expose toast later
       } catch (err) {
         console.error("AI integration selection failed", err);
@@ -94,7 +120,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
         setTimeout(() => runAiGeneration(nextIdea), delay);
       }
     },
-    []
+    [updateKeys, onPlatformChange]
   );
 
   // Debounced trigger – 800 ms after typing stops
@@ -107,37 +133,25 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
     }, 800);
 
     return () => clearTimeout(handle);
-  }, [selectedIdea, runAiGeneration]);
+  }, [runAiGeneration, selectedIdea]);
 
   // KeyDown handler – run AI immediately on Enter (no Shift)
   function handleIdeaKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       const trimmed = selectedIdea.trim();
-      if (trimmed.length > 0) {
+      if (trimmed && trimmed.length > 0) {
         runAiGeneration(trimmed);
       }
     }
   }
 
   // Change handler updates state and sets loading placeholder when >=3 chars
-  function handleIdeaChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    const val = e.target.value;
+  function handleIdeaChange(val: string) {
     setSelectedIdea(val);
     if (val.trim().length >= 3) setAiLoading(true);
     else setAiLoading(false);
   }
-
-  // Close dropdown when clicking outside
-  React.useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (menuOpen && menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [menuOpen]);
 
   // Persist selected integrations to localStorage
   React.useEffect(() => {
@@ -164,63 +178,32 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
     return availablePlatforms.find((p) => p.label === platformLabel);
   }, [platformLabel]);
 
-  const unselected = availableIntegrations.filter((i) => !keys.includes(i.key));
+  // Integration test widget (single consolidated component)
+  const hasSelectedIntegrations = keys.length > 0;
 
-  function handleAdd(key: string) {
-    setKeys((prev) => (prev.includes(key) ? prev : [...prev, key]));
-  }
-
-  function handleRemove(key: string) {
-    setKeys((prev) => prev.filter((k) => k !== key));
-  }
-
-  // Map integration keys to test components for verification section
-  const integrationComponentMap: Record<string, React.FC | undefined> = {
-    auth: DocsTestAuth,
-    database: DocsTestDatabase,
-    uploads: DocsTestUploads,
-    llm: undefined,
-    "llm-json": undefined,
-    "llm-image": undefined,
-    billing: DocsTestBilling,
-    maps: DocsTestMaps,
-    realtime: DocsTestRealtimeMessages,
-    notifications: DocsTestNotifications,
-    email: DocsTestEmail,
-    sms: DocsTestSms,
-    files: DocsTestFiles,
-    whiteboard: DocsTestWhiteboard,
-    analytics: DocsTestAnalytics,
-    api: DocsTestApi,
-    "bot-detection": DocsTestBotDetection,
-  };
-
-  const testComponents = Array.from(new Set(keys))
-    .map((k) => integrationComponentMap[k])
-    .filter(Boolean) as React.FC[];
-
-  // After testComponents definition
-  const llmModes: ("text" | "structured" | "image")[] = [];
-  if (keys.includes("llm")) llmModes.push("text");
-  if (keys.includes("llm-json")) llmModes.push("structured");
-  if (keys.includes("llm-image")) llmModes.push("image");
-  if (llmModes.length > 0) {
-    testComponents.push(() => <DocsTestLLM allowedModes={llmModes} mode={llmModes[0]} />);
-  }
-
-  // Dynamic prerequisites & env vars based on selected integrations
+  // Base prerequisites are always the same. Integration-specific accounts are handled later.
   const prerequisiteSet = React.useMemo(() => {
-    const base = [
+    return [
       "Node.js 18+ – https://nodejs.org/en/download",
       "Git 2.5+ – https://git-scm.com/downloads",
       "Cursor IDE – https://www.cursor.com/",
     ];
-    const set = new Set<string>(base);
-    keys.forEach((k) => {
-      const intg = availableIntegrations.find((i) => i.key === k);
-      intg?.prerequisites?.forEach((p) => set.add(p));
-    });
-    return Array.from(set);
+  }, []);
+
+  // Details per selected integration – used for new Step 3
+  const integrationDetails = React.useMemo<IntegrationDetail[]>(() => {
+    return keys
+      .map<IntegrationDetail | null>((k) => {
+        const intg = availableIntegrations.find((i) => i.key === k);
+        if (!intg) return null;
+        return {
+          key: intg.key,
+          label: intg.label,
+          prerequisites: intg.prerequisites ?? [],
+          envVars: intg.envVars ?? [],
+        };
+      })
+      .filter((d): d is IntegrationDetail => d !== null);
   }, [keys]);
 
   const envVarSet = React.useMemo(() => {
@@ -250,8 +233,6 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
   // 1) Memory creation commands – one per memory entry (shared source)
   // ---------------------------------------------------------------------------
 
-  const memoryCommands = cursorMemories.map((m) => `/Create Memory\n${m}`).join("\n\n");
-
   const flagsForPrompt = [
     "-web",
     ...keys.map((k) => {
@@ -263,7 +244,12 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
   const createCmdForPrompt = `npx create vibestart ${flagsForPrompt.join(" ")}`;
   const setupCommands = `${createCmdForPrompt}\ncd my-app\nnpm install\nnpm run dev`;
 
-  const cursorPromptFull = `${memoryCommands}\n\n/Generate Cursor Rules\n\n<project-structure.mdc>\n${projectStructureMdc}\n\n<tech-stack.mdc>\n${techStackMdc}\n\n/Setup Project\n${setupCommands}`;
+  const cursorPromptFull = buildCursorSetupPrompt({
+    projectStructureMdc,
+    techStackMdc,
+    setupCommands,
+    memories: cursorMemories,
+  });
 
   // Abbreviated prompt shown in the UI (keeps screen clean)
   const cursorPromptDisplay = (
@@ -282,65 +268,14 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
       >
           memories
       </a>{' '}
-      and to get the project setup
+      and to get the project setup.
     </>
   );
 
-  function handleNewIdea() {
-    // Reset to blank state
-    setSelectedIdea("");
-    setKeys([]);
-
-    try {
-      localStorage.removeItem("buildIdeaIdea");
-      localStorage.removeItem("buildIdeaSelectedIntegrations");
-    } catch {}
-  }
-
   return (
     <div className={`prose prose-gray dark:prose-invert max-w-none ${className ?? ""}`.trim()}>
-      <h1 className="text-3xl font-bold mb-6">Build Your Idea</h1>
 
-      {/* Idea block + dropdown anchor */}
-      <div className="relative mb-8" ref={menuRef}>
-        <IdeaDisplay
-          idea={selectedIdea}
-          activeIntegrations={keys}
-          platform={platformObj}
-          onIdeaChange={handleIdeaChange}
-          onIdeaKeyDown={handleIdeaKeyDown}
-          placeholder="Enter your idea here…"
-          loading={aiLoading}
-          onRemove={handleRemove}
-          onAdd={() => setMenuOpen((o) => !o)}
-          onClear={handleNewIdea}
-        />
-        {menuOpen && (
-          <div className="absolute z-10 mt-2 w-56 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-2 max-h-64 overflow-y-auto">
-            {unselected.length === 0 && (
-              <p className="text-center text-xs text-gray-500 py-4">All integrations added</p>
-            )}
-            {unselected.map((intg) => {
-              const Icon = intg.icon;
-              return (
-                <button
-                  key={intg.key}
-                  onClick={() => handleAdd(intg.key)}
-                  className="w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                >
-                  {Icon && <Icon className="w-4 h-4" />}
-                  <span>{intg.label}</span>
-                  {intg.status === "soon" && (
-                    <span className="ml-auto text-[10px] font-semibold uppercase text-purple-400">soon</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Pre-Requisites section */}
+      {/* Pre-Requisites section (moved above idea area) */}
       <div className="my-8">
         <h2 className="text-xl font-semibold mb-3">Pre-Requisites</h2>
         <ul className="list-disc pl-6 space-y-1 text-sm text-gray-600 dark:text-gray-400">
@@ -360,7 +295,6 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
               "Install VibeStart CLI": "Scaffold a new VibeStart project in seconds.",
             };
 
-            // Fallback: try shorter matches
             const description =
               detailsMap[label] ||
               Object.entries(detailsMap).find(([k]) => label.startsWith(k))?.[1];
@@ -380,12 +314,31 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
                   <span>{label}</span>
                 )}
                 {description && (
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{description}</p>
+                  <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">- {description}</span>
                 )}
               </li>
             );
           })}
         </ul>
+      </div>
+
+      {/* Idea input block + dropdown anchor */}
+      <div className="relative mb-8">
+        <div className="relative w-full max-w-4xl mx-auto p-4 not-prose">
+          {/* Idea textbox wrapper (no visible box) */}
+          <div className="relative overflow-visible p-6">
+            {/* Idea textarea */}
+            <div className="relative z-10 flex flex-col items-center justify-center gap-2 w-full">
+              <IdeaTextBox
+                value={selectedIdea}
+                onChange={handleIdeaChange}
+                onKeyDown={handleIdeaKeyDown}
+                placeholder="Enter your idea here…"
+                className="w-full max-w-2xl"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Build steps */}
@@ -411,7 +364,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
 
             {/* New Step 1 – generate Cursor rules */}
             <li>
-              <h3 className="text-xl font-semibold mb-2">Prompt for VibeStart creation</h3>
+              <h3 className="text-xl font-semibold mb-2">Prompt for VibeStart</h3>
               <p className="mb-4">Click <strong>Copy</strong> then paste into Cursor's chat, and hit Enter to generate the rules.</p>
               <div className="relative">
                 <button
@@ -434,77 +387,54 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
                 Open <strong>Cursor → Settings → "User Rules"</strong>, then copy&nbsp;&amp;&nbsp;paste the rules below in full and
                 save. These configure Cursor's behaviour for your project.
               </p>
-              <CursorUserRulesSection />
+              <div className="relative w-full">
+                {/* Non-scrollable preview container */}
+                <div className="max-h-29 overflow-hidden pr-2">
+                  <CursorUserRulesSection />
+                </div>
+                {/* Fade overlay at bottom */}
+                <div className="pointer-events-none absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-gray-100 dark:from-gray-800 to-transparent rounded-b-lg" />
+              </div>
             </li>
 
-            {/* Removed explicit CLI step – setup runs automatically via the prompt */}
+            {/* Step 3 – concise per-integration setup */}
+            {integrationDetails.length > 0 && (
+              <li>
+                <h3 className="text-xl font-semibold mb-2">Set Up Integration Accounts &amp; .env.local</h3>
+                <ul className="list-disc pl-6 space-y-1 text-sm">
+                  {integrationDetails.map((d) => {
+                    const firstPrereq = d.prerequisites[0];
+                    const [rawLabel, rawLink] = firstPrereq ? firstPrereq.split(" – ") : [d.label, undefined];
+                    const envList = d.envVars.map((v) => `\ ${v}`).join(", ");
+                    return (
+                      <li key={d.key}>
+                        <span>
+                          {rawLink ? (
+                            <a href={rawLink} target="_blank" rel="noopener noreferrer" className="underline text-purple-600 dark:text-purple-400">
+                              {d.label}
+                            </a>
+                          ) : (
+                            d.label
+                          )}
+                        </span>
+                        {envList && (
+                          <span>
+                            : add <code>{envList}</code>
+                          </span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
 
-            {/* Step 3 – only when env vars required */}
-            {envVarSet.length > 0 && (
-            <li>
-              <h3 className="text-xl font-semibold mb-2">Add Environment Variables</h3>
-              <p className="mb-2">Duplicate <code>.env.example</code> → rename to <code>.env.local</code>, then paste:</p>
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-2 text-xs">
-                <code>{envSample}</code>
-              </pre>
-              <p className="text-xs text-gray-500 mb-3">Replace each <code>your_value_here</code> with the real key from the service dashboard.</p>
-              <p className="text-xs text-gray-500 mb-3">Tip: Reload the dev server after editing <code>.env.local</code> so Vite picks up the changes.</p>
-
-              <ul className="list-disc pl-6 space-y-1">
-                {envVarSet.map((v) => {
-                  // Map env vars to link & description
-                  const info: Record<string, { link: string; desc: string }> = {
-                    DATABASE_URL: {
-                      link: "https://supabase.com/docs/guides/database/connecting-to-postgres",
-                      desc: "Supabase → Settings → Database → Connection string",
-                    },
-                    VITE_SUPABASE_URL: {
-                      link: "https://supabase.com/docs/guides/api",
-                      desc: "Supabase → Settings → API → Project URL",
-                    },
-                    VITE_SUPABASE_ANON_KEY: {
-                      link: "https://supabase.com/docs/guides/api",
-                      desc: "Supabase → Settings → API → anon public key",
-                    },
-                    UPLOADTHING_TOKEN: {
-                      link: "https://uploadthing.com/dashboard",
-                      desc: "UploadThing Dashboard → API Keys → Secret Key",
-                    },
-                    VITE_OPENROUTER_API_KEY: {
-                      link: "https://openrouter.ai/keys",
-                      desc: "OpenRouter → Account → API Keys",
-                    },
-                    VITE_PUBLIC_POSTHOG_KEY: {
-                      link: "https://posthog.com",
-                      desc: "PostHog → Project Settings → Project API key",
-                    },
-                    VITE_PUBLIC_POSTHOG_HOST: {
-                      link: "https://posthog.com",
-                      desc: "Usually https://app.posthog.com unless self-hosted",
-                    },
-                    OPENAI_API_KEY: {
-                      link: "https://platform.openai.com/account/api-keys",
-                      desc: "OpenAI Dashboard → User → API Keys",
-                    },
-                  };
-
-                  const meta = info[v as keyof typeof info];
-                  return (
-                    <li key={v} className="text-sm">
-                      <code className="font-mono bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded-sm mr-1">{v}</code>
-                      {meta ? (
-                        <>
-                          – <a href={meta.link} target="_blank" rel="noopener noreferrer" className="underline text-purple-600 dark:text-purple-400">Get key</a>
-                          <span className="block text-xs text-gray-500 dark:text-gray-400 ml-4">{meta.desc}</span>
-                        </>
-                      ) : (
-                        " – set this value in your hosting provider"
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </li>
+                {/* Combined env.vars snippet */}
+                {envSample && (
+                  <div className="mt-4">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Open <code>.env.local</code> and paste:</p>
+                    <pre className="bg-gray-900 text-gray-100 p-3 rounded-md overflow-x-auto text-xs"><code>{envSample}</code></pre>
+                  </div>
+                )}
+              </li>
             )}
 
             {/* Step 4 – start the dev server via Cursor */}
@@ -518,7 +448,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
             </li>
 
             {/* Step 5 – integration tests if any */}
-            {testComponents.length > 0 && (
+            {hasSelectedIntegrations && (
               <li>
                 <h3 className="text-xl font-semibold mb-2">Check Your Integrations</h3>
                 <p className="mb-2">Expand each widget to run a real API call (insert a row, upload a file, etc.). If everything succeeds you're ready for Git!</p>
@@ -548,10 +478,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, cla
                 >
                   Clear All Tests
                 </button>
-
-                {testComponents.map((Comp, idx) => (
-                  <Comp key={idx} />
-                ))}
+                <TestIntegrations />
               </li>
             )}
 

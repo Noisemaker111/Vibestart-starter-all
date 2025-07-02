@@ -8,9 +8,20 @@ export interface AppIdea {
 
 export const appIdeas: AppIdea[] = [
   {
-  "idea":"Collaborative whiteboard for remote brainstorming with live annotations",
-  "platform":"web",
-  "integrations":["analytics","database","notifications","realtime","uploads"]
+    "idea": "Website to generate a 4x4 amount of images based on user prompt with slight variance in each one, pay per 4x4 or 16 images",
+    "platform": "web",
+    "integrations": [
+      "analytics",
+      "external api",
+      "authentication",
+      "billing",
+      "database",
+      "email",
+      "llm text",
+      "llm image",
+      "notifications",
+      "uploads"
+    ]
   },
   {
   "idea":"Personal finance dashboard tracking expenses with customizable charts",
@@ -159,52 +170,52 @@ export const appIdeas: AppIdea[] = [
   },
   {
   "idea":"Cross-platform markdown editor with live preview and export options",
-  "platform":"desktop",
+  "platform":"desktop-app",
   "integrations":["database","files","notifications"]
   },
   {
   "idea":"Video editing tool offering AI-generated transitions and effects",
-  "platform":"desktop",
+  "platform":"desktop-app",
   "integrations":["api","files","llm-image-gen","notifications"]
   },
   {
   "idea":"Time tracking app with project billing and analytics dashboard",
-  "platform":"desktop",
+  "platform":"desktop-app",
   "integrations":["analytics","billing","database"]
   },
   {
   "idea":"Desktop email client with unified inbox and smart filtering",
-  "platform":"desktop",
+  "platform":"desktop-app",
   "integrations":["database","email","notifications"]
   },
   {
   "idea":"Password manager with browser autofill and secure vault sync",
-  "platform":"desktop",
+  "platform":"desktop-app",
   "integrations":["database","google","notifications","uploads"]
   },
   {
   "idea":"Music production DAW with collaborative cloud project sharing",
-  "platform":"desktop",
+  "platform":"desktop-app",
   "integrations":["database","files","notifications","realtime","uploads"]
   },
   {
   "idea":"2D animation studio software with onion skin and timeline editor",
-  "platform":"desktop",
+  "platform":"desktop-app",
   "integrations":["database","files","notifications"]
   },
   {
   "idea":"Virtual machine manager for lightweight development environments",
-  "platform":"desktop",
+  "platform":"desktop-app",
   "integrations":["api","database","notifications"]
   },
   {
   "idea":"Screen capture tool with annotation and instant sharing options",
-  "platform":"desktop",
+  "platform":"desktop-app",
   "integrations":["api","files","notifications","uploads"]
   },
   {
   "idea":"Mind mapping app with real-time collaboration and export templates",
-  "platform":"desktop",
+  "platform":"desktop-app",
   "integrations":["api","database","notifications","realtime"]
   },
   {

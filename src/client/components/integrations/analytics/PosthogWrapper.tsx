@@ -22,7 +22,7 @@ export default function PosthogWrapper({ children, apiKey, host }: Props) {
         options={{
           api_host: host || undefined,
           capture_exceptions: true,
-          debug: import.meta.env.DEV,
+          debug: false,
         }}
       >
         {children}
