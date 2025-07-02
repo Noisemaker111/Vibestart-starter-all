@@ -118,7 +118,7 @@ export default function IntegrationChips({ className, activeKeys, showAllIfEmpty
 
   if (!chunkRows) {
     // Simple layout without fixed pattern. If stretch=true, stack vertically; else wrap.
-    const containerClasses = stretch ? 'flex flex-col gap-3' : 'flex flex-row flex-wrap gap-3';
+    const containerClasses = stretch ? 'flex flex-col gap-3' : 'flex flex-row flex-wrap gap-3 justify-center';
 
     return (
       <div className={`${containerClasses} ${className ?? ''}`.trim()}>
@@ -156,7 +156,7 @@ export default function IntegrationChips({ className, activeKeys, showAllIfEmpty
   return (
     <div className={`flex flex-col gap-3 ${className ?? ''}`.trim()}>
       {rows.map((row, rowIdx) => (
-        <div key={rowIdx} className="flex flex-row flex-wrap gap-3 w-full">
+        <div key={rowIdx} className="flex flex-row flex-wrap gap-3 w-full justify-center">
           {row.map(renderChip)}
         </div>
       ))}

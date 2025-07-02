@@ -11,8 +11,8 @@ export default function HomeOtherCTA({ buildLink, onClick }: Props) {
     <section className="relative py-20 px-4">
       <div className="max-w-3xl mx-auto text-center">
         <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 backdrop-blur-sm rounded-3xl p-12 border border-gray-800">
-          <h2 className="text-3xl font-bold mb-4">Your competitors are shipping. Are you?</h2>
-          <p className="text-gray-400 mb-8">Every day you spend learning is a day someone else is building your idea.</p>
+          <h2 className="text-3xl font-bold mb-4 text-gray-800 dark:text-gray-100">Your competitors are shipping. Are you?</h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-8">Every day you spend learning is a day someone else is building your idea.</p>
           <Link
             to={buildLink}
             onClick={onClick}

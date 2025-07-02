@@ -54,7 +54,7 @@ export default function HomeIdeaCard({
           activeKeys={activeKeys}
           showAllIfEmpty={false}
           loading={loading}
-          rowPattern={[3,2,3]}
+          rowPattern={[3,2,3,2]}
           chipWidthClass="w-[200px]"
         />
       </div>

@@ -303,7 +303,7 @@ export default function Home() {
                 <Link
                   to={buildLink}
                   onClick={() => posthog.capture("home_get_building_click")}
-                  className="inline-flex items-center justify-center px-8 py-4 font-bold text-black bg-white rounded-xl hover:bg-gray-100 transition-all duration-200"
+                  className="inline-flex items-center justify-center px-8 py-4 font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl shadow-lg hover:from-purple-500 hover:to-indigo-500 transition-all duration-200"
                 >
                   Start Building
                 </Link>

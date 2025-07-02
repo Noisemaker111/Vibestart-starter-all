@@ -8,7 +8,7 @@ export default function VibeStartMainInfo() {
           Vibe-Ready Tech Stack
         </span>
         <br />
-        <span className="text-2xl lg:text-4xl text-gray-600 font-light">
+        <span className="text-2xl lg:text-4xl text-gray-700 dark:text-gray-300 font-light">
           Start your idea in minutes.
         </span>
       </h1>
