@@ -34,4 +34,14 @@ export default defineConfig({
       "@shared": path.resolve(__dirname, "src/shared"),
     },
   },
+  build: {
+    sourcemap: false,
+    chunkSizeWarningLimit: 2000,
+    rollupOptions: {
+      onwarn(warning, rollupWarn) {
+        if (warning.code === "EMPTY_BUNDLE") return;
+        rollupWarn(warning);
+      },
+    },
+  },
 });

@@ -1,8 +1,5 @@
-import React, { Suspense } from "react";
-
-const LazyPostHogProvider = React.lazy(() =>
-  import("posthog-js/react").then((m) => ({ default: m.PostHogProvider }))
-);
+import React from "react";
+import { PostHogProvider } from "posthog-js/react";
 
 interface Props {
   children: React.ReactNode;
@@ -16,17 +13,15 @@ export default function PosthogWrapper({ children, apiKey, host }: Props) {
   }
 
   return (
-    <Suspense fallback={children}>
-      <LazyPostHogProvider
-        apiKey={apiKey}
-        options={{
-          api_host: host || undefined,
-          capture_exceptions: true,
-          debug: false,
-        }}
-      >
-        {children}
-      </LazyPostHogProvider>
-    </Suspense>
+    <PostHogProvider
+      apiKey={apiKey}
+      options={{
+        api_host: host || undefined,
+        capture_exceptions: true,
+        debug: false,
+      }}
+    >
+      {children}
+    </PostHogProvider>
   );
 } 

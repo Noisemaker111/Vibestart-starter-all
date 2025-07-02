@@ -12,6 +12,8 @@ import CursorUserRulesSection from "@client/components/CursorUserRules";
 import { cursorMemories } from "@shared/cursorMemories";
 
 import { buildCursorSetupPrompt } from "@shared/cursorSetupPrompt";
+import { supabase } from "@shared/supabase";
+import { dispatchClearTests } from "@client/utils/testIntegrationEvents";
 
 interface BuildTabProps {
   idea?: string;
@@ -461,7 +463,6 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
                     onClick={async () => {
                       // Global clear logic – sign out, wipe tables, then dispatch event
                       try {
-                        const { supabase } = await import("@shared/supabase");
                         await supabase.auth.signOut().catch(() => {});
                       } catch {}
 
@@ -474,7 +475,6 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
                       } catch {}
 
                       // Dispatch event to notify all widgets to reset UI state
-                      const { dispatchClearTests } = await import("@client/utils/testIntegrationEvents");
                       dispatchClearTests();
                     }}
                     className="px-3 py-1 text-sm bg-gray-700 text-white rounded-md hover:bg-gray-600"
