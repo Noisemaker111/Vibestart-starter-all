@@ -12,4 +12,5 @@ export default [
   route("api/polar", "./pages/api/polar.tsx"),
   route("api/polar/webhook", "./pages/api/polar/webhook.tsx"),
   route("api/token-usage", "./pages/api/token-usage.tsx"),
+  route("api/email", "./pages/api/email.tsx"),
 ] satisfies RouteConfig; 

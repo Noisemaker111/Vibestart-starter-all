@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { checkBotId } from "botid/server";
 
 const BodySchema = z.object({
   prompt: z.string().min(1, "Prompt required"),
@@ -14,6 +15,15 @@ export const imageGenerationHandler = {
   async action({ request }: { request: Request }) {
     if (request.method !== "POST") {
       return new Response("Method Not Allowed", { status: 405 });
+    }
+
+    // Block automated abuse of expensive image generation
+    const botCheck = import.meta.env.DEV ? { isBot: false } : await checkBotId();
+    if (botCheck.isBot) {
+      return new Response(
+        JSON.stringify({ error: "Access denied" }),
+        { status: 403, headers: { "Content-Type": "application/json" } }
+      );
     }
 
     let parsedBody;

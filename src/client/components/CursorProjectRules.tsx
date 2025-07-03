@@ -108,7 +108,6 @@ src/shared/ — isomorphic helpers (importable client & server)
   • appIdeas.ts — hundreds of placeholder ideas
   • availableIntegrations.ts — integration metadata
   • availablePlatforms.ts — platform metadata
-  • memories.ts — memory persistence across sessions
   • project-rules.ts, user-rules.ts — runtime-loaded rule sets
   • supabase.ts — Supabase client factory
   • app.css — Tailwind entrypoint & utilities

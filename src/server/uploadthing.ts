@@ -4,6 +4,7 @@ import { db } from "@server/db";
 import { uploadsTable } from "@server/db/schema";
 import { verify, generateSignedToken } from "@server/utils/visitorToken";
 import { UTApi } from "uploadthing/server";
+import { checkBotId } from "botid/server";
 
 const f = createUploadthing();
 
@@ -15,6 +16,12 @@ export const uploadRouter = {
     image: { maxFileSize: "4MB", maxFileCount: 1 },
   })
     .middleware(async ({ event }) => {
+      // Perform BotID verification to block automated uploads
+      const botCheck = import.meta.env.DEV ? { isBot: false } : await checkBotId();
+      if (botCheck.isBot) {
+        throw new Error("Access denied – bot detected");
+      }
+
       const cookieName = "anon_token";
       const cookieHeader = event.request.headers.get("cookie") ?? "";
       const incomingCookie = cookieHeader

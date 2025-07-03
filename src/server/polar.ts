@@ -1,8 +1,19 @@
+import { checkBotId } from "botid/server";
+
 // No Zod schema yet; reserved for future validation.
 
 /** Simple ping handler for Polar API connectivity. Optional query param ?mode=products attempts to list products. */
 export const polarRouteHandler = {
   async loader({ request }: { request: Request }) {
+    // Reject automated scraping
+    const botCheck = import.meta.env.DEV ? { isBot: false } : await checkBotId();
+    if (botCheck.isBot) {
+      return new Response(
+        JSON.stringify({ error: "Access denied" }),
+        { status: 403, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     const url = new URL(request.url);
     const mode = url.searchParams.get("mode") || "ping";
 

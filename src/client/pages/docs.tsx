@@ -8,6 +8,8 @@ import { useEnvironment } from "@client/context/EnvironmentContext";
 import BuildTab from "@client/components/docs/BuildTab";
 import PlatformChip from "@client/components/PlatformChip";
 import SideBar from "@client/components/SideBar";
+import { CLAUDE_SYSTEM_RULES } from "@shared/promptClaudeSystem";
+import { GEMINI_SYSTEM_RULES } from "@shared/promptGeminiSystem";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -94,15 +96,18 @@ export default function Docs() {
   // Leaf-level documentation sections (i.e. selectable pages)
   type DocsSection = { id: string; title: string; soon?: boolean };
 
-  const leafSections: readonly DocsSection[] = [
-    { id: "build-idea", title: "Build Idea" },
-    { id: "cursor", title: "Cursor" },
-    { id: "platforms", title: "Platforms" },
-    { id: "database", title: "Database" },
-    { id: "authentication", title: "Authentication" },
-    { id: "file-uploads", title: "File Uploads" },
-    { id: "analytics", title: "Analytics" },
-  ];
+  const leafSections: readonly DocsSection[] = React.useMemo(() => {
+    const ideTitle = env === "cursor" ? "Cursor" : env === "claude" ? "Claude Code" : "Gemini CLI";
+    return [
+      { id: "build-idea", title: "Build Idea" },
+      { id: "cursor", title: ideTitle },
+      { id: "platforms", title: "Platforms" },
+      { id: "database", title: "Database" },
+      { id: "authentication", title: "Authentication" },
+      { id: "file-uploads", title: "File Uploads" },
+      { id: "analytics", title: "Analytics" },
+    ] as const;
+  }, [env]);
 
   // Preserve original order defined in availablePlatforms.ts
   const platformsToShow = availablePlatforms;
@@ -159,6 +164,13 @@ export default function Docs() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [integrationKeys]);
+
+  // Precompute Claude & Gemini markdown previews
+  const mdPreview = React.useMemo(() => {
+    if (env === "claude") return CLAUDE_SYSTEM_RULES;
+    if (env === "gemini") return GEMINI_SYSTEM_RULES;
+    return "";
+  }, [env]);
 
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -280,12 +292,28 @@ function MyComponent() {
 
               {activeSection === "cursor" && (
                 <div className="prose prose-gray dark:prose-invert max-w-none">
-                  <h1 className="text-3xl font-bold mb-6">Cursor Integration</h1>
+                  <h1 className="text-3xl font-bold mb-6">{env === "cursor" ? "Cursor Integration" : env === "claude" ? "Claude Code Integration" : "Gemini Integration"}</h1>
                   <p className="text-gray-600 dark:text-gray-400 mb-4">
-                    Manage AI settings and rule files that guide Cursor for this project.
+                    Manage AI settings and rule files that guide {env === "cursor" ? "Cursor" : env === "claude" ? "Claude Code" : "Gemini"} for this project.
                   </p>
-                  <h2 className="text-2xl font-semibold mt-8 mb-4">Project Rules</h2>
-                  <CursorProjectRule />
+                  <h2 className="text-2xl font-semibold mt-8 mb-4">{env === "cursor" ? "Project Rules" : env === "claude" ? "CLAUDE.md" : "GEMINI.md"}</h2>
+                  {/* Reuse existing editor for Cursor, else simple display for Claude/Gemini */}
+                  {env === "cursor" ? (
+                    <CursorProjectRule />
+                  ) : (
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => navigator.clipboard.writeText(mdPreview).catch(() => {})}
+                        className="absolute right-2 top-2 px-2 py-0.5 text-xs bg-gray-700 text-white rounded hover:bg-gray-600"
+                      >
+                        Copy
+                      </button>
+                      <pre className="bg-gray-100 dark:bg-gray-800/40 p-4 rounded-lg overflow-x-auto text-xs whitespace-pre-wrap">
+                        {mdPreview}
+                      </pre>
+                    </div>
+                  )}
                 </div>
               )}
 

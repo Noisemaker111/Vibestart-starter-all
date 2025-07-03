@@ -34,6 +34,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { path: "/api/botid", method: "GET" },
     { path: "/api/animals", method: "POST" },
     { path: "/api/images", method: "POST" },
+    { path: "/api/chat", method: "POST" },
+    { path: "/api/image-generate", method: "POST" },
+    { path: "/api/email", method: "POST" },
+    { path: "/api/uploadthing", method: "POST" },
   ];
   return (
     <html lang="en">
@@ -42,7 +46,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
-        <BotIdClient protect={protectedRoutes} />
+        {import.meta.env.PROD && <BotIdClient protect={protectedRoutes} />}
       </head>
       <body className="bg-gray-50 dark:bg-gray-900">
         <PosthogWrapper apiKey={POSTHOG_KEY} host={POSTHOG_HOST}>

@@ -1,6 +1,7 @@
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { streamText } from "ai";
 import { DEFAULT_LLM_MODEL } from "@shared/constants";
+import { checkBotId } from "botid/server";
 
 interface ChatRequestBody {
   messages: Array<{ id?: string; role: "user" | "assistant" | "system"; content: string }>;
@@ -17,6 +18,15 @@ export const chatRouteHandler = {
   async action({ request }: { request: Request }) {
     if (request.method !== "POST") {
       return new Response("Method Not Allowed", { status: 405 });
+    }
+
+    // Block automated bots
+    const botCheck = import.meta.env.DEV ? { isBot: false } : await checkBotId();
+    if (botCheck.isBot) {
+      return new Response(
+        JSON.stringify({ error: "Access denied" }),
+        { status: 403, headers: { "Content-Type": "application/json" } }
+      );
     }
 
     let body: ChatRequestBody;

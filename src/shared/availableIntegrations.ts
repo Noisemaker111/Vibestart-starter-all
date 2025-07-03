@@ -12,6 +12,7 @@ import {
   Plug,
   Mail,
   File,
+  Users,
 } from "lucide-react";
 import { FaChalkboard } from "react-icons/fa6";
 import { FaDiscord } from "react-icons/fa";
@@ -78,8 +79,8 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
     label: "LLM Image",
     icon: Brain,
     status: "available",
-    prerequisites: ["Create an OpenRouter account (min. $5 credit) – https://openrouter.ai"],
-    envVars: ["VITE_OPENROUTER_API_KEY", "OPENAI_API_KEY"],
+    prerequisites: ["Create an Openai account (min. $5 credit) – https://openai.com"],
+    envVars: ["OPENAI_API_KEY"],
   },
   {
     key: "analytics",
@@ -130,8 +131,37 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
   },
   { key: "realtime", label: "Realtime Messaging", icon: MessageCircle, status: "soon" },
   { key: "notifications", label: "Notifications", icon: Bell, status: "soon" },
-  { key: "maps", label: "Maps", icon: MapPin, status: "soon" },
-  { key: "email", label: "Email", icon: Mail, status: "soon" },
+  {
+    key: "maps",
+    label: "Maps",
+    icon: MapPin,
+    status: "available",
+    prerequisites: [
+      "Create a google cloud account – https://cloud.google.com",
+      "Generate an access token – https://cloud.google.com/maps-platform/pricing"
+    ],
+    envVars: ["GOOGLE_MAPS_API_KEY"],
+  },
+  {
+    key: "organizations",
+    label: "Organizations",
+    icon: Users,
+    status: "available",
+    prerequisites: [
+      "Supabase set-up with 'organizations' table present (see schema.ts)"
+    ],
+  },
+  {
+    key: "email",
+    label: "Email",
+    icon: Mail,
+    status: "available",
+    prerequisites: [
+      "Create a Resend account – https://resend.com",
+      "Generate an API key – https://resend.com/api-keys",
+    ],
+    envVars: ["RESEND_API_KEY"],
+  },
   { key: "sms", label: "SMS", icon: MessageCircle, status: "soon" },
   { key: "files", label: "Files", icon: File, status: "soon" },
   { key: "whiteboard", label: "Whiteboard", icon: FaChalkboard, status: "soon" },

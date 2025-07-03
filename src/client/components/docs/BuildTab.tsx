@@ -12,6 +12,11 @@ import TestIntegrations from "@client/components/integrations/TestIntegrations";
 import { buildHomeIdeaConverter, promptHomeIdeaConverter } from "@shared/promptHomeIdeaConverter";
 import { supabase } from "@shared/supabase";
 import { dispatchClearTests } from "@client/utils/testIntegrationEvents";
+import {
+  promptCursorSetup,
+  promptClaudeSetup,
+  promptGeminiSetup,
+} from "@shared/promptCursorSetup";
 
 interface BuildTabProps {
   idea?: string;
@@ -39,6 +44,9 @@ interface IntegrationDetail {
 const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onIntegrationKeysChange, onPlatformChange, className }) => {
   const { env } = useEnvironment();
   const modKey = env === "cursor" ? "Cmd" : "Ctrl";
+  const toolName = env === "cursor" ? "Cursor IDE" : env === "claude" ? "Claude Code" : "Gemini CLI";
+  const chatName = env === "cursor" ? "Cursor's chat" : env === "claude" ? "Claude Code" : "Gemini";
+  const runAppInstruction = env === "cursor" ? "Tell Cursor to run the app" : env === "claude" ? "Tell Claude Code to run the app" : "Tell Gemini CLI to run the app";
   const [keys, setKeys] = React.useState<string[]>(() => {
     if (integrationKeys && integrationKeys.length > 0) return integrationKeys;
     try {
@@ -101,9 +109,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
       try {
         const result = await processIdea(ideaString, [], DEFAULT_MODEL, "structured");
 
-        if (!integrationKeys || integrationKeys.length === 0) {
-          updateKeys(result.integrations.map((i: any) => i.key));
-        }
+        updateKeys(result.integrations.map((i: any) => i.key));
         if (result.platform && typeof result.platform === 'string') {
           onPlatformChange?.(availablePlatforms.find(p=>p.key===result.platform)?.label || result.platform);
         }
@@ -131,12 +137,15 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
     const trimmed = selectedIdea.trim();
     if (trimmed.length < 3) return;
 
+    // If we already have integration keys, assume AI has run before – skip auto request
+    if (keys.length > 0) return;
+
     const handle = setTimeout(() => {
       runAiGeneration(trimmed);
     }, 800);
 
     return () => clearTimeout(handle);
-  }, [runAiGeneration, selectedIdea]);
+  }, [runAiGeneration, selectedIdea, keys.length]);
 
   // KeyDown handler – run AI immediately on Enter (no Shift)
   function handleIdeaKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -186,12 +195,19 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
 
   // Base prerequisites are always the same. Integration-specific accounts are handled later.
   const prerequisiteSet = React.useMemo(() => {
+    const toolLink =
+      env === "cursor"
+        ? "https://www.cursor.com/"
+        : env === "claude"
+        ? "https://www.anthropic.com/" // Placeholder link
+        : "https://ai.google.dev/gemini-api/docs/gemini-cli"; // Placeholder link
+
     return [
       "Node.js 18+ – https://nodejs.org/en/download",
       "Git 2.5+ – https://git-scm.com/downloads",
-      "Cursor IDE – https://www.cursor.com/",
+      `${toolName} – ${toolLink}`,
     ];
-  }, []);
+  }, [env, toolName]);
 
   // Details per selected integration – used for new Step 3
   const integrationDetails = React.useMemo<IntegrationDetail[]>(() => {
@@ -235,40 +251,57 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
   // ---------------------------------------------------------------------------
   // 1) Memory creation commands – one per memory entry (shared source)
   // ---------------------------------------------------------------------------
+  const setupCommands = `npm install\nnpm run dev`;
 
-  const flagsForPrompt = [
-    "-web",
-    ...keys.map((k) => {
-      const found = availableIntegrations.find((i) => i.key === k);
-      const flag = found?.cliFlag ?? k;
-      return `-${flag}`;
-    }),
-  ];
-  const createCmdForPrompt = `npx create vibestart ${flagsForPrompt.join(" ")}`;
-  const setupCommands = `${createCmdForPrompt}\ncd my-app\nnpm install\nnpm run dev`;
-
-  const cursorPromptFull = buildHomeIdeaConverter(selectedIdea);
+  // Generate full prompt per environment
+  const promptFull = (() => {
+    const options = { projectStructureMdc, techStackMdc, setupCommands } as const;
+    if (env === "cursor") return promptCursorSetup(options);
+    if (env === "claude") return promptClaudeSetup(options);
+    return promptGeminiSetup(options);
+  })();
 
   // Abbreviated prompt shown in the UI (keeps screen clean)
-  const cursorPromptDisplay = (
-    <>
-      Prompt to generate the {' '}
-      <a
-        href="/docs?platform=web&section=project-rules"
-        className="underline text-purple-600 dark:text-purple-400"
-      >
-        project rules
-      </a>
-      ,{' '}
-      <a
-        href="/docs?platform=web&section=memories"
-        className="underline text-purple-600 dark:text-purple-400"
-      >
-          memories
-      </a>{' '}
-      and to get the project setup.
-    </>
-  );
+  const cursorPromptDisplay = (() => {
+    if (env === "cursor") {
+      return (
+        <>
+          Prompt to generate the{' '}
+          <a
+            href="/docs?section=cursor"
+            className="underline text-purple-600 dark:text-purple-400"
+          >
+            project rules
+          </a>{' '}
+          and to get the project setup.
+        </>
+      );
+    }
+    if (env === "claude") {
+      return (
+        <>
+          Prompt to generate the{' '}
+          <a
+            href="/docs?section=cursor"
+            className="underline text-purple-600 dark:text-purple-400"
+          >
+            CLAUDE.md
+          </a>{' '}and to get the project setup.
+        </>
+      );
+    }
+    return (
+      <>
+        Prompt to generate the{' '}
+        <a
+          href="/docs?section=cursor"
+          className="underline text-purple-600 dark:text-purple-400"
+        >
+          GEMINI.md
+        </a>{' '}and to get the project setup.
+      </>
+    );
+  })();
 
   return (
     <div className={`prose prose-gray dark:prose-invert max-w-none ${className ?? ""}`.trim()}>
@@ -285,7 +318,9 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
             const detailsMap: Record<string, string> = {
               "Node.js 18+": "JavaScript runtime that powers your backend.",
               "Git 2.5+": "Version-control system to track and share your code.",
-              "Cursor IDE": "$20/month AI-powered code editor that writes code with you, not for you.",
+              "Cursor IDE": "$20/month AI-powered code editor with a GUI and background agents.",
+              "Claude Code": "$200 AI very powerful code assistant through CLI.",
+              "Gemini CLI": "Free CLI to interact with Google's Gemini models, through CLI.",
               "Create a Supabase account": "Hosted Postgres database & user authentication.",
               "Create an UploadThing account": "Simple file upload service for images, documents and more.",
               "Create a Vercel account": "Host your website and API endpoints.",
@@ -340,7 +375,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
       {/* Build steps */}
       {(() => {
         // Split prerequisites into tools vs. accounts
-        const toolPrefixes = ["Node.js", "Git", "Cursor IDE"];
+        const toolPrefixes = ["Node.js", "Git", toolName];
         const tools = prerequisiteSet.filter((p) => toolPrefixes.some((pre) => p.startsWith(pre)));
         const accounts = prerequisiteSet.filter((p) => !tools.includes(p));
 
@@ -359,11 +394,11 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
             {/* Step 2 – prompt for rules */}
             <li>
               <h3 className="text-xl font-semibold mb-2">Prompt for VibeStart</h3>
-              <p className="mb-4">Click <strong>Copy</strong> then paste into Cursor's chat, and hit Enter to generate the rules.</p>
+              <p className="mb-4">Click <strong>Copy</strong> then paste into {chatName}, and hit Enter to generate the rules.</p>
               <div className="relative">
                 <button
                   type="button"
-                  onClick={() => navigator.clipboard.writeText(cursorPromptFull).catch(() => {})}
+                  onClick={() => navigator.clipboard.writeText(promptFull).catch(() => {})}
                   className="absolute right-2 top-2 px-2 py-0.5 text-xs bg-gray-700 text-white rounded hover:bg-gray-600"
                 >
                   Copy
@@ -421,7 +456,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
             {/* Step 4 – run the app */}
             <li>
               <h3 className="text-xl font-semibold mb-2">Run the App</h3>
-              <p className="mb-2">Tell Cursor to run the app, or execute:</p>
+              <p className="mb-2">{runAppInstruction}, or execute:</p>
               <pre className="bg-gray-900 text-gray-100 p-3 rounded-md overflow-x-auto text-xs"><code>{devCmd}</code></pre>
             </li>
 
@@ -463,7 +498,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
               <h3 className="text-xl font-semibold mb-2">Set Up Git &amp; GitHub</h3>
               <p className="mb-2">Version-control keeps your history safe and enables automatic deployments.</p>
               <ol className="list-decimal list-inside space-y-1 ml-4">
-                <li>Open Cursor's <strong>Source Control</strong> panel (icon next to Explorer).</li>
+                <li>{env === "cursor" ? "Open Cursor's" : `Open ${toolName}'s`} <strong>Source Control</strong> panel (icon next to Explorer).</li>
                 <li>Click <strong>Initialize Repository</strong> to run <code>git init</code>.</li>
                 <li>Select all files and click <strong>+</strong> to stage them.</li>
                 <li>Add a commit message like <code>init</code> and press <kbd>{modKey}+Enter</kbd> to commit.</li>

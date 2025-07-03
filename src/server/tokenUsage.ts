@@ -1,6 +1,14 @@
+import { checkBotId } from "botid/server";
+
 export const tokenUsageRouteHandler = {
   async action({ request }: { request: Request }) {
     try {
+      // Basic BotID verification – if bot, ignore request to avoid noisy logs
+      const botCheck = import.meta.env.DEV ? { isBot: false } : await checkBotId();
+      if (botCheck.isBot) {
+        return new Response(JSON.stringify({ error: "Access denied" }), { status: 403 });
+      }
+
       const { idea, promptTokens, completionTokens } = (await request.json()) as {
         idea?: string;
         promptTokens?: number;

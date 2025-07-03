@@ -54,45 +54,62 @@ export function Header() {
               })}
             </nav>
 
-            {/* Mobile Docs Link */}
-            <Link
-              to="/docs"
-              onClick={() => posthog.capture('nav_docs_click')}
-              className={`md:hidden text-sm font-semibold transition-colors ${
-                location.pathname === '/docs'
-                  ? 'text-purple-500 drop-shadow-sm'
-                  : 'text-purple-400 hover:text-purple-300 drop-shadow-sm'
-              }`}
-            >
-              Docs
-            </Link>
+            {/* Mobile Links */}
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                to={item.href}
+                onClick={() => posthog.capture(`nav_${item.label.toLowerCase()}_click`)}
+                className={`md:hidden text-sm font-semibold transition-colors ${
+                  location.pathname === item.href
+                    ? 'text-purple-500 drop-shadow-sm'
+                    : 'text-purple-400 hover:text-purple-300 drop-shadow-sm'
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
           
           {/* Environment Selector Slider & User Actions */}
           <div className="flex items-center gap-4">
             {location.pathname.startsWith("/docs") && (
               <div className="hidden md:flex items-center">
-                <div className="relative bg-gray-800 rounded-full px-2 py-0 flex items-center gap-1">
-                  {( 
-                    [
-                      { id: "cursor", img: "https://ub2fn6mfq7.ufs.sh/f/qmic4Bwp6v0GW45AxaZLpdOz8koXPIARmrajUTxi1QZNyGtJ", alt: "Cursor" },
-                      { id: "claude", img: "https://ub2fn6mfq7.ufs.sh/f/qmic4Bwp6v0GlKr861UNz2yIcw3vhuo5DpsJA90BxQVOgmLS", alt: "Claude" },
-                      { id: "gemini", img: "https://ub2fn6mfq7.ufs.sh/f/qmic4Bwp6v0GUTTfzTL38gaiXL7ce2OnjumGwIv4d9KlCS1H", alt: "Gemini" },
-                    ] as const
-                  ).map(({ id, img, alt }) => (
-                    <button
-                      key={id}
-                      onClick={() => setEnv(id as EnvironmentType)}
-                      className={`p-0 flex items-center justify-center rounded-full transition-all duration-200 ${
-                        env === id
-                          ? "bg-gradient-to-br from-purple-600 to-indigo-600 shadow-lg ring-2 ring-purple-400/60 scale-105"
-                          : "hover:bg-gray-700 hover:scale-105"
-                      }`}
-                    >
-                      <img src={img} alt={alt} className="w-12 h-12 object-contain" />
-                    </button>
-                  ))}
-                </div>
+                {/* Environment selector with sliding indicator */}
+                {(() => {
+                  const envOptions = [
+                    { id: "cursor", img: "https://ub2fn6mfq7.ufs.sh/f/qmic4Bwp6v0GN5opBIR05IS8LmcaWvOtlxnRABobdyrDNzfg", alt: "Cursor" },
+                    { id: "claude", img: "https://ub2fn6mfq7.ufs.sh/f/qmic4Bwp6v0G62M16RliI58BwvbV0HgTMGDOAcK2X9dQno3l", alt: "Claude" },
+                    { id: "gemini", img: "https://ub2fn6mfq7.ufs.sh/f/qmic4Bwp6v0GluEo24UNz2yIcw3vhuo5DpsJA90BxQVOgmLS", alt: "Gemini" },
+                  ] as const;
+
+                  const BUTTON_PX = 36; // width/height for w-9
+                  const GAP_PX = 8; // gap-2 (0.5rem)
+                  const selectedIdx = envOptions.findIndex((opt) => opt.id === env);
+
+                  return (
+                    <div className="relative bg-gray-800 rounded-full px-2 py-1 flex items-center gap-2">
+                      {/* Sliding highlight */}
+                      <span
+                        className="absolute top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white shadow-lg ring-2 ring-purple-400/60 transition-transform duration-300"
+                        style={{ transform: `translateX(${selectedIdx * (BUTTON_PX + GAP_PX)}px)` }}
+                        aria-hidden="true"
+                      />
+
+                      {envOptions.map(({ id, img, alt }) => (
+                        <button
+                          key={id}
+                          onClick={() => setEnv(id as EnvironmentType)}
+                          className={`relative z-10 p-0 flex items-center justify-center rounded-full transition-transform duration-200 ${
+                            env === id ? "scale-105" : "hover:scale-105"
+                          }`}
+                        >
+                          <img src={img} alt={alt} className="w-9 h-9 object-contain" />
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
