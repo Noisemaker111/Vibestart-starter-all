@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { useChat } from "ai/react";
 import ModelSelector from "@client/components/integrations/LLM/ModelSelector";
-import { DEFAULT_LLM_MODEL } from "@shared/constants";
+import { DEFAULT_LLM_MODEL, DEFAULT_IMAGE_MODEL } from "@shared/constants";
 import { generateImages } from "@client/utils/integrationLLM";
 import { Paperclip, Send as SendIcon } from "lucide-react";
 
@@ -58,7 +58,7 @@ export default function ChatBox({ className }: ChatBoxProps) {
     setMode(detectedMode);
 
     if (detectedMode === "image") {
-      const chosenModel = "dall-e-3";
+      const chosenModel = DEFAULT_IMAGE_MODEL;
       if (model !== chosenModel) setModel(chosenModel);
       if (!input.trim()) return;
       setIsGeneratingImage(true);

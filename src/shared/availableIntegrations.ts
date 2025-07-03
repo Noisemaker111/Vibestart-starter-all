@@ -14,6 +14,7 @@ import {
   File,
 } from "lucide-react";
 import { FaChalkboard } from "react-icons/fa6";
+import { FaDiscord } from "react-icons/fa";
 
 export interface AvailableIntegration {
   key: string;
@@ -89,6 +90,17 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
     envVars: ["VITE_PUBLIC_POSTHOG_KEY", "VITE_PUBLIC_POSTHOG_HOST"],
   },
   {
+    key: "discord",
+    label: "Discord",
+    icon: FaDiscord,
+    status: "available",
+    prerequisites: [
+      "Create a Discord Developer application – https://discord.com/developers/applications",
+      "Generate OAuth credentials (Client ID & Secret)",
+    ],
+    envVars: ["DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET"],
+  },
+  {
     key: "api",
     label: "External API",
     icon: Plug,
@@ -97,6 +109,17 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
   {
     key: "billing",
     label: "Billing",
+    icon: CreditCard,
+    status: "available",
+    prerequisites: [
+      "Create a Polar account – https://polar.sh",
+      "Generate an access token – https://app.polar.sh/settings/tokens (or sandbox)"
+    ],
+    envVars: ["POLAR_ACCESS_TOKEN", "POLAR_WEBHOOK_SECRET"],
+  },
+  {
+    key: "payments",
+    label: "Payments",
     icon: CreditCard,
     status: "available",
     prerequisites: [

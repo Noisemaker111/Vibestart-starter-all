@@ -125,6 +125,11 @@ export async function processIdea(
     ],
   } as const;
 
+  // In development, log full request body for easy inspection in browser console
+  if (import.meta.env.DEV) {
+    console.debug("[processIdea] request body", bodyObj);
+  }
+
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -196,6 +201,24 @@ export async function processIdea(
     }
 
     const integrationsArray = mapKeysToIntegrations(integrationKeys);
+
+    // ──────────────────────────────────────────────────────────
+    // Token usage reporting – send to server so it appears in logs
+    // ──────────────────────────────────────────────────────────
+    try {
+      const usage = (data as any)?.usage;
+      if (usage && typeof usage.prompt_tokens === "number" && typeof usage.completion_tokens === "number") {
+        fetch("/api/token-usage", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            idea,
+            promptTokens: usage.prompt_tokens,
+            completionTokens: usage.completion_tokens,
+          }),
+        }).catch(() => {/* fire-and-forget */});
+      }
+    } catch {/* ignore */}
 
     return {
       platform,
@@ -317,44 +340,14 @@ export async function generateImages(
     });
 
     if (!response.ok) {
-      let details: unknown = null;
-      try {
-        details = await response.clone().json();
-      } catch {
-        // ignore json parse errors
-      }
-      const msg = `OpenRouter image error ${response.status}` + (details ? ` – ${JSON.stringify(details)}` : "");
-      // Fallback: attempt via chat/completions endpoint (models like Gemini can generate images this way)
-      try {
-        const chatRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer": import.meta.env.VITE_SITE_URL || window.location.origin,
-            "X-Title": "JonStack",
-          },
-          body: JSON.stringify({
-            model,
-            messages: [
-              { role: "user", content: prompt },
-            ],
-          }),
-        });
-
-        const chatRaw = await chatRes.text();
-        const urlRegex = /(https?:\/\/[^\s"']+\.(?:png|jpg|jpeg|webp))/gi;
-        const fallbackUrls = Array.from(new Set(chatRaw.match(urlRegex) || []));
-        return { raw: chatRaw, urls: fallbackUrls, error: chatRes.ok ? undefined : msg };
-      } catch {
-        return { raw: msg, urls: [], error: msg };
-      }
+      const raw = await response.text();
+      return { raw, urls: [], error: `OpenRouter image error ${response.status}` };
     }
 
-    const data = await response.json();
+    const dataImg = await response.json();
 
-    const urls: string[] = Array.isArray(data?.data)
-      ? data.data
+    const urls: string[] = Array.isArray(dataImg?.data)
+      ? dataImg.data
           .map((d: any) => {
             if (typeof d?.url === "string") return d.url;
             if (typeof d?.b64_json === "string") return `data:image/png;base64,${d.b64_json}`;
@@ -363,10 +356,27 @@ export async function generateImages(
           .filter((u: any): u is string => typeof u === "string")
       : [];
 
-    return { raw: JSON.stringify(data), urls };
+    return { raw: JSON.stringify(dataImg), urls };
   } catch (err: any) {
     const message = err?.message || "Image generation failed";
     console.error("[generateImages]", message, err);
     return { raw: "", urls: [], error: message };
   }
-} 
+}
+
+// ──────────────────────────────────────────────────────────
+// Dev helper: expose processIdea for direct browser-console use
+// ──────────────────────────────────────────────────────────
+if (typeof window !== "undefined" && import.meta.env.DEV) {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore – augmenting global window for debugging purposes
+  if (!window.processIdea) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore – assign helper
+    window.processIdea = processIdea;
+    console.info(
+      "%cprocessIdea() available in console. Example:\n  processIdea('Generate a SaaS idea…').then(r => console.log(r));",
+      "color: purple; font-weight: bold;"
+    );
+  }
+}

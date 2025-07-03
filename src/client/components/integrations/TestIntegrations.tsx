@@ -6,6 +6,7 @@ import { useClearTests } from "@client/utils/testIntegrationEvents";
 import { useUploadThing } from "@client/utils/uploadthing";
 import type { UploadResponse } from "@client/utils/uploadthing";
 import ChatBox from "@client/components/integrations/LLM/ChatBox";
+import { availableIntegrations } from "@shared/availableIntegrations";
 
 // Icons
 import { Loader2 } from "lucide-react";
@@ -591,7 +592,9 @@ export default function TestIntegrations() {
       <BotDetectionTest />
 
       {/* Placeholder tests */}
-      <PlaceholderDetails title="External API" />
+      {availableIntegrations.find((i)=>i.key==="api")?.status!=="available" && (
+        <PlaceholderDetails title="External API" />
+      )}
       <PlaceholderDetails title="Email" />
       <PlaceholderDetails title="Files" />
       <PlaceholderDetails title="Maps / Address Autocomplete" />

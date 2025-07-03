@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import type { Route } from "./+types/docs";
 import CursorProjectRule from "@client/components/CursorProjectRules";
-import CursorUserRulesSection from "@client/components/CursorUserRules";
 import { availablePlatforms } from "@shared/availablePlatforms";
 import { availableIntegrations } from "@shared/availableIntegrations";
 import { useEnvironment } from "@client/context/EnvironmentContext";
@@ -265,8 +264,6 @@ function MyComponent() {
                 </div>
               )}
 
-              {activeSection === "cursor-rules" && <CursorUserRulesSection />}
-
               {activeSection === "project-rules" && (
                 <div className="prose prose-gray dark:prose-invert max-w-none">
                   <h1 className="text-3xl font-bold mb-6">Project Rules</h1>
@@ -287,9 +284,6 @@ function MyComponent() {
                   <p className="text-gray-600 dark:text-gray-400 mb-4">
                     Manage AI settings and rule files that guide Cursor for this project.
                   </p>
-                  <h2 className="text-2xl font-semibold mt-8 mb-4">User Rules</h2>
-                  <CursorUserRulesSection />
-
                   <h2 className="text-2xl font-semibold mt-8 mb-4">Project Rules</h2>
                   <CursorProjectRule />
                 </div>

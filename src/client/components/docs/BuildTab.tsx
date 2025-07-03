@@ -8,7 +8,6 @@ import IdeaTextBox from "@client/components/IdeaTextBox";
 
 // Test components for individual integrations
 import TestIntegrations from "@client/components/integrations/TestIntegrations";
-import CursorUserRulesSection from "@client/components/CursorUserRules";
 
 import { buildHomeIdeaConverter, promptHomeIdeaConverter } from "@shared/promptHomeIdeaConverter";
 import { supabase } from "@shared/supabase";
@@ -357,23 +356,6 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
 
         return (
           <ol className="list-decimal space-y-8 text-lg not-prose">
-            {/* Step 1 – set user rules */}
-            <li>
-              <h3 className="text-xl font-semibold mb-2">Set User Rules</h3>
-              <p className="mb-4">
-                Open <strong>Cursor → Settings → "User Rules"</strong>, then copy&nbsp;&amp;&nbsp;paste the rules below in full and
-                save. These configure Cursor's behaviour for your project.
-              </p>
-              <div className="relative w-full">
-                {/* Non-scrollable preview container */}
-                <div className="max-h-29 overflow-hidden pr-2">
-                  <CursorUserRulesSection />
-                </div>
-                {/* Fade overlay at bottom */}
-                <div className="pointer-events-none absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-gray-100 dark:from-gray-800 to-transparent rounded-b-lg" />
-              </div>
-            </li>
-
             {/* Step 2 – prompt for rules */}
             <li>
               <h3 className="text-xl font-semibold mb-2">Prompt for VibeStart</h3>

@@ -19,7 +19,7 @@ export default function PlatformChip({ platform, className, onClick }: PlatformC
   if (!platform) return null;
   const Icon = platform.icon;
   const commonClasses = `group relative flex items-center gap-3 px-5 py-2 rounded-full bg-gradient-to-r from-green-500 to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-300 ease-out hover:scale-[1.03] animate-in fade-in ${
-    platform.status === "soon" ? "opacity-70 blur-[1px]" : ""
+    platform.status === "soon" ? "opacity-80" : ""
   } ${className ?? ""}`.trim();
 
   if (onClick) {

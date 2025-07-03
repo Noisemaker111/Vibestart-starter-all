@@ -28,16 +28,12 @@ export default function HomeIdeaCard({
       <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl p-8 border border-gray-200 shadow-lg">
         {/* Internal glow overlay */}
         <div className="pointer-events-none absolute -inset-1 -z-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-          <label className="text-lg sm:text-xl font-semibold text-gray-700">
-            Give me your idea
-          </label>
-          <div className="flex items-center gap-2">
-            {selectedPlatform && (
-              <PlatformChip platform={selectedPlatform} className="text-xs sm:text-sm" />
-            )}
+        {/* Top bar – only shows selected platform chip (label removed per design update) */}
+        {selectedPlatform && (
+          <div className="flex justify-end mb-3">
+            <PlatformChip platform={selectedPlatform} className="text-xs sm:text-sm" />
           </div>
-        </div>
+        )}
         <div>
           <IdeaTextBox
             value={idea}
@@ -49,14 +45,15 @@ export default function HomeIdeaCard({
         </div>
 
         {/* Integration list – displays a placeholder chip while analyzing */}
-        <IntegrationChips
-          className="mt-4"
-          activeKeys={activeKeys}
-          showAllIfEmpty={false}
-          loading={loading}
-          rowPattern={[3,2,3,2]}
-          chipWidthClass="w-[200px]"
-        />
+        <div className="mt-4 flex justify-center">
+          <IntegrationChips
+            activeKeys={activeKeys}
+            showAllIfEmpty={false}
+            loading={loading}
+            rowPattern={[3,2,3,2]}
+            chipWidthClass="w-[240px]"
+          />
+        </div>
       </div>
     </div>
   );

@@ -39,3 +39,24 @@ ${userIdea}
 export {
   promptHomeIdeaConverter as buildHomeIdeaConverter,
 };
+
+// ──────────────────────────────────────────────────────────
+// Dev helper: expose to browser console
+// Allows running `promptHomeIdeaConverter("my idea")` directly in
+// the web DevTools console when running `npm run dev`.
+// ──────────────────────────────────────────────────────────
+if (typeof window !== "undefined" && import.meta.env.DEV) {
+  // Attach only if not already defined to avoid clobbering.
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore: augmenting global window for debugging purposes
+  if (!window.promptHomeIdeaConverter) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore: assign for debug use
+    window.promptHomeIdeaConverter = promptHomeIdeaConverter;
+    // Helpful log so devs discover the helper.
+    console.info(
+      "%cpromptHomeIdeaConverter() available in console. Example:\n  promptHomeIdeaConverter('Generate a SaaS idea…');",
+      "color: purple; font-weight: bold;"
+    );
+  }
+}

@@ -1,5 +1,5 @@
 import React from "react";
-import { DEFAULT_LLM_MODEL } from "@shared/constants";
+import { DEFAULT_LLM_MODEL, DEFAULT_IMAGE_MODEL } from "@shared/constants";
 
 interface ModelSelectorProps {
   value?: string;
@@ -10,12 +10,12 @@ interface ModelSelectorProps {
 
 const ALL_MODELS: { id: string; label: string }[] = [
   { id: DEFAULT_LLM_MODEL, label: "google/gemma-3n-e4b-it" },
-  { id: "dall-e-3", label: "dall-e-3" },
+  { id: DEFAULT_IMAGE_MODEL, label: DEFAULT_IMAGE_MODEL },
 ];
 
-const IMAGE_MODELS = ALL_MODELS.filter((m) => m.id === "dall-e-3");
+const IMAGE_MODELS = ALL_MODELS.filter((m) => m.id === DEFAULT_IMAGE_MODEL);
 
-const TEXT_MODELS = ALL_MODELS.filter((m) => m.id !== "dall-e-3");
+const TEXT_MODELS = ALL_MODELS.filter((m) => m.id !== DEFAULT_IMAGE_MODEL);
 
 export default function ModelSelector({ value, onChange, className, mode }: ModelSelectorProps) {
   const selected = value ?? DEFAULT_LLM_MODEL;

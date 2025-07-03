@@ -12,6 +12,7 @@ import { AuthProvider } from "@client/context/AuthContext";
 import { EnvironmentProvider } from "@client/context/EnvironmentContext";
 import { Header } from "@client/components/Header";
 import PosthogWrapper from "@client/components/integrations/analytics/PosthogWrapper";
+import { BotIdClient } from "botid/client";
 
 export const links: Route.LinksFunction = () => [
   { rel: "stylesheet", href: appStylesHref },
@@ -29,6 +30,11 @@ export const links: Route.LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const protectedRoutes = [
+    { path: "/api/botid", method: "GET" },
+    { path: "/api/animals", method: "POST" },
+    { path: "/api/images", method: "POST" },
+  ];
   return (
     <html lang="en">
       <head>
@@ -36,6 +42,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        <BotIdClient protect={protectedRoutes} />
       </head>
       <body className="bg-gray-50 dark:bg-gray-900">
         <PosthogWrapper apiKey={POSTHOG_KEY} host={POSTHOG_HOST}>

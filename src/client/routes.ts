@@ -11,4 +11,5 @@ export default [
   route("api/image-generate", "./pages/api/image-generate.tsx"),
   route("api/polar", "./pages/api/polar.tsx"),
   route("api/polar/webhook", "./pages/api/polar/webhook.tsx"),
+  route("api/token-usage", "./pages/api/token-usage.tsx"),
 ] satisfies RouteConfig; 
