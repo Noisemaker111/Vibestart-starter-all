@@ -273,7 +273,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
           >
             project rules
           </a>{' '}
-          and to get the project setup.
+          , Initialize the project and Inject Code for the integrations and directory structure.
         </>
       );
     }
@@ -286,7 +286,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
             className="underline text-purple-600 dark:text-purple-400"
           >
             CLAUDE.md
-          </a>{' '}and to get the project setup.
+          </a>{' '}, Initialize the project and Inject Code for the integrations and directory structure.
         </>
       );
     }
@@ -298,7 +298,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
           className="underline text-purple-600 dark:text-purple-400"
         >
           GEMINI.md
-        </a>{' '}and to get the project setup.
+        </a>{' '}, Initialize the project and Inject Code for the integrations and directory structure.
       </>
     );
   })();
