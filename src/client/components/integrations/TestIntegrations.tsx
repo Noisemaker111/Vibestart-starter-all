@@ -1084,7 +1084,8 @@ function PlaceholderDetails({ title }: { title: string }) {
 // ---------------------------------------------------------------------------
 
 function EmailTest() {
-  const to = "jk10192000@gmail.com";
+  // Use a neutral placeholder recipient to avoid exposing personal email addresses.
+  const to = "owner@example.com"; // Will be replaced locally if needed.
   const subject = "Hello World";
   const html = "<p>Congrats on sending your <strong>first email</strong>!</p>";
 
@@ -1135,8 +1136,8 @@ function EmailTest() {
             Send Email
           </button>
 
-          {/* 3️⃣ Output */}
-          <span className="text-xs text-gray-600 dark:text-gray-400 truncate">to {to}</span>
+          {/* 3️⃣ Output – intentionally generic so no personal email is revealed */}
+          <span className="text-xs text-gray-600 dark:text-gray-400 truncate">to owner</span>
 
           {/* 4️⃣ Status */}
           <StatusIcon className="justify-self-end" status={status === "pending" ? "pending" : status === "ok" ? "ok" : status === "error" ? "error" : "idle"} />
