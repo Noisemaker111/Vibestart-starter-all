@@ -8,8 +8,8 @@ import {
 } from "react-router";
 import type { Route } from "./+types/root";
 import appStylesHref from "@shared/app.css?url";
-import { AuthProvider } from "@client/context/AuthContext";
-import { EnvironmentProvider } from "@client/context/EnvironmentContext";
+import { AuthProvider } from "@client/components/integrations/auth/AuthContext";
+import { EnvironmentProvider } from "@client/components/EnvironmentContext";
 import { Header } from "@client/components/Header";
 import PosthogWrapper from "@client/components/integrations/analytics/PosthogWrapper";
 import { BotIdClient } from "botid/client";

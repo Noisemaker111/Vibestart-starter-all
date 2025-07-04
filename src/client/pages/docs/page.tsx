@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
-import type { Route } from "./+types/docs";
+import type { Route } from "./+types/page";
 import CursorProjectRule from "@client/components/CursorProjectRules";
 import { availablePlatforms } from "@shared/availablePlatforms";
 import { availableIntegrations } from "@shared/availableIntegrations";
-import { useEnvironment } from "@client/context/EnvironmentContext";
+import { useEnvironment } from "@client/components/EnvironmentContext";
 import BuildTab from "@client/components/docs/BuildTab";
 import PlatformChip from "@client/components/PlatformChip";
 import SideBar from "@client/components/docs/SideBar";

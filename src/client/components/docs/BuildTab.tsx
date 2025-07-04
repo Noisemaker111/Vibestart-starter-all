@@ -1,7 +1,7 @@
 import React, { type FC } from "react";
 import { availableIntegrations } from "@shared/availableIntegrations";
 import { availablePlatforms } from "@shared/availablePlatforms";
-import { useEnvironment } from "@client/context/EnvironmentContext";
+import { useEnvironment } from "@client/components/EnvironmentContext";
 import { processIdea } from "@client/utils/integrationLLM";
 import { DEFAULT_MODEL } from "@client/utils/integrationLLM";
 import IdeaTextBox from "@client/components/IdeaTextBox";
@@ -15,7 +15,7 @@ import {
   promptCursorSetup,
   promptClaudeSetup,
   promptGeminiSetup,
-} from "@shared/promptCursorSetup";
+} from "@shared/cursorSetupPrompt";
 
 interface BuildTabProps {
   idea?: string;

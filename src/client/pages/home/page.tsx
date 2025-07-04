@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router";
 import React, { useState, useEffect, Suspense } from "react";
-import type { Route } from "./+types/home";
+import type { Route } from "./+types/page";
 import { availablePlatforms } from "@shared/availablePlatforms";
 import IntegrationChips from "@client/components/integrations/IntegrationChip";
 import IdeaTextBox from "@client/components/IdeaTextBox";
@@ -365,7 +365,10 @@ function VibeStartMainInfo() {
         </span>
         <br />
       </h1>
-
+      <p className="max-w-2xl mx-auto text-gray-600 dark:text-gray-300 text-lg">
+        Turn your idea into a production-ready app in minutes with AI-powered scaffolding,
+        open-source code you control, and zero vendor lock-in.
+      </p>
     </>
   );
 }
@@ -556,4 +559,4 @@ function HomeOtherCTA({ buildLink, onClick }: { buildLink: string; onClick?: () 
 }
 // ─────────────────────────────────────────────────────────────
 // End local component inlines
-// ─────────────────────────────────────────────────────────────
+// ───────────────────────────────────────────────────────────── 

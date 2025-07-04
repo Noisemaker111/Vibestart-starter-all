@@ -1,8 +1,8 @@
 import { type RouteConfig, index, route } from "@react-router/dev/routes";
 
 export default [
-  index("./pages/home.tsx"),
-  route("docs", "./pages/docs.tsx"),
+  index("./pages/home/page.tsx"),
+  route("docs", "./pages/docs/page.tsx"),
   route("api/uploadthing", "./pages/api/uploadthing.tsx"),
   route("api/animals", "./pages/api/animals.tsx"),
   route("api/images", "./pages/api/images.tsx"),

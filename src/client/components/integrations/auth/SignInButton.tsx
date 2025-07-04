@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@shared/supabase";
-import { useAuth } from "@client/context/AuthContext";
+import { useAuth } from "./AuthContext";
 import { LoginModal } from "@client/components/integrations/auth/LoginModal";
 
 interface Props {

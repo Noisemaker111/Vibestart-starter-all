@@ -1,8 +1,8 @@
 import { Link, useLocation } from "react-router";
-import { useAuth } from "@client/context/AuthContext";
+import { useAuth } from "@client/components/integrations/auth/AuthContext";
 import { usePostHog } from "posthog-js/react";
-import { useEnvironment } from "@client/context/EnvironmentContext";
-import type { EnvironmentType } from "@client/context/EnvironmentContext";
+import { useEnvironment } from "@client/components/EnvironmentContext";
+import type { EnvironmentType } from "@client/components/EnvironmentContext";
 
 export function Header() {
   const location = useLocation();

@@ -14,10 +14,81 @@ export function promptCursorSetup({
   memories = cursorMemories,
 }: CursorSetupPromptOptions): string {
   const memoryCommands = memories.length
-    ? memories.map((m) => `/generate memory\n${m}`).join("\n\n")
+    ? memories.map((m) => `/generate memory
+${m}`).join("\n\n")
     : "";
 
-  const prefix = memoryCommands ? `${memoryCommands}\n\n` : "";
+  const prefix = memoryCommands ? `${memoryCommands}
 
-  return `${prefix}/Generate Cursor Rules\n\n<project-structure.mdc>\n${projectStructureMdc}\n\n<tech-stack.mdc>\n${techStackMdc}\n\n/Setup Project\n${setupCommands}`;
-} 
+` : "";
+
+  return `${prefix}/Generate Cursor Rules
+
+<project-structure.mdc>
+${projectStructureMdc}
+
+<tech-stack.mdc>
+${techStackMdc}
+
+/Setup Project
+${setupCommands}`;
+}
+
+// Additional setup prompts for Claude and Gemini
+
+export interface GenericSetupPromptOptions {
+  projectStructureMdc: string;
+  techStackMdc: string;
+  setupCommands: string;
+  memories?: string[];
+}
+
+export function promptClaudeSetup({
+  projectStructureMdc,
+  techStackMdc,
+  setupCommands,
+  memories = [],
+}: GenericSetupPromptOptions): string {
+  const memoryCommands = memories.length
+    ? memories.map((m) => `/generate memory
+${m}`).join("\n\n")
+    : "";
+  const prefix = memoryCommands ? `${memoryCommands}
+
+` : "";
+  return `${prefix}/Generate Claude Rules
+
+<project-structure.mdc>
+${projectStructureMdc}
+
+<tech-stack.mdc>
+${techStackMdc}
+
+/Setup Project
+${setupCommands}`;
+}
+
+export function promptGeminiSetup({
+  projectStructureMdc,
+  techStackMdc,
+  setupCommands,
+  memories = [],
+}: GenericSetupPromptOptions): string {
+  const memoryCommands = memories.length
+    ? memories.map((m) => `/generate memory
+${m}`).join("\n\n")
+    : "";
+  const prefix = memoryCommands ? `${memoryCommands}
+
+` : "";
+  return `${prefix}/Generate Gemini Rules
+
+<project-structure.mdc>
+${projectStructureMdc}
+
+<tech-stack.mdc>
+${techStackMdc}
+
+/Setup Project
+${setupCommands}`;
+}

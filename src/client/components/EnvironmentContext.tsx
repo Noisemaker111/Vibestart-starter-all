@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-// Types
 export type EnvironmentType = "cursor" | "claude" | "gemini";
 
 interface EnvironmentContextValue {
@@ -25,7 +24,6 @@ export function EnvironmentProvider({ children }: { children: React.ReactNode })
     return DEFAULT_ENV;
   });
 
-  // Persist selection
   useEffect(() => {
     try {
       localStorage.setItem("vibestart_selected_env", env);

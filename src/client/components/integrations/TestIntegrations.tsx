@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { SignInButton } from "@client/components/integrations/auth/SignInButton";
-import { useAuth } from "@client/context/AuthContext";
+import { useAuth } from "./auth/AuthContext";
 import { supabase } from "@shared/supabase";
 import { useClearTests } from "@client/utils/testIntegrationEvents";
 import { useUploadThing } from "@client/utils/uploadthing";

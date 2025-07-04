@@ -114,7 +114,7 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
   },
   {
     key: "maps",
-    label: "Maps",
+    label: "Maps Autocomplete",
     icon: MapPin,
     prerequisites: [
       "Create a google cloud account – https://cloud.google.com",
