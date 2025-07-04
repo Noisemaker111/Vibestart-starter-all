@@ -6,15 +6,12 @@ import {
   Upload,
   CreditCard,
   MessageCircle,
-  Bell,
   BarChart3,
   MapPin,
   Plug,
   Mail,
-  File,
   Users,
 } from "lucide-react";
-import { FaChalkboard } from "react-icons/fa6";
 
 export interface AvailableIntegration {
   key: string;
