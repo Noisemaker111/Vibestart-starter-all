@@ -2,8 +2,10 @@ import { Link, useNavigate } from "react-router";
 import React, { useState, useEffect, Suspense } from "react";
 import type { Route } from "./+types/home";
 import { availablePlatforms } from "@shared/availablePlatforms";
-import VibeStartMainInfo from "@client/components/home/MainInfo";
-import HomeIdeaCard from "@client/components/home/HomeIdeaInput";
+import IntegrationChips from "@client/components/integrations/IntegrationChip";
+import IdeaTextBox from "@client/components/IdeaTextBox";
+import PlatformChip from "@client/components/PlatformChip";
+import type { AvailablePlatform } from "@shared/availablePlatforms";
 import { processIdea } from "@client/utils/integrationLLM";
 import { DEFAULT_MODEL } from "@client/utils/integrationLLM";
 import type { AvailableIntegration } from "@shared/availableIntegrations";
@@ -11,10 +13,6 @@ import type { AvailablePlatformKey } from "@shared/availablePlatforms";
 import { consumeLocalToken } from "@client/utils/rateLimit";
 import { HOME_PLACEHOLDER_ROTATE_MS } from "@shared/constants";
 import { usePostHog } from "posthog-js/react";
-
-// Lazily load below-the-fold sections to reduce JS parsed before LCP
-const VibeStartOtherInfo = React.lazy(() => import("@client/components/home/OtherInfo"));
-const HomeOtherCTA = React.lazy(() => import("@client/components/home/OtherCTA"));
 
 // Delay loading the large appIdeas dataset until after initial render to improve LCP
 type AppIdea = typeof import("@shared/appIdeas").default[number];
@@ -182,7 +180,7 @@ export default function Home() {
       initialAiTriggeredRef.current = false;
     }
 
-    // Show "Analyzing…" placeholder as soon as the user types ≥3 characters
+    // Show "Analyzing…" placeholder once the user types ≥3 characters
     if (trimmed.length >= 3) {
       setAiLoading(true);
     } else if (trimmed.length === 0) {
@@ -275,6 +273,20 @@ export default function Home() {
     });
   }, []);
 
+  // ---------------------------------------------------------------------------
+  // If all integration chips are removed manually, re-run AI once to repopulate.
+  // This runs ONLY on the transition from >0 → 0 chips to avoid loops.
+  // ---------------------------------------------------------------------------
+  const prevActiveCountRef = React.useRef<number>(activeKeys.length);
+
+  React.useEffect(() => {
+    const prev = prevActiveCountRef.current;
+    if (prev > 0 && activeKeys.length === 0 && idea.trim().length >= 3) {
+      runAiGeneration(idea.trim());
+    }
+    prevActiveCountRef.current = activeKeys.length;
+  }, [activeKeys.length, idea, runAiGeneration]);
+
   return (
     <>
       <main className="min-h-screen bg-gray-50 text-gray-900 overflow-hidden">
@@ -338,4 +350,210 @@ export default function Home() {
       {/* Project name modal removed */}
     </>
   );
-} 
+}
+
+// ─────────────────────────────────────────────────────────────
+// Local one-off components (inlined from former home/ components)
+// ─────────────────────────────────────────────────────────────
+
+function VibeStartMainInfo() {
+  return (
+    <>
+      <h1 className="text-5xl lg:text-7xl font-black mb-6 leading-tight">
+        <span className="bg-gradient-to-r from-purple-700 via-blue-700 to-teal-700 bg-clip-text text-transparent">
+          Vibe-Ready Tech Stack
+        </span>
+        <br />
+      </h1>
+
+    </>
+  );
+}
+
+interface IdeaCardProps {
+  idea: string;
+  placeholder: string;
+  onIdeaChange: (value: string) => void;
+  onIdeaKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  selectedPlatform?: AvailablePlatform;
+  activeKeys: string[];
+  loading: boolean;
+}
+
+function HomeIdeaCard({
+  idea,
+  placeholder,
+  onIdeaChange,
+  onIdeaKeyDown,
+  selectedPlatform,
+  activeKeys,
+  loading,
+}: IdeaCardProps) {
+  return (
+    <div className="relative group">
+      <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl p-8 border border-gray-200 shadow-lg">
+        {/* Internal glow overlay */}
+        <div className="pointer-events-none absolute -inset-1 -z-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
+        {/* Top bar – only shows selected platform chip (label removed per design update) */}
+        {selectedPlatform && (
+          <div className="flex justify-end mb-3">
+            <PlatformChip platform={selectedPlatform} className="text-xs sm:text-sm" />
+          </div>
+        )}
+        <div>
+          <IdeaTextBox
+            value={idea}
+            onChange={onIdeaChange}
+            onKeyDown={onIdeaKeyDown}
+            placeholder={placeholder}
+            className="w-full"
+          />
+        </div>
+
+        {/* Integration list – displays a placeholder chip while analyzing */}
+        <div className="mt-4 flex justify-center">
+          <IntegrationChips
+            activeKeys={activeKeys}
+            showAllIfEmpty={false}
+            loading={loading}
+            rowPattern={[3, 2, 3, 2]}
+            chipWidthClass="w-[240px]"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface RealProject {
+  name: string;
+  description: string;
+  time: string;
+  revenue: string;
+}
+
+function VibeStartOtherInfo({ realProjects }: { realProjects: RealProject[] }) {
+  return (
+    <>
+      {/* Real Projects Section */}
+      <section className="relative py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Real Apps. Real Revenue. Real Fast.</h2>
+            <p className="text-gray-500">These were all someone's "weekend project" with VibeStart</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {realProjects.map((project, index) => (
+              <div key={index} className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl opacity-0 group-hover:opacity-30 blur transition duration-300"></div>
+                <div className="relative bg-gray-900 rounded-2xl p-8 border border-gray-800">
+                  <h3 className="text-2xl font-bold mb-2">{project.name}</h3>
+                  <p className="text-gray-300 mb-4">{project.description}</p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500">{project.time}</span>
+                    <span className="text-green-400 font-semibold">{project.revenue}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* The Problem Section */}
+      <section className="relative py-20 px-4 bg-gradient-to-b from-transparent to-gray-900/50">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl font-bold mb-8">Stop Learning. Start Vibing</h2>
+
+          <div className="space-y-6 text-lg text-gray-600 dark:text-gray-300">
+            <p>You don't need another JavaScript course. You don't need to master React hooks. You don't need to understand webpack.</p>
+            <p className="text-xl text-white font-medium">You need your idea live, getting feedback, making money.</p>
+            <p>VibeStart + AI = Your personal senior developer who already knows the entire codebase. Just describe what you want to build.</p>
+          </div>
+
+          <div className="mt-12 grid md:grid-cols-2 gap-8 text-left">
+            <div className="bg-red-900/10 border border-red-900/30 rounded-xl p-6">
+              <h3 className="text-red-400 font-semibold mb-3">Without VibeStart</h3>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-300">
+                <li>• 2 weeks setting up auth</li>
+                <li>• 1 week configuring database</li>
+                <li>• 3 days on file uploads</li>
+                <li>• Endless debugging sessions</li>
+                <li>• Ship in 2-3 months (maybe)</li>
+              </ul>
+            </div>
+            <div className="bg-green-900/10 border border-green-900/30 rounded-xl p-6">
+              <h3 className="text-green-400 font-semibold mb-3">With VibeStart</h3>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-300">
+                <li>• Auth works instantly</li>
+                <li>• Database ready to go</li>
+                <li>• Uploads pre-configured</li>
+                <li>• AI writes the boilerplate</li>
+                <li>• Ship today, iterate tomorrow</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Ownership & Differentiator Section */}
+      <section className="relative py-20 px-4">
+        <div className="max-w-5xl mx-auto text-center">
+          <h2 className="text-4xl font-bold mb-4">Own&nbsp;Your&nbsp;Stack—No Black&nbsp;Boxes</h2>
+          <p className="text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-10">
+            Tools like Replit, Vercel&nbsp;v0, Convex or Lovable are fantastic for rapid tinkering—but their databases, auth layers and hosting stay locked behind closed dashboards. VibeStart flips the script by <strong>open-sourcing the entire production starter</strong>—database, auth, uploads, UI and tests—into <em>your</em> GitHub repository from the very first commit.
+          </p>
+
+          <div className="grid md:grid-cols-2 gap-8 text-left">
+            <div className="bg-gray-900 rounded-2xl p-8 border border-gray-800 shadow-lg">
+              <h3 className="text-xl font-semibold mb-3">Traditional AI Builders</h3>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-300 text-sm list-disc pl-4">
+                <li>Private DB tables you can't export</li>
+                <li>Usage-based billing on every message/API call</li>
+                <li>No direct access to infra—migration is painful</li>
+                <li>Proprietary components &amp; closed-source code</li>
+              </ul>
+            </div>
+            <div className="bg-purple-900/20 rounded-2xl p-8 border border-purple-700 shadow-lg">
+              <h3 className="text-xl font-semibold mb-3">VibeStart Approach</h3>
+              <ul className="space-y-2 text-purple-200 text-sm list-disc pl-4">
+                <li>PostgreSQL schema lives in <code>src/server/db/schema.ts</code></li>
+                <li>Supabase auth—bring your own keys, zero vendor lock-in</li>
+                <li>All source in a public MIT-licensed repo <em>you</em> control</li>
+                <li>Scale anywhere—Vercel, Fly.io, bare metal—no rewrite</li>
+              </ul>
+            </div>
+          </div>
+
+          <p className="text-gray-700 dark:text-gray-400 mt-10 text-sm max-w-3xl mx-auto">
+            Build on a stack you fully understand today and can scale tomorrow—without paying per-message fees or reverse-engineering someone else's infrastructure.
+          </p>
+        </div>
+      </section>
+    </>
+  );
+}
+
+function HomeOtherCTA({ buildLink, onClick }: { buildLink: string; onClick?: () => void }) {
+  return (
+    <section className="relative py-20 px-4">
+      <div className="max-w-3xl mx-auto text-center">
+        <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 backdrop-blur-sm rounded-3xl p-12 border border-gray-800">
+          <h2 className="text-3xl font-bold mb-4 text-gray-800 dark:text-gray-100">Your competitors are shipping. Are you?</h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-8">Every day you spend learning is a day someone else is building your idea.</p>
+          <Link
+            to={buildLink}
+            onClick={onClick}
+            className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
+          >
+            Start Building
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+// ─────────────────────────────────────────────────────────────
+// End local component inlines
+// ─────────────────────────────────────────────────────────────

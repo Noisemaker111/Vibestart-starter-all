@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useLayoutEffect } from "react";
 
-export interface ChipMenuItem {
+export interface OptionMenuItem {
   key: string;
   label: string;
   /** Optional icon component shown at 16px */
@@ -11,11 +11,11 @@ export interface ChipMenuItem {
   disabled?: boolean;
 }
 
-interface ChipDropdownMenuProps {
+interface OptionDropdownMenuProps {
   /** Screen-space left/top coordinates used to position the menu */
   anchor: { x: number; y: number };
   /** Items to render. Order is preserved. */
-  items: ChipMenuItem[];
+  items: OptionMenuItem[];
   /** Invoked when the user selects or deselects an item. The second boolean
    *  indicates the previous selected state (true = was selected → remove, false = was not selected → add).
    */
@@ -24,16 +24,17 @@ interface ChipDropdownMenuProps {
   onClose: () => void;
   /** When true, the menu closes automatically after a single selection. */
   singleSelect?: boolean;
+  /** Additional Tailwind classes */
   className?: string;
 }
 
 /**
- * Reusable dropdown menu for selecting (or toggling) chip-based items.
+ * Generic dropdown menu for selecting (or toggling) option items.
  *
- *  – Handles outside-click detection.
- *  – Supports optional single-select behaviour for platform picker.
+ * – Handles outside-click detection.
+ * – Supports optional single-select behaviour.
  */
-const ChipDropdownMenu: React.FC<ChipDropdownMenuProps> = ({
+const OptionDropdownMenu: React.FC<OptionDropdownMenuProps> = ({
   anchor,
   items,
   onToggle,
@@ -42,6 +43,7 @@ const ChipDropdownMenu: React.FC<ChipDropdownMenuProps> = ({
   className,
 }) => {
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const pendingFocusKey = useRef<string | null>(null);
 
   // Close when clicking outside
   useEffect(() => {
@@ -54,6 +56,15 @@ const ChipDropdownMenu: React.FC<ChipDropdownMenuProps> = ({
     return () => document.removeEventListener("mousedown", handleClick);
   }, [onClose]);
 
+  // Shift focus after items array updates
+  useLayoutEffect(() => {
+    if (!pendingFocusKey.current) return;
+    const key = pendingFocusKey.current;
+    pendingFocusKey.current = null;
+    const btn = menuRef.current?.querySelector(`button[data-key="${key}"]`) as HTMLButtonElement | null;
+    btn?.focus();
+  }, [items]);
+
   return (
     <div
       ref={menuRef}
@@ -65,12 +76,29 @@ const ChipDropdownMenu: React.FC<ChipDropdownMenuProps> = ({
         return (
           <button
             key={key}
+            data-key={key}
             type="button"
             disabled={disabled}
-            onClick={() => {
+            onClick={(e) => {
               if (disabled) return;
+
+              const btn = e.currentTarget;
+              // Determine key of next focus target BEFORE state mutation
+              const findNextKey = () => {
+                const next = btn.nextElementSibling as HTMLButtonElement | null;
+                if (next && !next.disabled) return next.getAttribute("data-key");
+                const prev = btn.previousElementSibling as HTMLButtonElement | null;
+                if (prev && !prev.disabled) return prev.getAttribute("data-key");
+                return null;
+              };
+
+              pendingFocusKey.current = findNextKey();
               onToggle(key, !!selected);
-              if (singleSelect) onClose();
+
+              if (singleSelect) {
+                onClose();
+                return;
+              }
             }}
             className={`group w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-left transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
               selected
@@ -100,4 +128,4 @@ const ChipDropdownMenu: React.FC<ChipDropdownMenuProps> = ({
   );
 };
 
-export default ChipDropdownMenu; 
+export default OptionDropdownMenu; 

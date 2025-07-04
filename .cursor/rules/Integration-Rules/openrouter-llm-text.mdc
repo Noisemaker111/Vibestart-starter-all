@@ -1,0 +1,6 @@
+---
+description: openrouter llm text docs
+alwaysApply: false
+---
+
+Ask if the user has the docs for the openrouter llm text docs, if they do, ask them to provide the docs.

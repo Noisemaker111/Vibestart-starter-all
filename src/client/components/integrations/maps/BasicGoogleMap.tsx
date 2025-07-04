@@ -1,5 +1,6 @@
 import React from "react";
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
+import { getGoogleMapsApiKey } from "@client/utils/googleMaps";
 
 interface BasicGoogleMapProps {
   /** Google Maps API key (falls back to global GOOGLE_MAPS_API_KEY if omitted) */
@@ -25,8 +26,7 @@ const BasicGoogleMap: React.FC<BasicGoogleMapProps> = ({
   mapId,
   className = "",
 }) => {
-  const key =
-    apiKey || (globalThis as any).GOOGLE_MAPS_API_KEY || "YOUR_API_KEY";
+  const key = apiKey || getGoogleMapsApiKey();
 
   return (
     <APIProvider

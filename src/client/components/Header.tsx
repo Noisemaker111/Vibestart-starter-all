@@ -71,8 +71,13 @@ export function Header() {
             ))}
           </div>
           
-          {/* Environment Selector Slider & User Actions */}
+          {/* Alpha badge + Environment Selector & User Actions */}
           <div className="flex items-center gap-4">
+            {/* Alpha version badge */}
+            <span className="text-sm font-bold uppercase text-yellow-900 bg-yellow-400/90 px-3 py-1 rounded-lg shadow-md ring-2 ring-yellow-500/60 select-none animate-pulse">
+              Alpha Version
+            </span>
+
             {location.pathname.startsWith("/docs") && (
               <div className="hidden md:flex items-center">
                 {/* Environment selector with sliding indicator */}

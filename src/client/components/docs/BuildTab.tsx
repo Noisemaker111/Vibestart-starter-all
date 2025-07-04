@@ -9,7 +9,6 @@ import IdeaTextBox from "@client/components/IdeaTextBox";
 // Test components for individual integrations
 import TestIntegrations from "@client/components/integrations/TestIntegrations";
 
-import { buildHomeIdeaConverter, promptHomeIdeaConverter } from "@shared/promptHomeIdeaConverter";
 import { supabase } from "@shared/supabase";
 import { dispatchClearTests } from "@client/utils/testIntegrationEvents";
 import {
@@ -21,15 +20,8 @@ import {
 interface BuildTabProps {
   idea?: string;
   platformLabel: string;
-  /**
-   * Selected integration keys supplied by parent. When provided the component keeps
-   * its internal state in sync with this array and propagates any changes back
-   * via onIntegrationKeysChange.
-   */
   integrationKeys?: string[];
-  /** Callback invoked whenever the selected integration keys change */
   onIntegrationKeysChange?: (keys: string[]) => void;
-  /** Callback when AI suggests a new platform label */
   onPlatformChange?: (label: string) => void;
   className?: string;
 }
@@ -132,13 +124,18 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
     [updateKeys, onPlatformChange, integrationKeys]
   );
 
-  // Debounced trigger – 800 ms after typing stops
+  // Track if the user (or AI) has ever had ≥1 integration selected during this session
+  const hadKeysRef = React.useRef<boolean>(keys.length > 0);
+
   React.useEffect(() => {
+    // Update ref when keys become non-empty
+    if (keys.length > 0) hadKeysRef.current = true;
+
     const trimmed = selectedIdea.trim();
     if (trimmed.length < 3) return;
 
-    // If we already have integration keys, assume AI has run before – skip auto request
-    if (keys.length > 0) return;
+    // Only auto-generate integrations once, on initial page load when none exist yet.
+    if (keys.length > 0 || hadKeysRef.current) return;
 
     const handle = setTimeout(() => {
       runAiGeneration(trimmed);
@@ -190,8 +187,10 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
     return availablePlatforms.find((p) => p.label === platformLabel);
   }, [platformLabel]);
 
+  const activeKeys = React.useMemo(() => keys, [keys]);
+
   // Integration test widget (single consolidated component)
-  const hasSelectedIntegrations = keys.length > 0;
+  const hasSelectedIntegrations = activeKeys.length > 0;
 
   // Base prerequisites are always the same. Integration-specific accounts are handled later.
   const prerequisiteSet = React.useMemo(() => {
@@ -211,7 +210,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
 
   // Details per selected integration – used for new Step 3
   const integrationDetails = React.useMemo<IntegrationDetail[]>(() => {
-    return keys
+    return activeKeys
       .map<IntegrationDetail | null>((k) => {
         const intg = availableIntegrations.find((i) => i.key === k);
         if (!intg) return null;
@@ -222,17 +221,18 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
           envVars: intg.envVars ?? [],
         };
       })
-      .filter((d): d is IntegrationDetail => d !== null);
-  }, [keys]);
+      // Exclude integrations without environment variables
+      .filter((d): d is IntegrationDetail => d !== null && d.envVars.length > 0);
+  }, [activeKeys]);
 
   const envVarSet = React.useMemo(() => {
     const set = new Set<string>();
-    keys.forEach((k) => {
+    activeKeys.forEach((k) => {
       const intg = availableIntegrations.find((i) => i.key === k);
       intg?.envVars?.forEach((v) => set.add(v));
     });
     return Array.from(set);
-  }, [keys]);
+  }, [activeKeys]);
 
   const envSample = envVarSet.map((v) => `${v}=your_value_here`).join("\n");
 
@@ -272,8 +272,8 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
             className="underline text-purple-600 dark:text-purple-400"
           >
             project rules
-          </a>{' '}
-          , initialize the environment, set file structure and import integrations.
+          </a>{' '}   
+          , initialize the environment, set file structure, import integrations and start your idea.
         </>
       );
     }
@@ -286,7 +286,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
             className="underline text-purple-600 dark:text-purple-400"
           >
             CLAUDE.md
-          </a>{' '}, initialize the environment, set file structure and import integrations.
+          </a>{' '}, initialize the environment, set file structure, import integrations and start your idea.
         </>
       );
     }
@@ -298,7 +298,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
           className="underline text-purple-600 dark:text-purple-400"
         >
           GEMINI.md
-        </a>{' '}, initialize the environment, set file structure and import integrations.
+        </a>{' '}, initialize the environment, set file structure, import integrations and start your idea.
       </>
     );
   })();
@@ -394,7 +394,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
             {/* Step 2 – prompt for rules */}
             <li>
               <h3 className="text-xl font-semibold mb-2">Prompt for VibeStart</h3>
-              <p className="mb-4">Click <strong>Copy</strong> then paste into {chatName}, and hit Enter to generate the rules.</p>
+              <p className="mb-4">Click <strong>Copy</strong> then paste into {chatName}, and hit Enter.</p>
               <div className="relative">
                 <button
                   type="button"
@@ -412,7 +412,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
             {/* Step 3 – concise per-integration setup */}
             {integrationDetails.length > 0 && (
               <li>
-                <h3 className="text-xl font-semibold mb-2">Add Credentials &amp; Env Vars</h3>
+                <h3 className="text-xl font-semibold mb-2">Create Accounts &amp; Get API Keys</h3>
                 <p className="text-sm mb-3">Create the necessary accounts for each selected integration, copy the keys they provide, then add them to your <code>.env.local</code> file.</p>
 
                 {/* Compact per-environment-variable rows */}
@@ -489,7 +489,7 @@ const BuildTab: FC<BuildTabProps> = ({ idea, platformLabel, integrationKeys, onI
                     Clear All Tests
                   </button>
                 </div>
-                <TestIntegrations />
+                <TestIntegrations selectedKeys={activeKeys} />
               </li>
             )}
 

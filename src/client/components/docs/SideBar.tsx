@@ -3,12 +3,12 @@ import IntegrationChips from "@client/components/integrations/IntegrationChip";
 import PlatformChip from "@client/components/PlatformChip";
 import { availablePlatforms } from "@shared/availablePlatforms";
 import { availableIntegrations } from "@shared/availableIntegrations";
-import ChipDropdownMenu from "@client/components/ChipDropdownMenu";
+import OptionDropdownMenu from "@client/components/OptionDropdownMenu";
 
 interface SideBarProps {
   targetIdx: number;
   setTargetIdx: (idx: number) => void;
-  leafSections: { id: string; title: string; soon?: boolean }[];
+  leafSections: { id: string; title: string }[];
   activeSection: string;
   setActiveSection: (id: string) => void;
   integrationKeys: string[];
@@ -34,16 +34,9 @@ export default function SideBar({
 
   const allIntegrations = availableIntegrations;
 
-  function sortSoonLast(list: typeof allIntegrations): typeof allIntegrations {
-    return [...list].sort((a, b) => {
-      const aSoon = a.status === "soon" ? 1 : 0;
-      const bSoon = b.status === "soon" ? 1 : 0;
-      return aSoon - bSoon; // non-soon before soon
-    });
-  }
-
-  const selectedList = sortSoonLast(allIntegrations.filter((i) => integrationKeys.includes(i.key)));
-  const unselectedList = sortSoonLast(allIntegrations.filter((i) => !integrationKeys.includes(i.key)));
+  // Build lists without extra sorting – all integrations are now considered available
+  const selectedList = allIntegrations.filter((i) => integrationKeys.includes(i.key));
+  const unselectedList = allIntegrations.filter((i) => !integrationKeys.includes(i.key));
 
   function handleAddIntegration(key: string) {
     console.log("[Integration] Adding", key);
@@ -80,7 +73,7 @@ export default function SideBar({
 
           {/* Platform selection menu */}
           {platformMenuVisible && platformAnchor && (
-            <ChipDropdownMenu
+            <OptionDropdownMenu
               anchor={platformAnchor}
               items={availablePlatforms.map((p) => ({
                 key: p.key,
@@ -145,7 +138,7 @@ export default function SideBar({
 
         {/* Integrations selection menu */}
         {intgMenuVisible && intgAnchor && (
-          <ChipDropdownMenu
+          <OptionDropdownMenu
             anchor={intgAnchor}
             onClose={() => setIntgMenuVisible(false)}
             onToggle={(key, wasSelected) => {
@@ -158,12 +151,14 @@ export default function SideBar({
                 label: intg.label,
                 Icon: intg.icon,
                 selected: false,
+                disabled: false,
               })),
               ...selectedList.map((intg) => ({
                 key: intg.key,
                 label: intg.label,
                 Icon: intg.icon,
                 selected: true,
+                disabled: false,
               })),
             ]}
           />

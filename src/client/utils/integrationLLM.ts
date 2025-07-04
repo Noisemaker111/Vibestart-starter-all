@@ -44,6 +44,7 @@ export async function processIdea(
   third?: string | "structured" | "text",
   fourth?: "structured" | "text"
 ): Promise<SpecificationResponse> {
+  if (import.meta.env.DEV) console.log("[processIdea]", idea);
   let images: ImageInput[] | undefined;
   let model: string | undefined;
   let generation: "structured" | "text" = "structured";

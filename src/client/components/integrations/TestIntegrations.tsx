@@ -15,6 +15,7 @@ import { Loader2 } from "lucide-react";
 // Google Maps
 // @ts-ignore – library has no bundled TS types; treated as any
 import { APIProvider, useMapsLibrary } from "@vis.gl/react-google-maps";
+import { getGoogleMapsApiKey } from "@client/utils/googleMaps";
 
 // ---------------------------------------------------------------------------
 // Reusable UI primitives (defined locally to avoid external imports)
@@ -76,7 +77,7 @@ function UploadPhotoButton({ onComplete }: { onComplete?: (files: any) => void }
     <div className="flex items-center gap-2 cursor-pointer" onClick={triggerFileDialog}>
       <button
         type="button"
-        className="btn-primary w-40 px-4 py-2 text-base"
+        className="btn-primary w-full min-w-[8rem] px-4 py-2 text-base"
         onClick={triggerFileDialog}
         disabled={isUploading}
       >
@@ -139,10 +140,11 @@ function useCanCallIntegrations() {
 
 // Utility for basic status icons
 function StatusIcon({ status, className = "" }: { status: "idle" | "ok" | "error" | "pending"; className?: string }) {
-  if (status === "ok") return <span className={`text-green-500 ${className}`.trim()}>✔</span>;
-  if (status === "error") return <span className={`text-red-500 ${className}`.trim()}>✖</span>;
-  if (status === "pending") return <span className={`text-gray-400 ${className}`.trim()}>…</span>;
-  return <span className={`text-yellow-500 ${className}`.trim()}>⚠</span>;
+  const base = `mr-3`;
+  if (status === "ok") return <span className={`text-green-500 ${base} ${className}`.trim()}>✔</span>;
+  if (status === "error") return <span className={`text-red-500 ${base} ${className}`.trim()}>✖</span>;
+  if (status === "pending") return <span className={`text-gray-400 ${base} ${className}`.trim()}>…</span>;
+  return <span className={`text-yellow-500 ${base} ${className}`.trim()}>⚠</span>;
 }
 
 // ----------------------------- Auth Test ----------------------------------
@@ -156,16 +158,16 @@ function AuthTest() {
   return (
     <TestCard
       title={
-        <div className="grid grid-cols-4 items-center gap-2 w-full">
+        <div className="grid grid-cols-[20%_25%_45%_10%] items-center gap-2 w-full">
           {/* 1️⃣ Name */}
           <span>Auth Test</span>
 
           {/* 2️⃣ Controls */}
-          <SignInButton className="w-40 px-4 py-2 text-base" />
+          <div className="w-full min-w-[10rem]"><SignInButton className="w-full px-4 py-2 text-base" /></div>
 
           {/* 3️⃣ Output / Info */}
           {session ? (
-            <span className="text-xs text-gray-600 dark:text-gray-400 truncate">
+            <span className="pl-2 text-xs text-gray-600 dark:text-gray-400 truncate min-w-0">
               {session.user.email}
             </span>
           ) : (
@@ -269,14 +271,14 @@ function DatabaseTest() {
   return (
     <TestCard
       title={
-        <div className="grid grid-cols-4 items-center gap-2 w-full">
+        <div className="grid grid-cols-[20%_25%_45%_10%] items-center gap-2 w-full">
           {/* 1️⃣ Name */}
           <span>Database Test</span>
 
           {/* 2️⃣ Controls */}
           <button
             onClick={() => addAnimal(ANIMALS[Math.floor(Math.random() * ANIMALS.length)])}
-            className="btn-primary w-40 px-4 py-2 text-base"
+            className="btn-primary w-full min-w-[10rem] px-4 py-2 text-base"
             disabled={animalsStatus === "error"}
           >
             Send
@@ -381,7 +383,7 @@ function UploadsTest() {
   return (
     <TestCard
       title={
-        <div className="grid grid-cols-4 items-center gap-2 w-full">
+        <div className="grid grid-cols-[20%_25%_45%_10%] items-center gap-2 w-full">
           {/* 1️⃣ Name */}
           <span>File Upload Test</span>
 
@@ -515,14 +517,14 @@ function OrganizationsTest() {
   return (
     <TestCard
       title={
-        <div className="grid grid-cols-4 items-center gap-2 w-full">
+        <div className="grid grid-cols-[20%_25%_45%_10%] items-center gap-2 w-full">
           {/* 1️⃣ Name */}
           <span>Organizations</span>
 
           {/* 2️⃣ Control */}
           <button
             onClick={buttonAction}
-            className="btn-primary w-40 px-4 py-2 text-base"
+            className="btn-primary w-full min-w-[10rem] px-4 py-2 text-base"
             disabled={status === "pending" || !session}
           >
             {status === "pending" ? "Please wait…" : buttonLabel}
@@ -530,7 +532,7 @@ function OrganizationsTest() {
 
           {/* 3️⃣ Output */}
           {org ? (
-            <span className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-xs">
+            <span className="pl-2 text-xs text-gray-600 dark:text-gray-400 truncate max-w-xs min-w-0">
               {org.name}
             </span>
           ) : (
@@ -576,7 +578,7 @@ function LLMImageTest() {
     setImageUrl(null);
     try {
       const res = await generateImages(
-        "A vibrant high-resolution photo of a blooming flower",
+        "A scenic landscape photograph of mountains overlooking a lake at sunset, high resolution, vibrant colors",
         DEFAULT_IMAGE_MODEL
       );
       if (res.error) throw new Error(res.error);
@@ -592,37 +594,45 @@ function LLMImageTest() {
   return (
     <TestCard
       title={
-        <div className="grid grid-cols-4 items-center gap-2 w-full">
+        <div className="grid grid-cols-[20%_25%_45%_10%] items-center gap-2 w-full">
           {/* 1️⃣ Name */}
           <span className="font-medium truncate">LLM Image</span>
 
           {/* 2️⃣ Button */}
           <button
             onClick={handleGenerateImage}
-            className="btn-primary w-40 px-4 py-2 text-base"
+            className="btn-primary w-full min-w-[10rem] px-4 py-2 text-base"
             disabled={status === "pending"}
           >
             Generate Image
           </button>
 
           {/* 3️⃣ Output */}
-          {status === "ok" && imageUrl ? (
-            <span className="text-xs text-gray-500">[Image]</span>
-          ) : (
-            <span className="text-xs text-transparent select-none">—</span>
-          )}
+          <div className="flex items-center min-h-[4rem]">
+            {status === "pending" && (
+              <span className="text-xs text-gray-500">Generating…</span>
+            )}
+            {status === "ok" && imageUrl && (
+              <img
+                src={imageUrl}
+                alt="Generated scenic landscape"
+                className="w-24 h-16 object-cover rounded border border-gray-300"
+              />
+            )}
+            {status === "idle" && (
+              <span className="text-xs text-transparent select-none">—</span>
+            )}
+            {status === "error" && (
+              <span className="text-xs text-red-500">Error</span>
+            )}
+          </div>
 
           {/* 4️⃣ Status */}
-          <div className="justify-self-end">
-            <StatusIcon status={status === "pending" ? "pending" : status === "ok" ? "ok" : status === "error" ? "error" : "idle"} />
-          </div>
+          <StatusIcon className="justify-self-end" status={status === "pending" ? "pending" : status === "ok" ? "ok" : status === "error" ? "error" : "idle"} />
         </div>
       }
     >
-      {/* Detailed output shown below the header */}
-      {status === "pending" && (
-        <p className="text-sm text-gray-500">Generating… please wait.</p>
-      )}
+      {/* Error details only */}
       {status === "error" && (
         <p className="text-sm text-red-600 dark:text-red-400 break-all">{errorMsg}</p>
       )}
@@ -707,6 +717,18 @@ function LLMTextTest() {
       }
 
       story = story.trim();
+      // Fallback cleanup for non-JSON SSE formats like "f:{...}0:\"Hello\"0:\" world\"e:{...}d:{...}"
+      // If the accumulated string still contains token prefixes (e.g. `0:"text"`) try to extract the quoted
+      // segments and concatenate them so the user only sees the intended story text.
+      if (/\d+:\"/.test(story)) {
+        const tokenMatches = [...story.matchAll(/\d+:\"([^\"]*)\"/g)];
+        if (tokenMatches.length > 0) {
+          story = tokenMatches.map((m) => m[1]).join("").trim();
+        }
+      }
+      // Remove possible leading metadata sections (e.g. "f:{...}", "e:{...}", "d:{...}") left over after parsing
+      story = story.replace(/^f:\{[^}]*\}/, "").replace(/e:\{[^}]*\}/g, "").replace(/d:\{[^}]*\}/g, "").trim();
+
       setTextOutput(story);
       setStatus("ok");
     } catch (err: any) {
@@ -718,19 +740,21 @@ function LLMTextTest() {
   return (
     <TestCard
       title={
-        <div className="grid grid-cols-4 items-center gap-2 w-full">
+        <div className="grid grid-cols-[20%_25%_45%_10%] items-center gap-2 w-full">
           <span className="font-medium truncate">LLM Story</span>
 
           <button
             onClick={handleGenerateStory}
-            className="btn-primary w-40 px-4 py-2 text-base"
+            className="btn-primary w-full min-w-[10rem] px-4 py-2 text-base"
             disabled={status === "pending"}
           >
             Generate Story
           </button>
 
-          <div className="text-xs text-gray-700 dark:text-gray-300 break-words max-h-8 overflow-hidden">
-            {textOutput ? textOutput.slice(0, 40) + (textOutput.length > 40 ? "…" : "") : "—"}
+          <div className="text-xs whitespace-pre-wrap text-gray-700 dark:text-gray-300 break-words">
+            {status === "pending"
+              ? "Generating…"
+              : textOutput || "—"}
           </div>
 
           <div className="justify-self-end">
@@ -739,10 +763,6 @@ function LLMTextTest() {
         </div>
       }
     >
-      {status === "pending" && <p className="text-sm text-gray-500">Generating… please wait.</p>}
-      {status === "ok" && textOutput && (
-        <p className="whitespace-pre-wrap text-sm text-gray-800 dark:text-gray-200">{textOutput}</p>
-      )}
       {status === "error" && (
         <p className="text-sm text-red-600 dark:text-red-400 break-all">{errorMsg}</p>
       )}
@@ -780,14 +800,14 @@ function AnalyticsTest() {
   return (
     <TestCard
       title={
-        <div className="grid grid-cols-4 items-center gap-2 w-full">
+        <div className="grid grid-cols-[20%_25%_45%_10%] items-center gap-2 w-full">
           {/* 1️⃣ Name */}
           <span>Analytics</span>
 
           {/* 2️⃣ Control */}
           <button
             onClick={sendTestEvent}
-            className="btn-primary w-40 px-4 py-2 text-base"
+            className="btn-primary w-full min-w-[10rem] px-4 py-2 text-base"
             disabled={status === "pending"}
           >
             Send Test Event
@@ -865,7 +885,7 @@ function BillingTest() {
   return (
     <TestCard
       title={
-        <div className="grid grid-cols-4 items-center gap-2 w-full">
+        <div className="grid grid-cols-[20%_25%_45%_10%] items-center gap-2 w-full">
           {/* 1️⃣ Name */}
           <span>Billing</span>
 
@@ -877,17 +897,19 @@ function BillingTest() {
                 await fetchProducts();
               }
             }}
-            className="btn-primary w-40 px-4 py-2 text-base"
+            className="btn-primary w-full min-w-[10rem] px-4 py-2 text-base"
             disabled={status === "pending"}
           >
             Check Billing
           </button>
 
           {/* 3️⃣ Output */}
-          {products.length > 0 && (
-            <span className="text-xs text-gray-600 dark:text-gray-400">
+          {products.length > 0 ? (
+            <span className="text-xs text-gray-600 dark:text-gray-400 truncate">
               {products.length} products
             </span>
+          ) : (
+            <span className="text-xs text-transparent select-none">—</span>
           )}
 
           {/* 4️⃣ Status */}
@@ -942,56 +964,31 @@ function BotDetectionTest() {
       .catch(() => setStatus("error"));
   });
 
-  const renderStatusIcon = () => {
-    switch (status) {
-      case "success":
-        return <span className="text-green-500">✓</span>;
-      case "error":
-        return <span className="text-red-500">✕</span>;
-      default:
-        return null;
-    }
-  };
-
-  async function recheckBot() {
-    if (!canCall) {
-      setStatus("success");
-      return;
-    }
-    setStatus("pending");
-    try {
-      const res = await fetch("/api/botid");
-      if (!res.ok) throw new Error("Network error");
-      const data = (await res.json()) as { isBot?: boolean };
-      setStatus(data?.isBot ? "error" : "success");
-    } catch {
-      setStatus("error");
-    }
-  }
-
   return (
     <TestCard
       title={
-        <div className="grid grid-cols-4 items-center gap-2 w-full">
+        <div className="grid grid-cols-[20%_25%_45%_10%] items-center gap-2 w-full">
           {/* 1️⃣ Name */}
           <span>Bot Detection</span>
 
           {/* 2️⃣ Control */}
           <button
-            onClick={recheckBot}
-            className="btn-primary w-40 px-4 py-2 text-base"
+            onClick={() => setStatus("pending")}
+            className="btn-primary w-full min-w-[10rem] px-4 py-2 text-base"
             disabled={status === "pending"}
           >
             Check
           </button>
 
           {/* 3️⃣ Output */}
-          {status === "pending" ? (
-            <span className="text-xs text-gray-400">pending…</span>
-          ) : null}
+          {status === "success" ? (
+            <span className="text-xs text-gray-600 dark:text-gray-400 truncate">verified</span>
+          ) : (
+            <span className="text-xs text-transparent select-none">—</span>
+          )}
 
           {/* 4️⃣ Status */}
-          <div className="justify-self-end">{renderStatusIcon()}</div>
+          <StatusIcon className="justify-self-end" status={status === "pending" ? "pending" : status === "success" ? "ok" : "error"} />
         </div>
       }
     >
@@ -1010,9 +1007,8 @@ function MapsAutocompleteTest() {
   const [selected, setSelected] =
     useState<any>(null);
 
-  // API key fallback logic – same as sample components
-  const API_KEY =
-    (globalThis as any).GOOGLE_MAPS_API_KEY ?? "YOUR_API_KEY";
+  // Retrieve API key using shared helper (env var or global)
+  const API_KEY = getGoogleMapsApiKey();
 
   function AutocompleteField() {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -1044,7 +1040,7 @@ function MapsAutocompleteTest() {
   return (
     <TestCard
       title={
-        <div className="grid grid-cols-4 items-center gap-2 w-full">
+        <div className="grid grid-cols-[20%_25%_45%_10%] items-center gap-2 w-full">
           {/* 1️⃣ Name */}
           <span>Maps Autocomplete</span>
 
@@ -1070,20 +1066,11 @@ function MapsAutocompleteTest() {
 }
 
 // ---------------------------- Placeholder Tests ---------------------------
-function SoonBadge() {
-  return (
-    <span className="ml-2 bg-yellow-900/30 text-yellow-300 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-md">
-      soon
-    </span>
-  );
-}
-
 function PlaceholderDetails({ title }: { title: string }) {
   return (
     <details className="mb-10 bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
       <summary className="cursor-pointer select-none px-6 py-4 font-semibold text-lg bg-amber-50 dark:bg-amber-900/20 flex items-center gap-2">
         <span>{title}</span>
-        <SoonBadge />
       </summary>
       <div className="p-6">
         <p className="text-sm text-gray-600 dark:text-gray-400">{title} integration tests will be added here.</p>
@@ -1135,17 +1122,17 @@ function EmailTest() {
   return (
     <TestCard
       title={
-        <div className="grid grid-cols-4 items-center gap-2 w-full">
+        <div className="grid grid-cols-[20%_25%_45%_10%] items-center gap-2 w-full">
           {/* 1️⃣ Name */}
           <span>Email</span>
 
           {/* 2️⃣ Control */}
           <button
             onClick={sendEmail}
-            className="btn-primary w-40 px-4 py-2 text-base flex items-center gap-2"
+            className="btn-primary w-full min-w-[10rem] px-4 py-2 text-base flex items-center gap-2"
             disabled={status === "pending"}
           >
-            Send Test Email
+            Send Email
           </button>
 
           {/* 3️⃣ Output */}
@@ -1167,34 +1154,133 @@ function EmailTest() {
 // Main Export
 // ---------------------------------------------------------------------------
 
-export default function TestIntegrations() {
+// Add props interface for selected integration keys and update function signature
+interface TestIntegrationsProps {
+  /**
+   * Integration keys that should be displayed. If empty or omitted, all tests are shown.
+   */
+  selectedKeys?: string[];
+}
+
+export default function TestIntegrations({ selectedKeys = [] }: TestIntegrationsProps) {
+  // Helper to decide if a given integration test should be rendered
+  const shouldShow = (key: string) => selectedKeys.length === 0 || selectedKeys.includes(key);
+
   return (
     <div className="space-y-10 text-base w-full max-w-3xl mx-auto">
       {/* Core tests with real functionality */}
-      <AuthTest />
-      <DatabaseTest />
-      <UploadsTest />
-      <OrganizationsTest />
-      {availableIntegrations.find((i)=>i.key==="email")?.status==="available" && <EmailTest />}
-      <LLMImageTest />
-      <LLMTextTest />
-      <AnalyticsTest />
-      <BillingTest />
-      <BotDetectionTest />
-      <MapsAutocompleteTest />
+      {shouldShow("auth") && <AuthTest />}
+      {shouldShow("database") && <DatabaseTest />}
+      {shouldShow("uploads") && <UploadsTest />}
+      {shouldShow("organizations") && <OrganizationsTest />}
+      {shouldShow("email") && <EmailTest />}
+      {shouldShow("llm-image") && <LLMImageTest />}
+      {shouldShow("llm") && <LLMTextTest />}
+      {shouldShow("analytics") && <AnalyticsTest />}
+      {shouldShow("billing") && <BillingTest />}
+      {/* Bot detection does not map to a specific integration; always show if any key selected */}
+      {selectedKeys.length > 0 && <BotDetectionTest />}
+      {shouldShow("maps") && <MapsAutocompleteTest />}
 
-      {/* Placeholder tests – keep for integrations still marked soon */}
-      {availableIntegrations.find((i)=>i.key==="api")?.status!=="available" && (
-        <PlaceholderDetails title="External API" />
-      )}
-      {availableIntegrations.find((i)=>i.key==="email")?.status!=="available" && (
-        <PlaceholderDetails title="Email" />
-      )}
-      <PlaceholderDetails title="Files" />
-      <PlaceholderDetails title="Notifications" />
-      <PlaceholderDetails title="Realtime Chat" />
-      <PlaceholderDetails title="SMS" />
-      <PlaceholderDetails title="Whiteboard" />
+      {/* Placeholder tests – keep for integrations not yet available */}
+      {shouldShow("realtime") && <RealtimeChatTest />}
+
     </div>
+  );
+}
+
+// -------------------------- Realtime Chat Test ----------------------------
+function RealtimeChatTest() {
+  type Status = "idle" | "ok" | "pending" | "error";
+
+  const [status, setStatus] = useState<Status>("idle");
+  const [lastMsg, setLastMsg] = useState<string | null>(null);
+
+  const userIdRef = useRef("user-" + Math.random().toString(36).slice(2, 9));
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  const canCall = useCanCallIntegrations();
+
+  // Reset when global clear is triggered
+  useClearTests(() => {
+    setStatus("idle");
+    setLastMsg(null);
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+  });
+
+  // Subscribe once on mount
+  useEffect(() => {
+    if (!canCall) {
+      setStatus("ok");
+      return;
+    }
+
+    const channel = supabase.channel("vs-realtime-chat");
+    channel
+      .on("broadcast", { event: "msg" }, (payload) => {
+        const { user, text } = payload.payload as { user: string; text: string };
+        setLastMsg(`${user}: ${text}`);
+        setStatus("ok");
+      })
+      .subscribe((subscriptionStatus) => {
+        if (subscriptionStatus === "SUBSCRIBED") setStatus("idle");
+      });
+
+    channelRef.current = channel;
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [canCall]);
+
+  async function sendMessage() {
+    if (!channelRef.current) return;
+    const text = "See this on another tab?";
+    setStatus("pending");
+    // Optimistically show our own message
+    setLastMsg(`${userIdRef.current}: ${text}`);
+    channelRef.current
+      .send({
+        type: "broadcast",
+        event: "msg",
+        payload: { user: userIdRef.current, text },
+      })
+      .then(() => setStatus("ok"))
+      .catch(() => setStatus("error"));
+  }
+
+  return (
+    <TestCard
+      title={
+        <div className="grid grid-cols-[20%_25%_45%_10%] items-center gap-2 w-full">
+          {/* 1️⃣ Name */}
+          <span>Realtime Msg</span>
+
+          {/* 2️⃣ Control */}
+          <button
+            onClick={sendMessage}
+            className="btn-primary w-full min-w-[10rem] px-4 py-2 text-base"
+            disabled={status === "pending"}
+          >
+            Send Message
+          </button>
+
+          {/* 3️⃣ Output */}
+          {lastMsg ? (
+            <span className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-sm min-w-0">
+              {lastMsg}
+            </span>
+          ) : (
+            <span className="text-xs text-gray-500 dark:text-gray-400">No messages yet.</span>
+          )}
+
+          {/* 4️⃣ Status */}
+          <StatusIcon className="justify-self-end" status={status === "pending" ? "pending" : status === "ok" ? "ok" : status === "error" ? "error" : "idle"} />
+        </div>
+      }
+    />
   );
 } 

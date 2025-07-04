@@ -1,6 +1,0 @@
-CREATE TABLE IF NOT EXISTS "organizations" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"name" text NOT NULL,
-	"owner_id" text NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL
-);

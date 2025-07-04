@@ -9,6 +9,7 @@ import {
   useMapsLibrary,
   useAdvancedMarkerRef,
 } from "@vis.gl/react-google-maps";
+import { getGoogleMapsApiKey } from "@client/utils/googleMaps";
 
 interface PlaceAutocompleteMapProps {
   /** Google Maps API key (falls back to global GOOGLE_MAPS_API_KEY if omitted) */
@@ -24,8 +25,7 @@ const PlaceAutocompleteMap: React.FC<PlaceAutocompleteMapProps> = ({
   mapId = "bf51a910020fa25a",
   className = "",
 }) => {
-  const key =
-    apiKey || (globalThis as any).GOOGLE_MAPS_API_KEY || "YOUR_API_KEY";
+  const key = apiKey || getGoogleMapsApiKey();
   const [selectedPlace, setSelectedPlace] =
     useState<google.maps.places.PlaceResult | null>(null);
   const [markerRef, marker] = useAdvancedMarkerRef();

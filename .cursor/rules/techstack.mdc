@@ -1,0 +1,21 @@
+---
+description: <techstack>
+alwaysApply: false
+---
+   * Core Framework: React 19
+   * Routing: React Router 7
+   * Bundler/Build Tool: Vite 6
+   * Styling: Tailwind css 4
+   * Language: TypeScript 5
+   [integrations]
+   * Database: PostgreSQL (via Supabase)
+   * ORM: Drizzle ORM
+   * Authentication: Supabase Auth
+   * File Uploads: UploadThing
+   * AI/LLM: OpenRouter AI SDK
+   * Payments/Billing: Polar
+   * Email: Resend
+   * Analytics: PostHog
+   * Bot Detection: Botid
+   * Maps: Google Maps (via @vis.gl/react-google-maps)
+   * Schema Validation: Zod

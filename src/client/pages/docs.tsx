@@ -7,7 +7,7 @@ import { availableIntegrations } from "@shared/availableIntegrations";
 import { useEnvironment } from "@client/context/EnvironmentContext";
 import BuildTab from "@client/components/docs/BuildTab";
 import PlatformChip from "@client/components/PlatformChip";
-import SideBar from "@client/components/SideBar";
+import SideBar from "@client/components/docs/SideBar";
 import { CLAUDE_SYSTEM_RULES } from "@shared/promptClaudeSystem";
 import { GEMINI_SYSTEM_RULES } from "@shared/promptGeminiSystem";
 
@@ -94,7 +94,7 @@ export default function Docs() {
   );
 
   // Leaf-level documentation sections (i.e. selectable pages)
-  type DocsSection = { id: string; title: string; soon?: boolean };
+  type DocsSection = { id: string; title: string };
 
   const leafSections: readonly DocsSection[] = React.useMemo(() => {
     const ideTitle = env === "cursor" ? "Cursor" : env === "claude" ? "Claude Code" : "Gemini CLI";
@@ -198,7 +198,7 @@ export default function Docs() {
               >
                 {leafSections.map((section) => (
                   <option key={section.id} value={section.id}>
-                    {section.title}{section.soon ? " (soon)" : ""}
+                    {section.title}
                   </option>
                 ))}
               </select>

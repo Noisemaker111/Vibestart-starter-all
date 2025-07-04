@@ -1,0 +1,383 @@
+---
+description: supabase realtime docs
+alwaysApply: false
+---
+
+
+# Supabase Realtime Implementation Guide for React 19
+
+This document provides a complete guide for integrating Supabase Realtime features—**Database Changes**, **Broadcast**, and **Presence**—into an application built with React 19, TypeScript, and Vite.
+i st
+### Tech Stack
+
+  * **Core Framework**: React 19
+  * **Language**: TypeScript 5
+  * **Bundler**: Vite 6
+  * **Styling**: Tailwind CSS 4 (Examples are style-agnostic but assume a modern setup)
+
+-----
+
+## 1\. Project Setup & Initialization
+
+First, ensure your project is set up correctly to communicate with Supabase.
+
+### 1.1. Installation
+
+Add the Supabase client library to your project.
+
+```bash
+npm install @supabase/supabase-js
+```
+
+### 1.2. Supabase Client Configuration
+
+Create a dedicated file to initialize and export the Supabase client. This keeps your credentials in one place and makes the client easily accessible throughout your app.
+
+**`src/supabaseClient.ts`**
+
+```typescript
+import { createClient } from '@supabase/supabase-js';
+
+// Get Supabase URL and Anon Key from environment variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// Throw an error if the environment variables are not set
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error("Supabase URL and Anon Key must be defined in .env file");
+}
+
+// Create and export the Supabase client
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+```
+
+### 1.3. Environment Variables
+
+Vite uses `.env` files for environment variables. Create a `.env.local` file in your project's root.
+
+**`.env.local`**
+
+```
+VITE_SUPABASE_URL=YOUR_SUPABASE_PROJECT_URL
+VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+```
+
+**Important**: Remember to prefix your environment variables with `VITE_` to make them accessible in your client-side code.
+
+### 1.4. Enable Realtime in Supabase
+
+Before you can listen to database changes, you must enable it for your tables.
+
+1.  Go to your Supabase Project Dashboard.
+2.  Navigate to **Database** -\> **Replication**.
+3.  Click on "0 tables" under the `supabase_realtime` publication.
+4.  Toggle on the tables you want to broadcast changes for.
+
+-----
+
+## 2\. Listening to Database Changes
+
+This is the most common use case for Realtime. You can subscribe to `INSERT`, `UPDATE`, and `DELETE` events on your database tables.
+
+### 2.1. Core Concept
+
+You subscribe to a **channel** that corresponds to a database table. The subscription is set up within a React `useEffect` hook to manage its lifecycle alongside the component. **Crucially**, you must return a cleanup function from `useEffect` to remove the subscription when the component unmounts.
+
+### 2.2. Example: A Live Chat Feed
+
+Let's build a component that displays messages from a `messages` table and automatically updates when new messages are inserted.
+
+**Define a Type for your data:**
+
+```typescript
+// src/types.ts
+export type Message = {
+  id: number;
+  created_at: string;
+  content: string;
+  user_id: string;
+};
+```
+
+**Create the React Component:**
+
+```tsx
+// src/components/ChatFeed.tsx
+import { useEffect, useState } from 'react';
+import { supabase } from '../supabaseClient';
+import { type Message } from '../types';
+
+export function ChatFeed() {
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  // Fetch initial data
+  useEffect(() => {
+    const fetchMessages = async () => {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: true });
+        
+      if (error) {
+        console.error('Error fetching messages:', error);
+      } else if (data) {
+        setMessages(data);
+      }
+    };
+    
+    fetchMessages();
+  }, []);
+
+  // Set up the real-time subscription
+  useEffect(() => {
+    // Define the subscription payload
+    const channel = supabase
+      .channel('messages-feed') // Unique channel name
+      .on(
+        'postgres_changes', // Event type
+        {
+          event: 'INSERT', // Listen to INSERT events
+          schema: 'public',
+          table: 'messages',
+        },
+        // The callback function to run when a change is received
+        (payload) => {
+          // Add the new message to the existing state
+          setMessages((currentMessages) => [
+            ...currentMessages,
+            payload.new as Message,
+          ]);
+        }
+      )
+      .subscribe(); // Start the subscription
+
+    // Cleanup function: Unsubscribe when the component unmounts
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []); // Run this effect only once
+
+  return (
+    <div>
+      <h2>Live Chat</h2>
+      <ul>
+        {messages.map((message) => (
+          <li key={message.id}>{message.content}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+### 2.3. Filtering Events
+
+You can filter which events you receive. For example, to only get updates for messages in a specific `room_id`:
+
+```tsx
+const channel = supabase
+  .channel('room-123-feed')
+  .on(
+    'postgres_changes',
+    {
+      event: '*', // Listen to INSERT, UPDATE, and DELETE
+      schema: 'public',
+      table: 'messages',
+      filter: 'room_id=eq.123', // Only get messages where room_id is 123
+    },
+    (payload) => {
+      console.log('Change received!', payload);
+    }
+  )
+  .subscribe();
+```
+
+-----
+
+## 3\. Using Broadcast
+
+Broadcast allows for sending ephemeral, low-latency messages between clients without ever saving data to the database. This is perfect for features like "user is typing" indicators or live cursor tracking.
+
+### 3.1. Core Concept
+
+Clients join the same named channel and can both send and receive custom events.
+
+### 3.2. Example: Live Cursor Positions
+
+Let's implement a feature where users can see each other's cursors moving in real-time.
+
+**Define a Type for the cursor data:**
+
+```typescript
+// src/types.ts
+type CursorPosition = {
+  x: number;
+  y: number;
+  userId: string; // To identify which user's cursor it is
+};
+```
+
+**Create the React Component:**
+
+```tsx
+// src/components/LiveCursors.tsx
+import { useEffect, useState } from 'react';
+import { supabase } from '../supabaseClient';
+import { type CursorPosition } from '../types';
+
+const MY_USER_ID = 'user-' + Math.random().toString(36).substr(2, 9);
+
+export function LiveCursors() {
+  const [positions, setPositions] = useState<Record<string, { x: number; y: number }>>({});
+  const channel = supabase.channel('cursor-positions'); // Must be a unique channel name
+
+  useEffect(() => {
+    // Subscribe to the channel to receive broadcast events
+    channel
+      .on(
+        'broadcast',
+        { event: 'cursor-move' }, // Filter for our specific event
+        (payload) => {
+          const { x, y, userId } = payload.payload as CursorPosition;
+          // Don't update state for our own movements
+          if (userId === MY_USER_ID) return;
+
+          setPositions((current) => ({
+            ...current,
+            [userId]: { x, y },
+          }));
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          // SUBSCRIBED status means we are ready to broadcast
+          console.log('Ready to broadcast cursor movements.');
+        }
+      });
+      
+    // Function to send our cursor position
+    const handleMouseMove = (e: MouseEvent) => {
+      channel.send({
+        type: 'broadcast',
+        event: 'cursor-move',
+        payload: { x: e.clientX, y: e.clientY, userId: MY_USER_ID },
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+
+    // Cleanup function
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      supabase.removeChannel(channel);
+    };
+  }, []); // Run effect only once
+
+  return (
+    <div className="h-screen w-screen relative">
+      {Object.entries(positions).map(([userId, pos]) => (
+        <div
+          key={userId}
+          className="absolute w-4 h-4 bg-red-500 rounded-full"
+          style={{ left: pos.x, top: pos.y, transition: 'left 0.1s, top 0.1s' }}
+        />
+      ))}
+    </div>
+  );
+}
+```
+
+-----
+
+## 4\. Using Presence
+
+Presence tracks and synchronizes shared state between clients on a channel. It's ideal for showing who is currently online or in a specific "room."
+
+### 4.1. Core Concept
+
+When a user joins a channel, their state is sent to all other clients. Presence provides `sync`, `join`, and `leave` events to manage this state.
+
+### 4.2. Example: "Who's Online" List
+
+Let's create a component that displays a list of users currently viewing the page.
+
+**Define a Type for the presence state:**
+
+```typescript
+// src/types.ts
+type PresenceState = {
+  user: string; // The user's name or ID
+  online_at: string; // ISO timestamp
+};
+```
+
+**Create the React Component:**
+
+```tsx
+// src/components/OnlineUsers.tsx
+import { useEffect, useState } from 'react';
+import { supabase } from '../supabaseClient';
+import { type PresenceState } from '../types';
+
+const MY_USERNAME = 'User' + Math.round(Math.random() * 1000);
+
+export function OnlineUsers() {
+  const [onlineUsers, setOnlineUsers] = useState<PresenceState[]>([]);
+  const channel = supabase.channel('online-users', {
+    config: {
+      presence: {
+        key: MY_USERNAME, // A unique key per user
+      },
+    },
+  });
+  
+  useEffect(() => {
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        // 'sync' event is fired when you first join a channel
+        // It gives you the full list of presences on the channel
+        const newState = channel.presenceState<PresenceState>();
+        const users = Object.values(newState).map(p => p[0]);
+        setOnlineUsers(users);
+      })
+      .on('presence', { event: 'join' }, ({ newPresences }) => {
+        // 'join' event is fired when a new user joins
+        setOnlineUsers((currentUsers) => [...currentUsers, ...newPresences]);
+      })
+      .on('presence', { event: 'leave' }, ({ leftPresences }) => {
+        // 'leave' event is fired when a user leaves
+        const leftUserKeys = leftPresences.map(p => p.user);
+        setOnlineUsers((currentUsers) => 
+          currentUsers.filter(u => !leftUserKeys.includes(u.user))
+        );
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          // Once subscribed, track our own presence
+          await channel.track({
+            user: MY_USERNAME,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    // Cleanup function
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  return (
+    <div>
+      <h3>Who's Online ({onlineUsers.length}):</h3>
+      <ul>
+        {onlineUsers.map((presence) => (
+          <li key={presence.user}>{presence.user}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+This guide covers the core functionalities of Supabase Realtime in a modern React application. By using `useEffect` for lifecycle management and TypeScript for type safety, you can build robust and powerful real-time features.

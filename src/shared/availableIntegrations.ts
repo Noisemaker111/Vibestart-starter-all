@@ -15,15 +15,12 @@ import {
   Users,
 } from "lucide-react";
 import { FaChalkboard } from "react-icons/fa6";
-import { FaDiscord } from "react-icons/fa";
 
 export interface AvailableIntegration {
   key: string;
   label: string;
   /** Optional icon component for UI usage */
   icon?: ComponentType<{ className?: string }>;
-  /** Availability status */
-  status?: "available" | "soon";
   /** Additional tools/accounts required before using this integration */
   prerequisites?: string[];
   /** Environment variables the CLI sets up (deduplicated later) */
@@ -36,7 +33,6 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
     key: "database",
     label: "Database",
     icon: Database,
-    status: "available",
     prerequisites: ["Create a Supabase account – https://supabase.com/docs/guides/getting-started"],
     envVars: ["DATABASE_URL", "VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY"],
   },
@@ -44,7 +40,6 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
     key: "uploads",
     label: "Uploads",
     icon: Upload,
-    status: "available",
     prerequisites: ["Create an UploadThing account – https://docs.uploadthing.com"],
     envVars: ["UPLOADTHING_TOKEN"],
   },
@@ -52,7 +47,6 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
     key: "auth",
     label: "Authentication",
     icon: Shield,
-    status: "available",
     prerequisites: [
       "Create a Supabase account – https://supabase.com/docs/guides/getting-started",
     ],
@@ -62,7 +56,6 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
     key: "llm",
     label: "LLM Text",
     icon: Brain,
-    status: "available",
     prerequisites: ["Create an OpenRouter account (min. $5 credit) – https://openrouter.ai"],
     envVars: ["VITE_OPENROUTER_API_KEY"],
   },
@@ -70,7 +63,6 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
     key: "llm-json",
     label: "LLM JSON",
     icon: Brain,
-    status: "available",
     prerequisites: ["Create an OpenRouter account (min. $5 credit) – https://openrouter.ai"],
     envVars: ["VITE_OPENROUTER_API_KEY"],
   },
@@ -78,7 +70,6 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
     key: "llm-image",
     label: "LLM Image",
     icon: Brain,
-    status: "available",
     prerequisites: ["Create an Openai account (min. $5 credit) – https://openai.com"],
     envVars: ["OPENAI_API_KEY"],
   },
@@ -86,32 +77,18 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
     key: "analytics",
     label: "Analytics",
     icon: BarChart3,
-    status: "available",
     prerequisites: ["Create a PostHog account – https://posthog.com/docs"],
     envVars: ["VITE_PUBLIC_POSTHOG_KEY", "VITE_PUBLIC_POSTHOG_HOST"],
-  },
-  {
-    key: "discord",
-    label: "Discord",
-    icon: FaDiscord,
-    status: "available",
-    prerequisites: [
-      "Create a Discord Developer application – https://discord.com/developers/applications",
-      "Generate OAuth credentials (Client ID & Secret)",
-    ],
-    envVars: ["DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET"],
   },
   {
     key: "api",
     label: "External API",
     icon: Plug,
-    status: "available"
   },
   {
     key: "billing",
     label: "Billing",
     icon: CreditCard,
-    status: "available",
     prerequisites: [
       "Create a Polar account – https://polar.sh",
       "Generate an access token – https://app.polar.sh/settings/tokens (or sandbox)"
@@ -122,31 +99,36 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
     key: "payments",
     label: "Payments",
     icon: CreditCard,
-    status: "available",
     prerequisites: [
       "Create a Polar account – https://polar.sh",
       "Generate an access token – https://app.polar.sh/settings/tokens (or sandbox)"
     ],
     envVars: ["POLAR_ACCESS_TOKEN", "POLAR_WEBHOOK_SECRET"],
   },
-  { key: "realtime", label: "Realtime Messaging", icon: MessageCircle, status: "soon" },
-  { key: "notifications", label: "Notifications", icon: Bell, status: "soon" },
+  {
+    key: "realtime",
+    label: "Realtime",
+    icon: MessageCircle,
+    prerequisites: [
+      "Create a Supabase account – https://supabase.com/docs/guides/getting-started",
+      "Enable Realtime replication for the desired tables – https://supabase.com/docs/guides/realtime",
+    ],
+    envVars: ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY"],
+  },
   {
     key: "maps",
     label: "Maps",
     icon: MapPin,
-    status: "available",
     prerequisites: [
       "Create a google cloud account – https://cloud.google.com",
       "Generate an access token – https://cloud.google.com/maps-platform/pricing"
     ],
-    envVars: ["GOOGLE_MAPS_API_KEY"],
+    envVars: ["VITE_GOOGLE_MAPS_API_KEY"],
   },
   {
     key: "organizations",
     label: "Organizations",
     icon: Users,
-    status: "available",
     prerequisites: [
       "Supabase set-up with 'organizations' table present (see schema.ts)"
     ],
@@ -155,16 +137,12 @@ export const availableIntegrations: readonly AvailableIntegration[] = [
     key: "email",
     label: "Email",
     icon: Mail,
-    status: "available",
     prerequisites: [
       "Create a Resend account – https://resend.com",
       "Generate an API key – https://resend.com/api-keys",
     ],
     envVars: ["RESEND_API_KEY"],
   },
-  { key: "sms", label: "SMS", icon: MessageCircle, status: "soon" },
-  { key: "files", label: "Files", icon: File, status: "soon" },
-  { key: "whiteboard", label: "Whiteboard", icon: FaChalkboard, status: "soon" },
 ] as const;
 
 export type AvailableIntegrationKey = typeof availableIntegrations[number]["key"];

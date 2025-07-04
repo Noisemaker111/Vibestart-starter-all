@@ -1,0 +1,6 @@
+---
+description: openai llm image docs
+alwaysApply: false
+---
+
+Ask if the user has the docs for the openai llm image docs, if they do, ask them to provide the docs.

@@ -6,14 +6,12 @@ export interface AvailablePlatform {
   label: string;
   /** Optional icon component for UI usage */
   icon?: ComponentType<{ className?: string }>;
-  /** Availability status (e.g., available now, soon, or far in the roadmap) */
-  status?: "available" | "soon";
 }
 
 export const availablePlatforms: readonly AvailablePlatform[] = [
-  { key: "website", label: "Website", icon: Globe, status: "available" },
-  { key: "mobile-app", label: "Mobile App", icon: Smartphone, status: "available" },
-  { key: "desktop-app", label: "Desktop App", icon: Monitor, status: "available" },
+  { key: "website", label: "Website", icon: Globe },
+  { key: "mobile-app", label: "Mobile App", icon: Smartphone },
+  { key: "desktop-app", label: "Desktop App", icon: Monitor },
 ] as const;
 
 export type AvailablePlatformKey = typeof availablePlatforms[number]["key"];

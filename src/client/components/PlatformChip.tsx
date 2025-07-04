@@ -1,6 +1,5 @@
 import React from "react";
 import type { AvailablePlatform } from "@shared/availablePlatforms";
-import Badge from "./Badge";
 
 interface PlatformChipProps {
   /** Platform object (from availablePlatforms) to render */
@@ -18,9 +17,7 @@ interface PlatformChipProps {
 export default function PlatformChip({ platform, className, onClick }: PlatformChipProps) {
   if (!platform) return null;
   const Icon = platform.icon;
-  const commonClasses = `group relative flex items-center gap-3 px-5 py-2 rounded-full bg-gradient-to-r from-green-500 to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-300 ease-out hover:scale-[1.03] animate-in fade-in ${
-    platform.status === "soon" ? "opacity-80" : ""
-  } ${className ?? ""}`.trim();
+  const commonClasses = `group relative flex items-center gap-3 px-5 py-2 rounded-full bg-gradient-to-r from-green-500 to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-300 ease-out hover:scale-[1.03] animate-in fade-in ${className ?? ""}`.trim();
 
   if (onClick) {
     return (
@@ -34,8 +31,6 @@ export default function PlatformChip({ platform, className, onClick }: PlatformC
 
         {/* Hover sheen */}
         <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-        {platform.status === "soon" && <Badge label="soon" />}
       </button>
     );
   }
@@ -51,8 +46,6 @@ export default function PlatformChip({ platform, className, onClick }: PlatformC
 
       {/* Hover sheen (still apply on non-interactive for consistency) */}
       <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-      {platform.status === "soon" && <Badge label="soon" />}
     </span>
   );
 } 

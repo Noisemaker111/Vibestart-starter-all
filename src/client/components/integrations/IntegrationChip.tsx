@@ -1,6 +1,5 @@
 import React from "react";
 import { availableIntegrations } from "@shared/availableIntegrations";
-import Badge from "@client/components/Badge";
 import { X, Plus } from "lucide-react";
 
 const integrations = availableIntegrations;
@@ -42,21 +41,17 @@ export default function IntegrationChips({ className, activeKeys, showAllIfEmpty
     return Array.from(new Set(activeKeys)); // de-duplicate while preserving order
   }, [activeKeys, showAllIfEmpty]);
 
-  // Ensure soon integrations are shown last for better UX
-  const orderedKeys: string[] = React.useMemo(() => {
-    const regular: string[] = [];
-    const soon: string[] = [];
-    keysToDisplay.forEach((k) => {
-      const isSoon = integrations.find((i) => i.key === k)?.status === "soon";
-      if (isSoon) soon.push(k);
-      else regular.push(k);
-    });
-    return [...regular, ...soon];
-  }, [keysToDisplay]);
+  // Show keys as-is (no special ordering)
+  const orderedKeys = keysToDisplay;
 
-  // Debug helper when nothing is rendered unexpectedly
+  // Debug helper – only warn when showAllIfEmpty is true and nothing is rendered
   const warnedRef = React.useRef(false);
-  if (import.meta.env.DEV && keysToDisplay.length === 0 && !warnedRef.current) {
+  if (
+    import.meta.env.DEV &&
+    showAllIfEmpty &&
+    keysToDisplay.length === 0 &&
+    !warnedRef.current
+  ) {
     console.warn("IntegrationChips: no integrations to display", { activeKeys });
     warnedRef.current = true;
   }
@@ -77,17 +72,16 @@ export default function IntegrationChips({ className, activeKeys, showAllIfEmpty
     const integration = integrations.find((i) => i.key === key);
     const Icon = integration?.icon;
     const label = integration?.label ?? key;
-    const isSoon = integration?.status === "soon";
 
     const widthClass = stretch ? 'flex-1 basis-0 min-w-0' : `flex-none ${chipWidthClass ?? 'w-[168px]'}`;
 
     return (
       <div
         key={key}
-        className={`group relative flex items-center justify-between px-6 py-3 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-md hover:shadow-lg transition-all duration-300 ease-out hover:scale-[1.02] animate-in fade-in ${widthClass} ${isSoon ? 'opacity-80' : ''}`}
+        className={`group relative flex items-center justify-between px-6 py-3 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-md hover:shadow-lg transition-all duration-300 ease-out hover:scale-[1.02] animate-in fade-in ${widthClass}`}
       >
         {/* Interior glassy overlay */}
-        <div className={`absolute inset-0 rounded-full bg-white/10 pointer-events-none ${isSoon ? 'backdrop-blur-sm' : ''}`} />
+        <div className="absolute inset-0 rounded-full bg-white/10 pointer-events-none" />
 
         <div className="relative flex items-center gap-3 flex-1">
           {Icon && <Icon className="w-4 h-4 text-white/90 flex-shrink-0" />} <span className="text-white font-medium text-base tracking-wide truncate">{label}</span>
@@ -106,8 +100,6 @@ export default function IntegrationChips({ className, activeKeys, showAllIfEmpty
 
         {/* subtle hover sheen */}
         <div className="absolute inset-0 rounded-full bg-white/5 opacity-0 group-hover:opacity-15 transition-opacity duration-300 pointer-events-none" />
-
-        {isSoon && <Badge label="soon" />}
       </div>
     );
   };
