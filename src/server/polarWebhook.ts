@@ -12,7 +12,7 @@ export const polarWebhookRoute = {
 
     let event: any;
     try {
-      event = validateEvent(Buffer.from(bodyBuffer), request.headers, secret);
+      event = validateEvent(Buffer.from(bodyBuffer), Object.fromEntries(request.headers), secret);
     } catch (err: any) {
       if (err instanceof WebhookVerificationError) {
         return new Response("Invalid signature", { status: 403 });

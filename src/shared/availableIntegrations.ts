@@ -11,6 +11,7 @@ import {
   Plug,
   Mail,
   Users,
+  Clock,
 } from "lucide-react";
 
 export interface AvailableIntegration {
