@@ -1,4 +1,8 @@
 import { polarWebhookRoute } from "@server/polarWebhook";
+import { withLogging } from "@server/utils/logger";
 
-export const action = polarWebhookRoute.action;
-export const loader = polarWebhookRoute.loader ?? (() => new Response("Not Found", { status: 404 })); 
+export const action = withLogging(polarWebhookRoute.action, "polarWebhook.action");
+export const loader = withLogging(
+  polarWebhookRoute.loader ?? (() => new Response("Not Found", { status: 404 })),
+  "polarWebhook.loader"
+); 

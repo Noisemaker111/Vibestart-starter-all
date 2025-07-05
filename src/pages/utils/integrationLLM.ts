@@ -1,11 +1,7 @@
-import type { AvailableIntegration } from "@shared/availableIntegrations";
-import { promptHomeIdeaConverter } from "@shared/promptHomeIdeaConverter";
-import { availableIntegrations } from "@shared/availableIntegrations";
 import { z } from "zod";
 
 export interface SpecificationResponse {
   platform?: string;
-  integrations: AvailableIntegration[];
   error?: string;
   /** JSON sent to OpenRouter (pretty-printed) */
   requestBody?: string;
@@ -81,7 +77,7 @@ export async function processIdea(
 
   if (!apiKey) {
     console.warn("OpenRouter API key missing – skipping AI integration selection");
-    return { integrations: [], error: "OpenRouter API key missing" };
+    return { error: "OpenRouter API key missing" };
   }
 
   // Build user content – first text, then any images provided
@@ -117,7 +113,11 @@ export async function processIdea(
     messages: [
       {
         role: "system",
-        content: generation === "structured" ? promptHomeIdeaConverter(idea) : "You are a helpful assistant.",
+        content:
+          generation === "structured"
+            ?
+                "You are an API assistant. Reply ONLY with a JSON object containing an optional string 'platform' and an array 'integrations' of required integration keys. Example: {\"platform\": \"web\", \"integrations\": [\"auth\", \"database\"] }"
+            : "You are a helpful assistant.",
       },
       {
         role: "user",
@@ -157,7 +157,7 @@ export async function processIdea(
       if (maybeMsg && typeof maybeMsg === "string") errMsg += ` – ${maybeMsg}`;
     }
     if (import.meta.env.DEV) console.error(errMsg, errorDetails);
-    return { integrations: [], error: errMsg };
+    return { error: errMsg };
   }
 
   const data = await response.json();
@@ -168,7 +168,7 @@ export async function processIdea(
 
   if (generation !== "structured") {
     // For non-structured requests, we don't parse JSON; just return raw content
-    return { integrations: [], rawContent } as unknown as SpecificationResponse;
+    return { rawContent } as SpecificationResponse;
   }
 
   try {
@@ -184,24 +184,12 @@ export async function processIdea(
     const decodedJson = JSON.parse(jsonText);
 
     // Zod schemas for robust validation
-    const RawKeyArray = z.array(z.string());
     const SpecObject = z.object({
       platform: z.string().optional(),
-      integrations: z.array(z.string()),
     });
 
-    let integrationKeys: string[];
-    let platform: string | undefined;
-
-    if (RawKeyArray.safeParse(decodedJson).success) {
-      integrationKeys = decodedJson as string[];
-    } else {
-      const spec = SpecObject.parse(decodedJson);
-      integrationKeys = spec.integrations;
-      platform = spec.platform;
-    }
-
-    const integrationsArray = mapKeysToIntegrations(integrationKeys);
+    const spec = SpecObject.parse(decodedJson);
+    const platform: string | undefined = spec.platform;
 
     // ──────────────────────────────────────────────────────────
     // Token usage reporting – send to server so it appears in logs
@@ -223,25 +211,17 @@ export async function processIdea(
 
     return {
       platform,
-      integrations: integrationsArray,
       requestBody: JSON.stringify(bodyObj, null, 2),
       rawContent,
     };
   } catch (err) {
     if (import.meta.env.DEV) console.error("[processIdea] Failed to parse integration list", rawContent, err);
     return {
-      integrations: [],
       error: (err as Error)?.message ?? "Parse error",
       requestBody: JSON.stringify(bodyObj, null, 2),
       rawContent,
     };
   }
-}
-
-function mapKeysToIntegrations(keys: string[]): AvailableIntegration[] {
-  return keys
-    .map((key) => availableIntegrations.find((i) => i.key === key))
-    .filter((i): i is AvailableIntegration => Boolean(i));
 }
 
 // ----------------------------------------

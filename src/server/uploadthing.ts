@@ -16,31 +16,39 @@ export const uploadRouter = {
   imageUploader: f({
     image: { maxFileSize: "4MB", maxFileCount: 1 },
   })
-    .middleware(async ({ req }) => {
-      if (!canCallIntegrations(req)) {
-        throw new Error("Unauthorized");
+    .middleware(async ({ event }) => {
+      // Remix adapter passes the original Fetch event – extract the Request object
+      const req = event.request;
+
+      try {
+        if (!canCallIntegrations(req)) {
+          throw new Error("Unauthorized");
+        }
+
+        // Perform BotID verification to block automated uploads
+        const botCheck = import.meta.env.DEV ? { isBot: false } : await checkBotId();
+        if (botCheck.isBot) {
+          throw new Error("Access denied – bot detected");
+        }
+
+        const cookieName = "anon_token";
+        const cookieHeader = req.headers.get("cookie") ?? "";
+        const incomingCookie = cookieHeader
+          .split(/;\s*/)
+          .find((c: string) => c.startsWith(`${cookieName}=`))?.split("=")[1];
+
+        let token = verify(incomingCookie) ?? null;
+        if (!token) {
+          const { id } = generateSignedToken();
+          token = id;
+          // We intentionally skip setting the cookie here; the loader/action endpoints already issue it.
+        }
+
+        return { ownerToken: token } as const;
+      } catch (err) {
+        console.error("[uploadthing.middleware]", err);
+        throw err;
       }
-
-      // Perform BotID verification to block automated uploads
-      const botCheck = import.meta.env.DEV ? { isBot: false } : await checkBotId();
-      if (botCheck.isBot) {
-        throw new Error("Access denied – bot detected");
-      }
-
-      const cookieName = "anon_token";
-      const cookieHeader = req.headers.get("cookie") ?? "";
-      const incomingCookie = cookieHeader
-        .split(/;\s*/)
-        .find((c: string) => c.startsWith(`${cookieName}=`))?.split("=")[1];
-
-      let token = verify(incomingCookie) ?? null;
-      if (!token) {
-        const { id } = generateSignedToken();
-        token = id;
-        // We intentionally skip setting the cookie here; the loader/action endpoints already issue it.
-      }
-
-      return { ownerToken: token } as const;
     })
     .onUploadComplete(async ({ file, metadata }) => {
       try {

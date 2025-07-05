@@ -1,4 +1,5 @@
 import { imageGenerationHandler } from "@server/imageGeneration";
+import { withLogging } from "@server/utils/logger";
 
-export const action = imageGenerationHandler.action;
-export const loader = imageGenerationHandler.loader; 
+export const action = withLogging(imageGenerationHandler.action, "imageGenerate.action");
+export const loader = withLogging(imageGenerationHandler.loader, "imageGenerate.loader"); 

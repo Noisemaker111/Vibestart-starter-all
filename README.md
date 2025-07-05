@@ -1,174 +1,117 @@
-# 🚀 JonStack
+# Full-Stack React + Vite Starter  
 
-**JonStack is an AI-first, opinionated stack that prescribes a single way to build modern apps.** Web targets are ready today; Mobile (React Native) and Desktop (Electron) are coming next. Stop debating tooling and focus on shipping features.
+## Overview
+This project is a batteries-included starter that wires together the most common SaaS integrations you need to ship a modern web product.  
+It ships with a demo **Integration Tests** modal so you can verify every service locally before you deploy.
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
-[![React Router](https://img.shields.io/badge/React_Router-v7-red)](https://reactrouter.com/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC)](https://tailwindcss.com/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-
-> ⚠️ **Early-Alpha Notice**  
-> JonStack is experimental software. Breaking changes, bugs, and data-loss are possible. Use at **your own risk**—the authors accept **no liability** for any harm that may occur.  
-> Got feedback or want to help? DM [@TopBlastJon](https://twitter.com/TopBlastJon).
-
-## ✨ Features
-
-### 🔐 **Authentication Ready**
-- Supabase Auth integration with social logins (Google, GitHub, etc.)
-- Email/password authentication
-- Magic link support
-- Protected routes with auth context
-- Session management
-- Row-level security
-
-### 💾 **Type-Safe Database**
-- PostgreSQL with Drizzle ORM
-- Full TypeScript support with auto-generated types
-- Migration management
-- Query builder with relationships
-- Database studio for visual management
-
-### 📤 **File Uploads**
-- Drag-and-drop file uploads with UploadThing
-- Progress tracking
-- Image optimization
-- Secure storage with CDN delivery
-- Multiple file type support
-
-### 🎨 **Modern UI/UX**
-- Tailwind CSS v4 with automatic dark mode
-- Production-ready components
-- Responsive design
-- Custom component library
-- Beautiful animations and transitions
-
-### 🚀 **Developer Experience**
-- React Router v7 with SSR support
-- Hot Module Replacement
-- TypeScript everywhere
-- ESLint + Prettier configured
-- Git hooks with Husky
-- VS Code settings included
-
-## 📦 What's Included
-
-```
-jonstack/
-├── src/
-│   ├── client/
-│   │   ├── components/        React UI elements
-│   │   ├── context/           React contexts & providers
-│   │   ├── pages/             Route components
-│   │   └── utils/             Client-side helpers
-│   ├── server/
-│   │   ├── db/
-│   │   │   ├── queries/       Query helpers
-│   │   │   └── schema.ts      Drizzle schema
-│   │   ├── utils/             Server helpers
-│   │   └── uploadthing.ts     Upload handlers
-│   ├── shared/
-│   │   ├── supabase.ts        Shared Supabase init
-│   │   └── constants.ts       App-wide constants
-├── public/
-├── package.json
-├── tailwind.config.js
-├── vite.config.ts
-└── README.md
-```
-
-## 🚀 Getting Started (Cursor Source Control)
-Use Cursor's **Source Control** panel (branch icon at the top-left) to clone this repo, review diffs, commit, and push—no CLI needed. A complete zero-to-100 guide plus API reference is hosted at **https://jonstack.vercel.app/docs**.
-
-## 📚 Documentation
-
-### Authentication
-
-```typescript
-import { useAuth } from "@client/context/AuthContext";
-
-function Profile() {
-  const { session, loading } = useAuth();
-  
-  if (loading) return <div>Loading...</div>;
-  if (!session) return <div>Please sign in</div>;
-  
-  return <h1>Welcome {session.user.email}!</h1>;
-}
-```
-
-### Database Operations
-
-```typescript
-// Type-safe queries with Drizzle ORM
-const users = await db
-  .select()
-  .from(usersTable)
-  .where(eq(usersTable.active, true))
-  .orderBy(desc(usersTable.createdAt));
-```
-
-### File Uploads
-
-```typescript
-<UploadButton
-  endpoint="imageUploader"
-  onClientUploadComplete={(res) => {
-    console.log("Files uploaded:", res);
-  }}
-  onUploadError={(error) => {
-    alert("Upload failed!");
-  }}
-/>
-```
-
-## 🛠️ Tech Stack
-
-- **Frontend**: React 19 • React Router v7 (SSR) • Vite 6 • TypeScript 5 • Tailwind CSS v4 • UploadThing SDK
-- **Backend**: Node.js 18 • PostgreSQL (Supabase) • Drizzle ORM 0.44 • Zod validation
-- **Dev Ops**: Vercel edge SSR • GitHub Actions CI/CD
-
-## 📖 Learning Resources
-
-- [React Router Documentation](https://reactrouter.com/docs)
-- [Drizzle ORM Guide](https://orm.drizzle.team/docs/overview)
-- [Supabase Docs](https://supabase.com/docs)
-- [Tailwind CSS v4](https://tailwindcss.com/docs)
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- React Router team for the amazing framework
-- Supabase for the auth infrastructure
-- Drizzle team for the fantastic ORM
-- UploadThing for simple file uploads
-- **Vercel** for the best deployment platform
-- **Cursor** for the best AI IDE
-- **Theo** – creator of T3 and <a href="https://t3.chat/" target="_blank">t3.chat</a>; his videos and community are a huge inspiration 🙌
-- All contributors who help improve this template
+### What's already hooked up
+1. **Database & Auth** – [Supabase](https://supabase.com) with row-level security, real-time channels and email / OAuth sign-in UI.  
+2. **ORM & Migrations** – [Drizzle ORM](https://orm.drizzle.team) + `drizzle-kit` for type-safe PostgreSQL migrations.  
+3. **File Uploads** – [UploadThing](https://uploadthing.com) (images / pdf / video).  
+4. **Analytics** – [PostHog Cloud](https://posthog.com) (auto-capturing + custom events).  
+5. **Emails** – [Resend](https://resend.com).  
+6. **Payments** – [Polar](https://polar.sh) (Stripe-compatible billing).  
+7. **LLMs** – OpenRouter (chat / JSON) and OpenAI (image generation).  
+8. **Maps** – Google Maps Places Autocomplete via `@vis.gl/react-google-maps`.  
+9. **Bot Detection** – `botid` client / edge verification.  
+10. **Real-time chat demo** – Supabase channels.  
+11. **CI-ready build** – React Router v7 + Vite + TypeScript + TailwindCSS.
 
 ---
 
-<p align="center">
-  Built with ❤️ by developers, for developers
-</p>
+## Getting Started
+### 1. Clone & Install
+```bash
+# clone
+git clone https://github.com/your-org/your-starter.git my-app && cd my-app
 
-<p align="center">
-  <a href="https://github.com/Noisemaker111/jonstack">⭐ Star this repo</a> •
-  <a href="/docs">📖 Read the docs</a> •
-  <a href="https://github.com/Noisemaker111/jonstack/issues">🐛 Report an issue</a>
-</p>
+# install deps (Node ≥ 20)
+npm install   # or pnpm / yarn
+```
 
-### Roadmap
+### 2. Configure environment variables
+Copy the example file and fill in **every** value:
+```bash
+cp .env.example .env
+```
+The table below explains what each variable does. If a service isn't relevant for you, leave the value blank and the UI will gracefully degrade.
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `UPLOADTHING_TOKEN` | ✅ | Server token from UploadThing dashboard. |
+| `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` | ✅ | Supabase project URL + anon key. |
+| `DATABASE_URL` | ✅ | Postgres connection string for **Drizzle ORM migrations**. |
+| `VITE_OPENROUTER_API_KEY` / `OPENROUTER_API_KEY` | ⬜ | Same key in both client & server for chat/JSON models. |
+| `OPENAI_API_KEY` | ⬜ | Only needed for image generation (DALL-E 3). |
+| `VITE_PUBLIC_POSTHOG_KEY` / `VITE_PUBLIC_POSTHOG_HOST` | ⬜ | Public key + host from PostHog Cloud. |
+| `VITE_SITE_URL` | ✅ | Origin that the browser will run on (used for referer checks). |
+| `VITE_SUPABASE_REDIRECT` | ✅ | Supabase OAuth redirect URL (must be whitelisted). |
+| `POLAR_ACCESS_TOKEN` / `POLAR_WEBHOOK_SECRET` | ⬜ | Polar billing API + webhook secret. |
+| `RESEND_API_KEY` | ⬜ | Resend API key for emails. |
+| `GOOGLE_MAPS_API_KEY` | ⬜ | Places API enabled key. |
+| `VITE_DEV_EMAIL_HASH` | ✅ in prod | FNV-1a hash of the developer e-mail allowed to call 3rd-party paid APIs from prod. Generate with:  
+`node -e "const f=s=>{let h=0x811c9dc5;for(const c of s){h^=c.charCodeAt(0);h=(h*0x1000193)>>>0;}console.log(h.toString(16))};f('your@email')"`
+
+### 3. Set up Supabase & Database
+1. Create a new Supabase project.  
+2. Copy the project URL & anon key into `.env`.  
+3. Provision the Postgres connection string (Supabase **Database → Connection pooling**).  
+4. **Generate** the SQL from Drizzle and apply:
+```bash
+npm run db:generate   # creates migrations in /src/server/db/migrations
+npm run db:push       # pushes to the remote Supabase database
+```
+
+### 4. Run the dev server
+```bash
+npm run dev          # Vite + React Router live-reload
+```
+Open `http://localhost:5173` and click **"Run Integration Tests"** on the home page to verify each service.
+
+---
+
+## Useful Scripts
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Start Vite dev server + API routes. |
+| `npm run build` | Production build (SSR bundle + client). |
+| `npm run start` | Serve built output (uses `@react-router/serve`). |
+| `npm run typecheck` | `tsc` + React Router type-gen. |
+| `npm run db:generate` | Sync Drizzle schema → SQL migrations. |
+| `npm run db:migrate` | Apply pending migrations in `./drizzle`. |
+| `npm run db:studio` | Launch Drizzle Studio GUI. |
+
+---
+
+## Project Structure (important bits)
+```
+src/
+  pages/                # Client pages & API routes (React Router v7 islands)
+    home/               # Demo UI + Integration modal
+    api/                # tRPC-style lightweight API endpoints
+  server/               # Server-only helpers (image generation, webhook handlers, db)
+    db/                 # Drizzle ORM schema & migrations
+    utils/              # Auth, logging, rate-limit, etc.
+shared/                 # Code shared between client & server (supabase instance, global styles)
+```
+
+---
+
+## Deployment
+1. **Build:** `npm run build` → outputs to `/build`.  
+2. **Serve:** `npm start` (uses `@react-router/serve` – works on any Node host).  
+3. Configure your hosting provider with the **same environment variables** from your `.env` file.
+
+---
+
+### FAQ
+*Q: I only want some integrations.*  
+Edit `src/pages/home/components/TestIntegrationsModal.tsx` and remove the tests you don't need; the underlying code is already split by feature.
+
+*Q: Why both client & server OpenRouter keys?*  
+For streaming chat completion in the browser **and** secure server-side calls. If you don't want client LLM calls, omit `VITE_OPENROUTER_API_KEY` and the UI will no-op.
+
+*Q: Can I deploy to Vercel?*  
+Yes – add your env vars in **Project → Settings → Environment Variables**, then `vercel --prod`.
+
+Happy shipping! ✨

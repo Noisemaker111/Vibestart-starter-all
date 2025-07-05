@@ -2,14 +2,15 @@ import { db } from "@server/db";
 import { animalsTable } from "@server/db/schema";
 import { verify, generateSignedToken } from "@server/utils/visitorToken";
 import { eq } from "drizzle-orm";
+import { withLogging } from "@server/utils/logger";
 
-export async function loader({ request }: { request: Request }) {
+async function loaderHandler({ request }: { request: Request }) {
   // Ensure each visitor has a signed anon token stored in cookie
   const cookieName = "anon_token";
   const incomingCookie = request.headers
     .get("cookie")
     ?.split(/;\s*/)
-    .find((c) => c.startsWith(`${cookieName}=`))
+    .find((c: string) => c.startsWith(`${cookieName}=`))
     ?.split("=")[1];
   let token = verify(incomingCookie) ?? null;
   let setCookieHeader: string | null = null;
@@ -29,12 +30,12 @@ export async function loader({ request }: { request: Request }) {
   });
 }
 
-export async function action({ request }: { request: Request }) {
+async function actionHandler({ request }: { request: Request }) {
   const cookieName = "anon_token";
   const incomingCookie = request.headers
     .get("cookie")
     ?.split(/;\s*/)
-    .find((c) => c.startsWith(`${cookieName}=`))
+    .find((c: string) => c.startsWith(`${cookieName}=`))
     ?.split("=")[1];
   let token = verify(incomingCookie) ?? null;
   let setCookieHeader: string | null = null;
@@ -96,4 +97,7 @@ export async function action({ request }: { request: Request }) {
       }
     );
   }
-} 
+}
+
+export const loader = withLogging(loaderHandler, "animals.loader");
+export const action = withLogging(actionHandler, "animals.action"); 

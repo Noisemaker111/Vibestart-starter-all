@@ -1,6 +1,7 @@
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { streamText } from "ai";
 import { checkBotId } from "botid/server";
+import { withLogging } from "@server/utils/logger";
 
 const DEFAULT_LLM_MODEL = "google/gemini-2.5-flash";
 
@@ -10,7 +11,7 @@ interface ChatRequestBody {
   structured?: boolean;
 }
 
-export async function action({ request }: { request: Request }) {
+async function actionHandler({ request }: { request: Request }) {
   if (request.method !== "POST") {
     return new Response("Method Not Allowed", { status: 405 });
   }
@@ -61,8 +62,11 @@ export async function action({ request }: { request: Request }) {
   }
 }
 
-export async function loader() {
+async function loaderHandler() {
   return new Response(JSON.stringify({ ok: true }), {
     headers: { "Content-Type": "application/json" },
   });
-} 
+}
+
+export const action = withLogging(actionHandler, "chat.action");
+export const loader = withLogging(loaderHandler, "chat.loader"); 

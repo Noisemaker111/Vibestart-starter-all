@@ -9,10 +9,7 @@ import {
 import type { Route } from "./+types/root";
 import appStylesHref from "@shared/app.css?url";
 import { AuthProvider } from "@pages/components/integrations/auth/AuthContext";
-import { EnvironmentProvider } from "@pages/components/IDEselector";
 import { Header } from "@pages/components/Header";
-import PosthogWrapper from "@pages/components/integrations/analytics/PosthogWrapper";
-import { BotIdClient } from "botid/client";
 
 export const links: Route.LinksFunction = () => [
   { rel: "stylesheet", href: appStylesHref },
@@ -30,15 +27,6 @@ export const links: Route.LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const protectedRoutes = [
-    { path: "/api/botid", method: "GET" },
-    { path: "/api/animals", method: "POST" },
-    { path: "/api/images", method: "POST" },
-    { path: "/api/chat", method: "POST" },
-    { path: "/api/image-generate", method: "POST" },
-    { path: "/api/email", method: "POST" },
-    { path: "/api/uploadthing", method: "POST" },
-  ];
   return (
     <html lang="en">
       <head>
@@ -46,17 +34,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
-        {import.meta.env.PROD && <BotIdClient protect={protectedRoutes} />}
       </head>
       <body className="bg-gray-50 dark:bg-gray-900">
-        <PosthogWrapper apiKey={POSTHOG_KEY} host={POSTHOG_HOST}>
-          <AuthProvider>
-            <EnvironmentProvider>
-              <Header />
-              {children}
-            </EnvironmentProvider>
-          </AuthProvider>
-        </PosthogWrapper>
+        <AuthProvider>
+          <Header />
+          {children}
+        </AuthProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -95,17 +78,4 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
       )}
     </main>
   );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// PostHog configuration helpers – avoid runtime 404/401 when env not set
-// ─────────────────────────────────────────────────────────────────────────────
-
-const POSTHOG_KEY = import.meta.env.VITE_PUBLIC_POSTHOG_KEY ?? "";
-const POSTHOG_HOST = import.meta.env.VITE_PUBLIC_POSTHOG_HOST ?? "";
-
-// Treat placeholder or empty string as "not configured"
-const isPostHogConfigured =
-  typeof POSTHOG_KEY === "string" &&
-  POSTHOG_KEY.trim() !== "" &&
-  POSTHOG_KEY !== "your_posthog_api_key_here"; 
+} 

@@ -3,12 +3,13 @@ import { uploadsTable } from "@server/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { verify, generateSignedToken } from "@server/utils/visitorToken";
 import { utapi } from "@server/uploadthing";
+import { withLogging } from "@server/utils/logger";
 
-export async function loader({ request }: { request: Request }) {
+async function loaderHandler({ request }: { request: Request }) {
   const cookieName = "anon_token";
   const incomingCookie = request.headers
     .get("cookie")?.split(/;\s*/)
-    .find((c) => c.startsWith(`${cookieName}=`))
+    .find((c: string) => c.startsWith(`${cookieName}=`))
     ?.split("=")[1];
   let token = verify(incomingCookie) ?? null;
   let setCookieHeader: string | null = null;
@@ -31,12 +32,12 @@ export async function loader({ request }: { request: Request }) {
   return new Response(JSON.stringify(images), { headers });
 }
 
-export async function action({ request }: { request: Request }) {
+async function actionHandler({ request }: { request: Request }) {
   if (request.method === "DELETE") {
     const cookieName = "anon_token";
     const incomingCookie = request.headers
       .get("cookie")?.split(/;\s*/)
-      .find((c) => c.startsWith(`${cookieName}=`))
+      .find((c: string) => c.startsWith(`${cookieName}=`))
       ?.split("=")[1];
     const token = verify(incomingCookie) ?? null;
     if (!token) {
@@ -57,4 +58,7 @@ export async function action({ request }: { request: Request }) {
     return new Response(JSON.stringify({ success: true }));
   }
   return new Response(null, { status: 405 });
-} 
+}
+
+export const loader = withLogging(loaderHandler, "images.loader");
+export const action = withLogging(actionHandler, "images.action"); 
