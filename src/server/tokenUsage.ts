@@ -1,8 +1,13 @@
 import { checkBotId } from "botid/server";
+import { canCallIntegrations } from "./utils/auth";
 
 export const tokenUsageRouteHandler = {
   async action({ request }: { request: Request }) {
     try {
+      if (!canCallIntegrations(request)) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+      }
+
       // Basic BotID verification – if bot, ignore request to avoid noisy logs
       const botCheck = import.meta.env.DEV ? { isBot: false } : await checkBotId();
       if (botCheck.isBot) {

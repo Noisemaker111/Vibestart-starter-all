@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { checkBotId } from "botid/server";
 
+import { canCallIntegrations } from "./utils/auth";
+
 const BodySchema = z.object({
   prompt: z.string().min(1, "Prompt required"),
   model: z.string().default("gpt-image-1"),
@@ -15,6 +17,13 @@ export const imageGenerationHandler = {
   async action({ request }: { request: Request }) {
     if (request.method !== "POST") {
       return new Response("Method Not Allowed", { status: 405 });
+    }
+
+    if (!canCallIntegrations(request)) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { "Content-Type": "application/json" } }
+      );
     }
 
     // Block automated abuse of expensive image generation
@@ -37,7 +46,7 @@ export const imageGenerationHandler = {
       });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       return new Response(JSON.stringify({ error: "OpenAI API key missing" }), {
         status: 500,

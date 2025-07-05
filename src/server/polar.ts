@@ -1,10 +1,19 @@
 import { checkBotId } from "botid/server";
 
+import { canCallIntegrations } from "./utils/auth";
+
 // No Zod schema yet; reserved for future validation.
 
 /** Simple ping handler for Polar API connectivity. Optional query param ?mode=products attempts to list products. */
 export const polarRouteHandler = {
   async loader({ request }: { request: Request }) {
+    if (!canCallIntegrations(request)) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     // Reject automated scraping
     const botCheck = import.meta.env.DEV ? { isBot: false } : await checkBotId();
     if (botCheck.isBot) {

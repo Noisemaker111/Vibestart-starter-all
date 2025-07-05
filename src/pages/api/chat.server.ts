@@ -36,7 +36,7 @@ export async function action({ request }: { request: Request }) {
   }
 
   const chosenModel = model || DEFAULT_LLM_MODEL;
-  const apiKey = process.env.VITE_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     return new Response(JSON.stringify({ error: "OpenRouter API key missing" }), {
       status: 500,

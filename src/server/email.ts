@@ -15,9 +15,18 @@ const emailSchema = z.object({
   from: z.string().email().optional().default("onboarding@resend.dev"),
 });
 
+import { canCallIntegrations } from "./utils/auth";
+
 export const emailRouteHandler = {
   async action({ request }: { request: Request }) {
     try {
+      if (!canCallIntegrations(request)) {
+        return new Response(
+          JSON.stringify({ error: "Unauthorized" }),
+          { status: 401, headers: { "Content-Type": "application/json" } }
+        );
+      }
+
       // Verify request is human
       const botCheck = import.meta.env.DEV ? { isBot: false } : await checkBotId();
       if (botCheck.isBot) {

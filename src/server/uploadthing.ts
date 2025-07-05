@@ -5,6 +5,7 @@ import { uploadsTable } from "@server/db/schema";
 import { verify, generateSignedToken } from "@server/utils/visitorToken";
 import { UTApi } from "uploadthing/server";
 import { checkBotId } from "botid/server";
+import { canCallIntegrations } from "./utils/auth";
 
 const f = createUploadthing();
 
@@ -15,7 +16,11 @@ export const uploadRouter = {
   imageUploader: f({
     image: { maxFileSize: "4MB", maxFileCount: 1 },
   })
-    .middleware(async ({ event }) => {
+    .middleware(async ({ req }) => {
+      if (!canCallIntegrations(req)) {
+        throw new Error("Unauthorized");
+      }
+
       // Perform BotID verification to block automated uploads
       const botCheck = import.meta.env.DEV ? { isBot: false } : await checkBotId();
       if (botCheck.isBot) {
@@ -23,7 +28,7 @@ export const uploadRouter = {
       }
 
       const cookieName = "anon_token";
-      const cookieHeader = event.request.headers.get("cookie") ?? "";
+      const cookieHeader = req.headers.get("cookie") ?? "";
       const incomingCookie = cookieHeader
         .split(/;\s*/)
         .find((c: string) => c.startsWith(`${cookieName}=`))?.split("=")[1];
