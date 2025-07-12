@@ -1,6 +1,423 @@
 ---
-description: polar payments docs
+description: Polar Payments Integration docs
 alwaysApply: false
 ---
 
-Ask if the user has the docs for the polar payments docs, if they do, ask them to provide the docs.
+1. Frontend Setup (React + Vite + Tailwind)
+Initial Project Setup
+# Create new Vite React project
+npm create vite@latest my-app -- --template react-ts
+cd my-app
+
+# Install dependencies
+npm install @polar-sh/sdk @polar-sh/checkout
+npm install @supabase/supabase-js
+npm install @vis.gl/react-google-maps
+npm install @headlessui/react @heroicons/react
+npm install react-router-dom
+npm install drizzle-orm postgres
+npm install @effect/core @effect/platform
+
+Vite Configuration
+// vite.config.ts
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  define: {
+    global: 'globalThis',
+  },
+  server: {
+    port: 3000,
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+  },
+})
+
+Environment Variables Setup
+# .env.local
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_POLAR_ACCESS_TOKEN=polar_pat_your_token
+VITE_POLAR_WEBHOOK_SECRET=your_webhook_secret
+VITE_GOOGLE_MAPS_API_KEY=your_maps_key
+VITE_POSTHOG_KEY=your_posthog_key
+DATABASE_URL=postgresql://user:password@localhost:5432/dbname
+
+2. Supabase Integration
+Supabase Client Setup
+// src/lib/supabase.ts
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// Types for your database
+export type Database = {
+  public: {
+    Tables: {
+      profiles: {
+        Row: {
+          id: string
+          email: string
+          full_name: string | null
+          avatar_url: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          email: string
+          full_name?: string | null
+          avatar_url?: string | null
+        }
+        Update: {
+          email?: string
+          full_name?: string | null
+          avatar_url?: string | null
+          updated_at?: string
+        }
+      }
+      // Add other tables as needed
+    }
+  }
+}
+
+Authentication Context
+// src/contexts/AuthContext.tsx
+import React, { createContext, useContext, useEffect, useState } from 'react'
+import { User, Session } from '@supabase/supabase-js'
+import { supabase } from '../lib/supabase'
+
+interface AuthContextType {
+  user: User | null
+  session: Session | null
+  loading: boolean
+  signIn: (email: string, password: string) => Promise<any>
+  signUp: (email: string, password: string) => Promise<any>
+  signOut: () => Promise<void>
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session)
+        setUser(session?.user ?? null)
+        setLoading(false)
+      }
+    )
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const signIn = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    return { data, error }
+  }
+
+  const signUp = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    })
+    return { data, error }
+  }
+
+  const signOut = async () => {
+    await supabase.auth.signOut()
+  }
+
+  return (
+    <AuthContext.Provider value={{
+      user,
+      session,
+      loading,
+      signIn,
+      signUp,
+      signOut,
+    }}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+export const useAuth = () => {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider')
+  }
+  return context
+}
+
+3. Polar Integration
+Polar Client Setup
+// src/lib/polar.ts
+import { Polar } from '@polar-sh/sdk'
+
+export const polar = new Polar({
+  accessToken: import.meta.env.VITE_POLAR_ACCESS_TOKEN,
+  server: 'sandbox', // Change to 'production' when ready
+})
+
+// Helper functions for common operations
+export const createCheckoutSession = async (productId: string, customerId?: string) => {
+  try {
+    const result = await polar.checkouts.create({
+      products: [productId],
+      customerId,
+      successUrl: `${window.location.origin}/success?checkout_id={CHECKOUT_ID}`,
+      customerEmail: customerId ? undefined : 'customer@example.com',
+    })
+    return result
+  } catch (error) {
+    console.error('Error creating checkout session:', error)
+    throw error
+  }
+}
+
+export const getProducts = async () => {
+  try {
+    const result = await polar.products.list({
+      isArchived: false,
+    })
+    return result.items || []
+  } catch (error) {
+    console.error('Error fetching products:', error)
+    throw error
+  }
+}
+
+Embedded Checkout Component
+// src/components/PolarCheckout.tsx
+import React, { useEffect, useState } from 'react'
+import { PolarEmbedCheckout } from '@polar-sh/checkout/embed'
+
+interface PolarCheckoutProps {
+  checkoutUrl: string
+  onSuccess?: (data: any) => void
+  onClose?: () => void
+}
+
+export const PolarCheckout: React.FC<PolarCheckoutProps> = ({
+  checkoutUrl,
+  onSuccess,
+  onClose,
+}) => {
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleCheckout = async () => {
+    setIsLoading(true)
+    try {
+      const checkout = await PolarEmbedCheckout.create(checkoutUrl, 'light')
+      
+      checkout.addEventListener('success', (event) => {
+        console.log('Purchase successful!', event.detail)
+        onSuccess?.(event.detail)
+        setIsLoading(false)
+      })
+
+      checkout.addEventListener('close', () => {
+        onClose?.()
+        setIsLoading(false)
+      })
+
+      checkout.addEventListener('confirmed', () => {
+        console.log('Order confirmed, processing payment')
+      })
+
+    } catch (error) {
+      console.error('Failed to open checkout', error)
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <button
+      onClick={handleCheckout}
+      disabled={isLoading}
+      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
+    >
+      {isLoading ? 'Loading...' : 'Purchase'}
+    </button>
+  )
+}
+
+4. Database Integration with Drizzle ORM
+Database Schema
+// src/db/schema.ts
+import { pgTable, text, timestamp, uuid, integer, boolean, jsonb } from 'drizzle-orm/pg-core'
+
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: text('email').notNull().unique(),
+  fullName: text('full_name'),
+  avatarUrl: text('avatar_url'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+export const orders = pgTable('orders', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id),
+  polarOrderId: text('polar_order_id').unique(),
+  amount: integer('amount'),
+  currency: text('currency'),
+  status: text('status'),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').defaultNow(),
+})
+
+export const subscriptions = pgTable('subscriptions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id),
+  polarSubscriptionId: text('polar_subscription_id').unique(),
+  status: text('status'),
+  currentPeriodStart: timestamp('current_period_start'),
+  currentPeriodEnd: timestamp('current_period_end'),
+  cancelAtPeriodEnd: boolean('cancel_at_period_end').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+})
+
+export const uploads = pgTable('uploads', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id),
+  filename: text('filename').notNull(),
+  url: text('url').notNull(),
+  size: integer('size'),
+  mimeType: text('mime_type'),
+  createdAt: timestamp('created_at').defaultNow(),
+})
+
+Database Connection
+// src/db/index.ts
+import { drizzle } from 'drizzle-orm/postgres-js'
+import postgres from 'postgres'
+import * as schema from './schema'
+
+const connectionString = import.meta.env.VITE_DATABASE_URL || process.env.DATABASE_URL
+
+if (!connectionString) {
+  throw new Error('DATABASE_URL is not set')
+}
+
+const client = postgres(connectionString)
+export const db = drizzle(client, { schema })
+
+// Helper functions
+export const getUserByEmail = async (email: string) => {
+  const result = await db.select().from(schema.users).where(eq(schema.users.email, email))
+  return result[0] || null
+}
+
+export const createUser = async (userData: {
+  email: string
+  fullName?: string
+  avatarUrl?: string
+}) => {
+  const result = await db.insert(schema.users).values(userData).returning()
+  return result[0]
+}
+
+5. API Routes Setup
+Polar Webhook Handler
+// src/api/webhooks/polar.ts
+import { validateEvent, WebhookVerificationError } from '@polar-sh/sdk/webhooks'
+import { db } from '../../db'
+import { orders, subscriptions } from '../../db/schema'
+
+export const handlePolarWebhook = async (request: Request) => {
+  try {
+    const body = await request.text()
+    const headers = Object.fromEntries(request.headers.entries())
+    
+    const event = validateEvent(
+      body,
+      headers,
+      import.meta.env.VITE_POLAR_WEBHOOK_SECRET
+    )
+
+    switch (event.type) {
+      case 'order.created':
+        await handleOrderCreated(event.data)
+        break
+      case 'order.paid':
+        await handleOrderPaid(event.data)
+        break
+      case 'subscription.created':
+        await handleSubscriptionCreated(event.data)
+        break
+      case 'subscription.updated':
+        await handleSubscriptionUpdated(event.data)
+        break
+      default:
+        console.log(`Unhandled event type: ${event.type}`)
+    }
+
+    return new Response('OK', { status: 200 })
+  } catch (error) {
+    if (error instanceof WebhookVerificationError) {
+      return new Response('Unauthorized', { status: 403 })
+    }
+    console.error('Webhook error:', error)
+    return new Response('Internal Server Error', { status: 500 })
+  }
+}
+
+const handleOrderCreated = async (order: any) => {
+  await db.insert(orders).values({
+    polarOrderId: order.id,
+    amount: order.amount,
+    currency: order.currency,
+    status: order.status,
+    metadata: order.metadata,
+  })
+}
+
+const handleOrderPaid = async (order: any) => {
+  await db.update(orders)
+    .set({ status: 'paid' })
+    .where(eq(orders.polarOrderId, order.id))
+}
+
+const handleSubscriptionCreated = async (subscription: any) => {
+  await db.insert(subscriptions).values({
+    polarSubscriptionId: subscription.id,
+    status: subscription.status,
+    currentPeriodStart: new Date(subscription.current_period_start),
+    currentPeriodEnd: new Date(subscription.current_period_end),
+  })
+}
+
+const handleSubscriptionUpdated = async (subscription: any) => {
+  await db.update(subscriptions)
+    .set({
+      status: subscription.status,
+      currentPeriodStart: new Date(subscription.current_period_start),
+      currentPeriodEnd: new Date(subscription.current_period_end),
+      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+    })
+    .where(eq(subscriptions.polarSubscriptionId, subscription.id))
+}
