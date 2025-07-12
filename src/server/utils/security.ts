@@ -49,4 +49,21 @@ export function verify(cookieVal: string | undefined | null): string | null {
   return uuidv4Regex.test(cookieVal) ? cookieVal : null;
 }
 
-export const sign = (token: string): string => token; 
+export const sign = (token: string): string => token;
+
+export function getUserRoleFromRequest(request: Request): "owner" | "admin" | "user" {
+  const authHeader = request.headers.get("authorization") || "";
+  const match = authHeader.match(/^Bearer\s+(.+)$/i);
+  if (!match) return "user";
+  try {
+    const jwt = match[1];
+    const payloadPart = jwt.split(".")[1];
+    const json = Buffer.from(payloadPart, "base64").toString("utf8");
+    const payload = JSON.parse(json);
+    const role = payload?.user_metadata?.role || payload?.app_metadata?.role || payload?.role;
+    if (role === "owner" || role === "admin") return role;
+  } catch {
+    /* ignore invalid token */
+  }
+  return "user";
+} 

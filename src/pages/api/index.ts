@@ -11,6 +11,9 @@ import { polarWebhookRoute } from "@server/integrations/polar-webhook";
 import { imageGenerationHandler } from "@server/integrations/image-generation";
 import { tokenUsageRouteHandler } from "@server/integrations/token-usage";
 import { routeHandler, utapi } from "@server/integrations/uploadthing";
+import { imageGenerationsTable } from "@server/integrations/database";
+import { imageCreditsTable } from "@server/integrations/database";
+import { getUserRoleFromRequest } from "@server/utils/security";
 // (fetch API provides the global Request type)
 
 export async function loader({ request }: { request: Request }) {
@@ -20,8 +23,10 @@ export async function loader({ request }: { request: Request }) {
     case 'animals': return withLogging(animalsLoader, "animals.loader")({ request });
     case 'botid': return withLogging(botidRouteHandler.loader, "botid.loader")({ request });
     case 'chat': return withLogging(chatLoader, "chat.loader")({ request });
+    case 'credits': return withLogging(creditsLoader, "credits.loader")({ request });
     case 'image-generate': return withLogging(imageGenerationHandler.loader, "imageGenerate.loader")({ request });
     case 'images': return withLogging(imagesLoader, "images.loader")({ request });
+    case 'my-generations': return withLogging(myGenerationsLoader, "myGenerations.loader")({ request });
     case 'polar': return withLogging(polarRouteHandler.loader, "polar.loader")({ request });
     case 'uploadthing': return withLogging(routeHandler.loader, "uploadthing.loader")({ request });
     default: return new Response("Not Found", { status: 404 });
@@ -34,9 +39,11 @@ export async function action({ request }: { request: Request }) {
   switch (path) {
     case 'animals': return withLogging(animalsAction, "animals.action")({ request });
     case 'chat': return withLogging(chatAction, "chat.action")({ request });
+    case 'credits': return withLogging(creditsAction, "credits.action")({ request });
     case 'email': return withLogging(emailRouteHandler.action, "email.action")({ request });
     case 'image-generate': return withLogging(imageGenerationHandler.action, "imageGenerate.action")({ request });
     case 'images': return withLogging(imagesAction, "images.action")({ request });
+    // Note: my-generations is GET only at present
     case 'polar/webhook': return withLogging(polarWebhookRoute.action, "polarWebhook.action")({ request });
     case 'polar': return withLogging(polarRouteHandler.action, "polar.action")({ request });
     case 'token-usage': return withLogging(tokenUsageRouteHandler.action, "tokenUsage.action")({ request });
@@ -166,4 +173,117 @@ async function imagesAction({ request }: { request: Request }) {
     return new Response(JSON.stringify({ success: true }));
   }
   return new Response(null, { status: 405 });
-} 
+}
+
+async function myGenerationsLoader({ request }: { request: Request }) {
+  const cookieName = "anon_token";
+  const incomingCookie = request.headers.get("cookie")?.split(/;\s*/).find((c: string) => c.startsWith(`${cookieName}=`))?.split("=")[1];
+  let token = verify(incomingCookie) ?? null;
+  let setCookieHeader: string | null = null;
+  if (!token) {
+    const { id, cookie } = generateSignedToken();
+    token = id;
+    setCookieHeader = `${cookieName}=${cookie}; Path=/; HttpOnly; SameSite=Lax; Max-Age=31536000`;
+  }
+
+  const rows = await db
+    .select({ id: imageGenerationsTable.id, url: imageGenerationsTable.url, prompt: imageGenerationsTable.prompt, created_at: imageGenerationsTable.created_at })
+    .from(imageGenerationsTable)
+    .where(eq(imageGenerationsTable.owner_token, token))
+    .orderBy(desc(imageGenerationsTable.created_at))
+    .limit(50);
+
+  const headers = new Headers({ "Content-Type": "application/json" });
+  if (setCookieHeader) headers.set("Set-Cookie", setCookieHeader);
+  return new Response(JSON.stringify(rows), { headers });
+}
+
+// ────────────────────────────────────────────────────────────────────────────────
+// Credits endpoint – GET returns balance, POST initializes credits based on role
+// ────────────────────────────────────────────────────────────────────────────────
+
+async function creditsLoader({ request }: { request: Request }) {
+  const role = getUserRoleFromRequest(request);
+
+  // Owners have unlimited credits (represented as -1)
+  if (role === "owner") {
+    return new Response(JSON.stringify({ credits: -1 }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const cookieName = "anon_token";
+  const incomingCookie = request.headers
+    .get("cookie")
+    ?.split(/;\s*/)
+    .find((c) => c.startsWith(`${cookieName}=`))
+    ?.split("=")[1];
+  let token = verify(incomingCookie) ?? null;
+  let setCookieHeader: string | null = null;
+  if (!token) {
+    const { id, cookie } = generateSignedToken();
+    token = id;
+    setCookieHeader = `${cookieName}=${cookie}; Path=/; HttpOnly; SameSite=Lax; Max-Age=31536000`;
+  }
+
+  const row = await db
+    .select()
+    .from(imageCreditsTable)
+    .where(eq(imageCreditsTable.owner_token, token))
+    .limit(1);
+  const credits = row[0]?.credits_available ?? 0;
+
+  const headers = new Headers({ "Content-Type": "application/json" });
+  if (setCookieHeader) headers.set("Set-Cookie", setCookieHeader);
+  return new Response(JSON.stringify({ credits }), { headers });
+}
+
+async function creditsAction({ request }: { request: Request }) {
+  if (request.method !== "POST")
+    return new Response("Method Not Allowed", { status: 405 });
+
+  const role = getUserRoleFromRequest(request);
+
+  const cookieName = "anon_token";
+  const incomingCookie = request.headers
+    .get("cookie")
+    ?.split(/;\s*/)
+    .find((c) => c.startsWith(`${cookieName}=`))
+    ?.split("=")[1];
+  let token = verify(incomingCookie) ?? null;
+  let setCookieHeader: string | null = null;
+  if (!token) {
+    const { id, cookie } = generateSignedToken();
+    token = id;
+    setCookieHeader = `${cookieName}=${cookie}; Path=/; HttpOnly; SameSite=Lax; Max-Age=31536000`;
+  }
+
+  const targetCredits = role === "owner" ? -1 : role === "admin" ? 100 : 4;
+
+  const existing = await db
+    .select()
+    .from(imageCreditsTable)
+    .where(eq(imageCreditsTable.owner_token, token))
+    .limit(1);
+
+  if (existing.length === 0) {
+    await db.insert(imageCreditsTable).values({
+      owner_token: token,
+      credits_available: targetCredits,
+    });
+  } else {
+    const current = existing[0].credits_available;
+    if (current < targetCredits) {
+      await db
+        .update(imageCreditsTable)
+        .set({ credits_available: targetCredits })
+        .where(eq(imageCreditsTable.owner_token, token));
+    }
+  }
+
+  const headers = new Headers({ "Content-Type": "application/json" });
+  if (setCookieHeader) headers.set("Set-Cookie", setCookieHeader);
+  return new Response(JSON.stringify({ success: true, credits: targetCredits }), {
+    headers,
+  });
+}

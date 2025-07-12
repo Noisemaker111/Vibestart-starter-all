@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@shared/supabase";
 import { useAuth } from "./AuthContext";
-import { LoginModal } from "@pages/components/LoginModal";
+import { AuthModal } from "@pages/components/AuthModal";
 
 interface Props {
   className?: string;
@@ -9,7 +9,7 @@ interface Props {
 
 /**
  * SignInButton shows a "Log In" button when the user is signed out and a
- * "Log Out" button when signed in. Clicking "Log In" opens the <LoginModal/>
+ * "Log Out" button when signed in. Clicking "Log In" opens the <AuthModal/>
  * component. Clicking "Log Out" signs the user out via Supabase.
  */
 export function SignInButton({ className }: Props) {
@@ -37,7 +37,7 @@ export function SignInButton({ className }: Props) {
       >
         Log In
       </button>
-      <LoginModal open={open} onClose={() => setOpen(false)} />
+      <AuthModal mode="sign-in" open={open} onClose={() => setOpen(false)} />
     </>
   );
 } 

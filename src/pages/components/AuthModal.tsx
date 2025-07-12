@@ -1,12 +1,13 @@
 import { createPortal } from "react-dom";
-import { SignInForm } from "@pages/components/SignInForm";
+import { AuthForm } from "@pages/components/AuthForm";
 
 interface Props {
+  mode: "sign-in" | "sign-up";
   open: boolean;
   onClose: () => void;
 }
 
-export function LoginModal({ open, onClose }: Props) {
+export function AuthModal({ mode, open, onClose }: Props) {
   if (!open) return null;
 
   return createPortal(
@@ -21,8 +22,10 @@ export function LoginModal({ open, onClose }: Props) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white text-center">Sign In</h3>
-        <SignInForm onSuccess={onClose} />
+        <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white text-center">
+          {mode === "sign-up" ? "Sign Up" : "Sign In"}
+        </h3>
+        <AuthForm mode={mode} onSuccess={onClose} />
       </div>
     </div>,
     document.body
