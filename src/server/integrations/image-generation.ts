@@ -1,8 +1,7 @@
 import { z } from "zod";
 import { checkBotId } from "botid/server";
 import { canCallIntegrations } from "../utils/security";
-import { db, imageCreditsTable, imageGenerationsTable } from "@server/integrations/database";
-import { eq } from "drizzle-orm";
+import { getCredits, debitCreditsAndLogGenerations } from "@server/db/queries/image-generation";
 import { verify, generateSignedToken, getUserRoleFromRequest } from "@server/utils/security";
 
 const BodySchema = z.object({
@@ -47,11 +46,7 @@ export const imageGenerationHandler = {
     const role = getUserRoleFromRequest(request);
     const unlimited = role === "owner";
 
-    const existingCreditRows = await db
-      .select()
-      .from(imageCreditsTable)
-      .where(eq(imageCreditsTable.owner_token, ownerToken));
-    const currentCredits = existingCreditRows[0]?.credits_available ?? 0;
+    const currentCredits = unlimited ? Infinity : await getCredits(ownerToken);
 
     if (!unlimited && currentCredits < n) {
       return new Response(
@@ -98,28 +93,8 @@ export const imageGenerationHandler = {
             .filter((u: any): u is string => typeof u === "string")
         : [];
 
-      // Debit credits and log generations in DB within a transaction-like flow
-      await db.transaction(async (tx) => {
-        // Update credits
-        if (!unlimited) {
-          if (existingCreditRows.length === 0) {
-            await tx
-              .insert(imageCreditsTable)
-              .values({ owner_token: ownerToken, credits_available: currentCredits - urls.length });
-          } else {
-            await tx
-              .update(imageCreditsTable)
-              .set({ credits_available: currentCredits - urls.length })
-              .where(eq(imageCreditsTable.owner_token, ownerToken));
-          }
-        }
-
-        // Insert generation records
-        if (urls.length > 0) {
-          const insertValues = urls.map((u) => ({ url: u, prompt, owner_token: ownerToken }));
-          await tx.insert(imageGenerationsTable).values(insertValues);
-        }
-      });
+      // Persist results and debit credits atomically
+      await debitCreditsAndLogGenerations(ownerToken, prompt, urls, unlimited);
 
       const headers = new Headers({ "Content-Type": "application/json" });
       if (setCookieHeader) headers.set("Set-Cookie", setCookieHeader);

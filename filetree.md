@@ -36,6 +36,8 @@ MyFork/
         - index.ts
     - server/
       - db/
+        - queries/
+          - image-generation.ts
         - schema.ts
       - integrations/
         - database.ts

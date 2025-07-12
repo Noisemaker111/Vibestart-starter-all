@@ -66,4 +66,25 @@ export const profilesTable = pgTable('profiles', {
   created_at: timestamp('created_at').defaultNow(),
 });
 export type InsertProfile = typeof profilesTable.$inferInsert;
-export type SelectProfile = typeof profilesTable.$inferSelect; 
+export type SelectProfile = typeof profilesTable.$inferSelect;
+
+// ───────────────────────────────────────────────────────────────
+// Image generation tables
+// ───────────────────────────────────────────────────────────────
+export const imageCreditsTable = pgTable('image_credits', {
+  owner_token: text('owner_token').primaryKey(),
+  credits_available: integer('credits_available').notNull(),
+  updated_at: timestamp('updated_at').notNull().defaultNow(),
+});
+export type InsertImageCredit = typeof imageCreditsTable.$inferInsert;
+export type SelectImageCredit = typeof imageCreditsTable.$inferSelect;
+
+export const imageGenerationsTable = pgTable('image_generations', {
+  id: serial('id').primaryKey(),
+  url: text('url').notNull(),
+  prompt: text('prompt').notNull(),
+  owner_token: text('owner_token').notNull(),
+  created_at: timestamp('created_at').notNull().defaultNow(),
+});
+export type InsertImageGeneration = typeof imageGenerationsTable.$inferInsert;
+export type SelectImageGeneration = typeof imageGenerationsTable.$inferSelect; 
