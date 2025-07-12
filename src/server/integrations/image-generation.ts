@@ -1,13 +1,12 @@
 import { z } from "zod";
 import { checkBotId } from "botid/server";
-
-import { canCallIntegrations } from "./utils/auth";
+import { canCallIntegrations } from "../utils/security";
 
 const BodySchema = z.object({
   prompt: z.string().min(1, "Prompt required"),
   model: z.string().default("gpt-image-1"),
   n: z.number().int().min(1).max(10).optional(),
-  size: z.string().optional(), // e.g., "1024x1024"
+  size: z.string().optional(),
   quality: z.enum(["low", "medium", "high"]).optional(),
   format: z.enum(["png", "jpeg", "webp"]).optional(),
   background: z.enum(["transparent", "opaque", "auto"]).optional(),
@@ -15,72 +14,40 @@ const BodySchema = z.object({
 
 export const imageGenerationHandler = {
   async action({ request }: { request: Request }) {
-    if (request.method !== "POST") {
-      return new Response("Method Not Allowed", { status: 405 });
-    }
-
-    if (!canCallIntegrations(request)) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    // Block automated abuse of expensive image generation
+    if (request.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
+    if (!canCallIntegrations(request)) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
     const botCheck = import.meta.env.DEV ? { isBot: false } : await checkBotId();
-    if (botCheck.isBot) {
-      return new Response(
-        JSON.stringify({ error: "Access denied" }),
-        { status: 403, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
+    if (botCheck.isBot) return new Response(JSON.stringify({ error: "Access denied" }), { status: 403, headers: { "Content-Type": "application/json" } });
     let parsedBody;
     try {
       const bodyJson = await request.json();
       parsedBody = BodySchema.parse(bodyJson);
     } catch (err: any) {
-      return new Response(JSON.stringify({ error: err?.message || "Invalid body" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ error: err?.message || "Invalid body" }), { status: 400, headers: { "Content-Type": "application/json" } });
     }
-
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY ?? (import.meta as any).env?.VITE_OPENAI_API_KEY;
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: "OpenAI API key missing" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "OPENAI_API_KEY env var missing" }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
     }
-
     const { prompt, model, n = 1, size, quality, format, background } = parsedBody;
-
-    const body: Record<string, unknown> = {
-      model,
-      prompt,
-      n,
-    };
+    const body: Record<string, unknown> = { model, prompt, n };
     if (size) body.size = size;
     if (quality) body.quality = quality;
     if (format) body.response_format = format;
     if (background) body.background = background;
-
     try {
       const openaiRes = await fetch("https://api.openai.com/v1/images/generations", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-
       if (!openaiRes.ok) {
         const detail = await openaiRes.text();
         return new Response(detail, { status: openaiRes.status });
       }
-
       const data = await openaiRes.json();
       const urls: string[] = Array.isArray(data?.data)
         ? data.data
@@ -91,22 +58,13 @@ export const imageGenerationHandler = {
             })
             .filter((u: any): u is string => typeof u === "string")
         : [];
-
-      return new Response(JSON.stringify({ raw: data, urls }), {
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ raw: data, urls }), { headers: { "Content-Type": "application/json" } });
     } catch (err: any) {
       console.error("[imageGenerationHandler]", err);
-      return new Response(JSON.stringify({ error: err?.message || "Image generation failed" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ error: err?.message || "Image generation failed" }), { status: 500, headers: { "Content-Type": "application/json" } });
     }
   },
-
   async loader() {
-    return new Response(JSON.stringify({ ok: true }), {
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify({ ok: true }), { headers: { "Content-Type": "application/json" } });
   },
 }; 

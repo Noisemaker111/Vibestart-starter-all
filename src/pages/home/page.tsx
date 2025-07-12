@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import type { Route } from "./+types/page";
-import TestIntegrationsModal from "@pages/home/components/TestIntegrationsModal";
+import TestIntegrationsModal from "@pages/components/TestIntegrationsModal";
 
 export function meta({}: Route.MetaArgs) {
   return [

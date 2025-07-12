@@ -1,0 +1,153 @@
+---
+description: Drizzle ORM + Postgres Integration
+alwaysApply: false
+
+
+---
+
+## 🗄️ Drizzle ORM Integration (PostgreSQL)
+
+### Overview
+
+Drizzle ORM provides type-safe schema definitions, migrations, and queries in TypeScript for PostgreSQL. It integrates seamlessly with modern React/TypeScript stacks like yours and is compatible with serverless and edge environments [(1)](https://orm.drizzle.team/docs/get-started-postgresql)  [(2)](https://orm.drizzle.team) .
+
+---
+
+### Installation
+
+Install Drizzle ORM and the postgres.js driver for PostgreSQL:
+
+```bash
+npm i drizzle-orm postgres
+npm i -D drizzle-kit
+```
+ [(1)](https://orm.drizzle.team/docs/get-started-postgresql) 
+
+---
+
+### Database Connection
+
+Initialize drizzle with the postgres.js driver and export a singleton `db`:
+
+```typescript
+import { drizzle } from 'drizzle-orm/postgres-js';
+const db = drizzle(process.env.DATABASE_URL);
+```
+---
+
+### Defining Tables and Schemas
+
+Use `pgTable` and column helpers from `drizzle-orm/pg-core` to define tables:
+
+```typescript
+import { pgTable, serial, text, integer } from 'drizzle-orm/pg-core';
+
+export const animals = pgTable('animals', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  age: integer('age').notNull(),
+});
+```
+ [(1)](https://orm.drizzle.team/docs/get-started-postgresql)  [(3)](https://orm.drizzle.team/docs/schemas)  [(4)](https://orm.drizzle.team/docs/indexes-constraints) 
+
+---
+
+### Indexes & Constraints
+
+Drizzle ORM supports indexes, unique indexes, and constraints:
+
+```typescript
+import { serial, text, index, uniqueIndex, pgTable } from "drizzle-orm/pg-core";
+export const user = pgTable("user", {
+  id: serial("id").primaryKey(),
+  name: text("name"),
+  email: text("email"),
+}, (table) => [
+  index("name_idx").on(table.name),
+  uniqueIndex("email_idx").on(table.email)
+]);
+```
+ [(5)](https://orm.drizzle.team/docs/indexes-constraints)  [(4)](https://orm.drizzle.team/docs/indexes-constraints) 
+
+#### Supported Constraints
+
+- **Default**: `.default(value)`
+- **Not Null**: `.notNull()`
+- **Unique**: `.unique()`
+- **Primary Key**: `.primaryKey()`
+- **Composite Primary Key**: `primaryKey({ columns: [...] })`
+- **Foreign Key**: `.references(() => otherTable.column)` or `foreignKey({ columns, foreignColumns })`
+- **Check**: `check("constraint_name", sql\`expression\`)`
+
+See the [Indexes & Constraints docs](https://orm.drizzle.team/docs/indexes-constraints) for more.
+
+---
+
+### Using Schemas/Namespaces (PostgreSQL)
+
+To use a database schema (namespace):
+
+```typescript
+import { serial, text, pgSchema } from "drizzle-orm/pg-core";
+export const mySchema = pgSchema("my_schema");
+export const colors = mySchema.enum('colors', ['red', 'green', 'blue']);
+export const mySchemaUsers = mySchema.table('users', {
+  id: serial('id').primaryKey(),
+  name: text('name'),
+  color: colors('color').default('red'),
+});
+```
+ [(3)](https://orm.drizzle.team/docs/schemas) 
+
+---
+
+### Advanced Column Types and JSONB
+
+Drizzle supports advanced types and type-safe JSONB access (see [Type safety on JSONB fields from PostgreSQL](https://github.com/drizzle-team/drizzle-orm/discussions/386)) [(6)](https://github.com/drizzle-team/drizzle-orm/discussions/386) .
+
+---
+
+### Querying Data
+
+You can use the Drizzle query builder for type-safe SQL:
+
+```typescript
+const users = await db.select().from(user).where(eq(user.id, 1));
+```
+ [(1)](https://orm.drizzle.team/docs/get-started-postgresql)  [(2)](https://orm.drizzle.team) 
+
+---
+
+### Migrations
+
+Use Drizzle Kit for migrations:
+
+```bash
+npx drizzle-kit generate:pg --out ./drizzle
+npx drizzle-kit migrate:pg
+```
+ [(2)](https://orm.drizzle.team) 
+
+---
+
+### Zod Validation
+
+Generate Zod schemas from Drizzle tables for runtime validation ([drizzle-zod docs](https://orm.drizzle.team/docs/zod)).
+
+---
+
+### Example Integration Pattern
+
+- Define your tables and schemas in a single file/module.
+- Export a singleton `db` object and all table definitions.
+- Use Zod schemas generated from your Drizzle table schemas for validating API input/output.
+- Secure endpoints with your existing security utilities.
+
+---
+
+### References
+
+- [Drizzle <> PostgreSQL](https://orm.drizzle.team/docs/get-started-postgresql)
+- [Table schemas](https://orm.drizzle.team/docs/schemas)
+- [Indexes & Constraints](https://orm.drizzle.team/docs/indexes-constraints)
+- [Drizzle ORM Documentation](https://orm.drizzle.team)

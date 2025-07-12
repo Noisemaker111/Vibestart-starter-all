@@ -1,6 +1,6 @@
 import React from "react";
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
-import { getGoogleMapsApiKey } from "@pages/utils/googleMaps";
+import { getGoogleMapsApiKey } from "@shared/constants";
 
 interface BasicGoogleMapProps {
   /** Google Maps API key (falls back to global GOOGLE_MAPS_API_KEY if omitted) */

@@ -8,7 +8,7 @@ import {
 } from "react-router";
 import type { Route } from "./+types/root";
 import appStylesHref from "@shared/app.css?url";
-import { AuthProvider } from "@pages/components/integrations/auth/AuthContext";
+import { AuthProvider } from "@pages/components/AuthContext";
 import { Header } from "@pages/components/Header";
 
 export const links: Route.LinksFunction = () => [

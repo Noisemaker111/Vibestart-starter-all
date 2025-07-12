@@ -1,5 +1,4 @@
-import { db } from "@server/db";
-import { rateLimitsTable } from "@server/db/schema";
+import { db, rateLimitsTable } from "../integrations/database";
 import { eq, lt } from "drizzle-orm";
 
 // ────────────────────────────────────────────────────────────────────────────────

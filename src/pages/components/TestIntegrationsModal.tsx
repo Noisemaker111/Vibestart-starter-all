@@ -2,12 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "@shared/supabase";
 import { Loader2 } from "lucide-react";
-import { useUploadThing } from "@pages/utils/uploadthing";
-import { generateImages } from "@pages/utils/integrationLLM";
+import { useUploadThing, generateImages } from "@pages/utils/index";
 import { APIProvider, useMapsLibrary } from "@vis.gl/react-google-maps";
-import { getGoogleMapsApiKey } from "@pages/utils/googleMaps";
-import { useAuth } from "@pages/components/integrations/auth/AuthContext";
-import { SignInButton } from "@pages/components/integrations/auth/SignInButton";
+import { useAuth } from "@pages/components/AuthContext";
+import { SignInButton } from "@pages/components/SignInButton";
 
 // Clear Tests Event
 export const CLEAR_TESTS_EVENT = "vs-clear-tests";
@@ -527,7 +525,7 @@ export const BotDetectionTest = () => {
 export const MapsAutocompleteTest = () => {
   const [status, setStatus] = useState<"idle" | "ok" | "error">("idle");
   const [selected, setSelected] = useState<any>(null);
-  const API_KEY = getGoogleMapsApiKey();
+  const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   const AutocompleteField = () => {
     const inputRef = useRef<HTMLInputElement>(null);
